@@ -295,3 +295,46 @@ chiudeva (in CI sarebbe rimasto appeso).
 
 Da fare in seduta 8: pipeline delle foto (URL firmati per il caricamento, quarantena, worker che
 toglie i dati EXIF/GPS, crea le versioni WebP e il blurhash).
+
+### Seduta 8 — 2026-10-05
+
+Fatto (API + worker):
+- **Archivio delle foto compatibile S3** (`app/storage.py`): bucket privato; il telefono carica
+  direttamente sull'archivio con un POST firmato che contiene i limiti (solo il tipo dichiarato,
+  massimo 15 MB, scade in 15 minuti); le foto si leggono solo con URL firmati a scadenza (1 ora).
+  Funziona con Cloudflare R2, S3, MinIO (docker compose) e moto_server in locale.
+- **Quarantena**: ogni foto arriva in `quarantine/<id>` e non è visibile a nessuno finché il
+  worker non l'ha controllata. L'originale viene **sempre cancellato** dopo l'elaborazione.
+- **Worker Arq** (`uv run arq app.worker.WorkerSettings`) che per ogni foto:
+  - legge solo l'intestazione e rifiuta le "bombe di decompressione" (oltre 40 megapixel) senza
+    decodificarle; accetta solo JPEG/PNG/WebP riconosciuti dal contenuto;
+  - applica la rotazione EXIF, converte i colori in sRGB, poi **ricodifica da zero**: posizione
+    GPS, modello del telefono, data e ogni altro metadato non arrivano mai online;
+  - rifiuta foto troppo piccole (lato < 320 px) o troppo strette/larghe (oltre 1:2 o 2:1);
+  - crea le versioni WebP a 1080, 640 e 320 px (mai ingrandite), il blurhash per l'anteprima
+    sfocata, l'impronta SHA-256 e un hash percettivo (per ritrovare copie nella moderazione);
+  - passa la foto al controllo di moderazione (interfaccia pronta, si riempie nella seduta 16):
+    una foto bloccata non esce mai dalla quarantena.
+- Endpoint: `POST /v1/media/uploads`, `POST /v1/media/uploads/{id}/complete`,
+  `GET /v1/media/uploads/{id}`, `DELETE /v1/media/uploads/{id}`; foto altrui invisibili;
+  massimo 20 caricamenti in sospeso e 60 all'ora.
+- Pulizia automatica (ogni 30 minuti): caricamenti mai completati dopo 24 ore, foto mai usate in
+  un post dopo 7 giorni.
+- Migrazione 0006 (`app.media_uploads`), `python -m app.storage_init` per creare il bucket in locale.
+- BlurHash scritto in casa e verificato contro la libreria di riferimento (quella rischiava di
+  rompersi con Pillow 14).
+
+Prova reale in locale con archivio S3, Redis e worker: foto da 12 megapixel con GPS → pronta in
+meno di un secondo di lavoro, tre versioni WebP senza alcun metadato.
+
+Verifiche: 186 test API (+31: rifiuti, rotazione, GPS, bombe, upload HTTP vero sull'archivio,
+URL senza firma rifiutati, moderazione che blocca, pulizia); ruff, mypy, tsc puliti;
+nessuna vulnerabilità nota nelle dipendenze.
+
+Note:
+- Arq richiede redis-py 5.x: la libreria è scesa da 8.1 a 5.3 (nessun impatto, test verdi).
+- Quale archivio in produzione (Cloudflare R2 o lo Storage di Supabase, entrambi S3) si decide
+  con l'infrastruttura (seduta 23).
+
+Da fare in seduta 9: post lato server (creazione con le foto pronte, capi con brand/prezzo/link,
+modifica, eliminazione) e la suite di test di autorizzazione.

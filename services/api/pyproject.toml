@@ -16,6 +16,9 @@ dependencies = [
   "pyjwt[crypto]>=2.9",
   "httpx>=0.27",
   "python-multipart>=0.0.20",
+  "boto3>=1.35",
+  "arq>=0.26",
+  "pillow>=11",
 ]
 
 [dependency-groups]
@@ -25,6 +28,8 @@ dev = [
   "httpx>=0.27",
   "ruff>=0.6",
   "mypy>=1.11",
+  "moto[s3,server]>=5",
+  "blurhash-python>=1.2",
 ]
 
 [tool.pytest.ini_options]
@@ -52,6 +57,11 @@ ignore = ["S101"]  # assert nei test
 strict = true
 plugins = ["pydantic.mypy"]
 exclude = ["migrations/"]
+
+[[tool.mypy.overrides]]
+# Librerie senza tipi: l'uso è racchiuso in app/storage.py e app/media/.
+module = ["boto3.*", "botocore.*", "blurhash.*", "moto.*"]
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["tests.*"]

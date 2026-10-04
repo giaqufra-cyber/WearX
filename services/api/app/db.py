@@ -2,6 +2,7 @@
 che Supabase non espone tramite le sue API automatiche (PostgREST)."""
 
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -39,6 +40,15 @@ async def dispose_engine() -> None:
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:
+    get_engine()
+    assert _sessionmaker is not None
+    async with _sessionmaker() as session:
+        yield session
+
+
+@asynccontextmanager
+async def session_scope() -> AsyncIterator[AsyncSession]:
+    """Sessione fuori dalle richieste HTTP (worker, job pianificati)."""
     get_engine()
     assert _sessionmaker is not None
     async with _sessionmaker() as session:

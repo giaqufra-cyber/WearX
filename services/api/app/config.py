@@ -48,6 +48,21 @@ class Settings(BaseSettings):
     # Indirizzo pubblico dell'API (serve alla pagina di prova del fornitore finto).
     public_api_url: str = "http://localhost:8000"
 
+    # Archivio delle foto, compatibile S3 (Cloudflare R2 / S3 in produzione, MinIO o
+    # moto_server in locale). Bucket PRIVATO: le foto si leggono solo con URL firmati.
+    storage_endpoint_url: str | None = "http://localhost:9000"
+    # Indirizzo che il telefono usa per caricare/leggere (se diverso da quello interno).
+    storage_public_url: str | None = None
+    storage_region: str = "us-east-1"
+    storage_bucket: str = "wearx-media"
+    storage_access_key: str = "wearx"
+    storage_secret_key: SecretStr = Field(default=SecretStr("wearx-local-only"))
+    # Limiti del caricamento.
+    upload_max_bytes: int = 15 * 1024 * 1024
+    upload_url_ttl_seconds: int = 900
+    media_url_ttl_seconds: int = 3600
+    max_pending_uploads: int = 20
+
     # Versione dei termini che l'app mostra in registrazione.
     terms_version: str = "2026-10"
 
@@ -94,4 +109,7 @@ def get_settings() -> Settings:
     age_secret = settings.age_webhook_secret.get_secret_value()
     if settings.is_production and age_secret.startswith("local-"):
         raise RuntimeError("WEARX_AGE_WEBHOOK_SECRET non impostato in produzione")
+    storage_secret = settings.storage_secret_key.get_secret_value()
+    if settings.is_production and storage_secret.startswith("wearx-local"):
+        raise RuntimeError("WEARX_STORAGE_SECRET_KEY non impostato in produzione")
     return settings

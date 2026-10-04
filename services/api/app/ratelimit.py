@@ -14,7 +14,7 @@ import logging
 import math
 import time
 from collections.abc import Awaitable, Callable
-from typing import Literal
+from typing import Any, Literal, cast
 
 from fastapi import Request
 from redis.exceptions import RedisError
@@ -50,7 +50,8 @@ async def hit(name: str, subject: str, limit: int, window_seconds: int) -> None:
     key_now = f"rl:{name}:{subject}:{window}"
     key_prev = f"rl:{name}:{subject}:{window - 1}"
     try:
-        result = await get_redis().eval(_SCRIPT, 2, key_now, key_prev, window_seconds * 1000)
+        pending = get_redis().eval(_SCRIPT, 2, key_now, key_prev, str(window_seconds * 1000))
+        result = await cast(Awaitable[list[Any]], pending)
     except RedisError:
         logger.warning("Redis non disponibile: limite non applicato", extra={"limit": name})
         return

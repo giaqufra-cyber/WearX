@@ -14,6 +14,8 @@ export type Profile = Schemas["ProfileOut"];
 export type ProfileUpdate = Schemas["ProfileUpdateIn"];
 export type OnboardingRequest = Schemas["OnboardingIn"];
 export type NicknameCheck = Schemas["NicknameCheckOut"];
+export type MediaUpload = Schemas["UploadOut"];
+export type MediaUploadRequest = Schemas["UploadIn"];
 export type StyleCard = Schemas["StyleCard"];
 export type StyleDetail = Schemas["StyleDetail"];
 export type StyleList = Schemas["StyleList"];
@@ -42,6 +44,10 @@ export type ApiErrorCode =
   | "age.underage"
   | "age.verification_required"
   | "feature.disabled"
+  | "media.not_found"
+  | "media.not_uploaded"
+  | "media.too_large"
+  | "media.too_many_pending"
   | "nickname.invalid"
   | "nickname.reserved"
   | "nickname.taken"
