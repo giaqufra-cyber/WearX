@@ -9,7 +9,7 @@ fondatore (account, pagamenti, documenti legali) lo dicono nella colonna "Serve 
 | 1 | Fondamenta | Monorepo, design token, API con /v1/config, schema DB completo con RLS, app con 4 tab che legge gli stili, CI | Repository GitHub vuoto |
 | 2 | Autenticazione backend | Verifica JWT Supabase, /v1/me, nickname-check, onboarding/profile, limiti di frequenza Redis | Progetto Supabase (UE) |
 | 3 | Design system app | Button, Chip, Input, Toggle, Toast, Skeleton, Sheet + test dei componenti (jest-expo) | — |
-| 4 | Registrazione nell'app | Splash, form di registrazione con validazione (età < 16 bloccata), OTP, login | — |
+| 4 | Registrazione nell'app | Splash, form di registrazione con validazione (età < 16 bloccata), OTP, login | Impostazioni Supabase (modello email con codice) |
 | 5 | Verifica dell'età | Astrazione fornitore + fornitore finto per i test, webhook firmato, schermate verifica / tipo profilo / stili | Scelta del fornitore (D5) |
 | 6 | Stili (backend) | Ricerca trigram, pagina stile, adesioni, regole di età sugli stili | — |
 | 7 | Stili (app) | Esplora con ricerca, pagina stile, Aderisci | — |
@@ -92,7 +92,7 @@ Scelte e differenze rispetto alla specifica:
 - Log su stderr invece che stdout.
 
 Da fare in seduta 3: design system dell'app (componenti + test con jest-expo).
-Serve da te prima della seduta 4: progetto Supabase gratuito in regione Francoforte.
+Serve da te prima della seduta 4: progetto Supabase gratuito in regione UE.
 
 ### Seduta 3 — 2026-10-04
 
@@ -121,4 +121,56 @@ Note tecniche:
 - RNTL v14: render ed eventi sono asincroni (`await`), i timer finti vanno fatti avanzare in `act`.
 
 Da fare in seduta 4: schermate di registrazione e login collegate a Supabase.
-Serve da te prima della seduta 4: progetto Supabase gratuito in regione Francoforte.
+Serve da te prima della seduta 4: progetto Supabase gratuito in regione UE.
+
+### Seduta 4 — 2026-10-04
+
+Fatto:
+- Progetto Supabase collegato: `https://alcpqfphwygpktrcyauu.supabase.co`, regione **West EU
+  (Irlanda)**. Va bene per il GDPR (UE); la specifica diceva Francoforte: vale l'Irlanda.
+  Le chiavi JWT del progetto sono ES256 pubblicate su JWKS: compatibili con la verifica dell'API.
+- Nell'app c'è solo la chiave *publishable* (pubblica per definizione). `src/lib/env.ts` si
+  rifiuta di partire se qualcuno ci mette una chiave `service_role`/`sb_secret_`.
+- Sessione salvata cifrata (`src/lib/secureStorage.ts`): chiave AES-256 nuova a ogni scrittura nel
+  portachiavi del telefono (Keychain/Keystore, solo questo dispositivo), testo cifrato in
+  AsyncStorage. Rinnovo del token solo con l'app in primo piano.
+- Navigazione protetta (`Stack.Protected`): un solo gruppo raggiungibile alla volta, deciso da
+  `decideRoute` (sessione + `GET /v1/me`): `(auth)` → `(onboarding)` → `(tabs)`, più `offline`
+  e `suspended`. Un indirizzo protetto aperto da fuori rimanda al benvenuto (verificato sul web).
+- Schermate: benvenuto (come il prototipo), registrazione (nickname controllato dal vivo con
+  pausa di battitura, email, password con robustezza + controllo violazioni Have I Been Pwned in
+  k-anonymity, data di nascita con blocco sotto i 16 anni, due consensi), codice a 6 cifre con
+  reinvio dopo 60 s, accesso, segnaposto della verifica età, offline con "Riprova", account sospeso.
+  Pulsante "Esci" nel profilo. Screenshot: `docs/screens/seduta-04-accesso.png`.
+- Privacy: la data di nascita resta solo in memoria (serve alla seduta 5) e non arriva a Supabase;
+  il nickname va nei metadati solo come promemoria (il profilo nasce dopo la verifica dell'età).
+  Se un'email è già registrata l'app non lo dice (niente enumerazione degli account).
+- Registrazione col telefono pronta ma spenta (`EXPO_PUBLIC_PHONE_SIGNUP=1` per accenderla) finché
+  non c'è un fornitore SMS.
+- `services/api/.env.example`: `WEARX_SUPABASE_URL` del progetto.
+
+Verifiche: 77 test app (+38: instradamento, modulo, k-anonymity, archivio cifrato, errori,
+schermate con Supabase finto, nickname con pausa) + 89 test API; tsc pulito; bundle Android
+compilato; schermate controllate a 390x844. Il controllo a schermo ha trovato un difetto del
+TextField (non si restringeva sotto la sua larghezza naturale: giorno/mese/anno uscivano dallo
+schermo): corretto con `minWidth: 0`.
+
+Note tecniche:
+- `Stack.Protected` con `redirectTo` esiste solo da SDK 58: qui si usa l'ordine dei gruppi +
+  `unstable_settings.initialRouteName`.
+- Il container di sviluppo non raggiunge supabase.co: la registrazione vera si prova sul telefono.
+  Sul telefono l'API deve essere raggiungibile (`EXPO_PUBLIC_API_URL`), altrimenti dopo il codice
+  compare la schermata "offline": è atteso finché l'API non è online (seduta 23).
+- Da fare più avanti: recupero password (seduta 20), schermata "aggiorna l'app" per il 426 (seduta 22).
+
+Serve da te (dashboard Supabase, 5 minuti):
+1. Authentication → Emails → "Confirm signup": il testo deve contenere `{{ .Token }}` (il codice a
+   6 cifre). Esempio: «Il tuo codice WearX è {{ .Token }}. Scade tra un'ora.» Lunghezza del codice
+   (Email OTP Length) a 6 cifre, scadenza 3600 s.
+2. Authentication → Sign In / Providers → Email: "Confirm email" attivo; password minima 10
+   caratteri con minuscole, maiuscole, numeri e simboli.
+3. Prima della beta: SMTP personalizzato (il mittente di prova di Supabase manda pochissime email
+   all'ora).
+
+Da fare in seduta 5: verifica dell'età (fornitore astratto + finto per i test, webhook firmato),
+schermate tipo di profilo e stili, creazione del profilo.

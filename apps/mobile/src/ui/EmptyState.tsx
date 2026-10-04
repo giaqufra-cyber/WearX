@@ -17,12 +17,18 @@ export function EmptyState({ title, body, action }: Props) {
         {title}
       </Text>
       {body ? <Text style={styles.body}>{body}</Text> : null}
-      {action ? <Button label={action.label} onPress={action.onPress} variant="secondary" size="md" /> : null}
+      {action ? (
+        // Il pulsante si allinea a sinistra di suo: il contenitore lo riporta al centro.
+        <View style={styles.action}>
+          <Button label={action.label} onPress={action.onPress} variant="secondary" size="md" />
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  action: { alignItems: "center", marginTop: spacing[1] },
   wrap: { alignItems: "center", paddingVertical: spacing[8] * 1.5, paddingHorizontal: spacing[6], gap: spacing[3] },
   title: { fontFamily: fonts.display, fontSize: 24, color: colors.text, textAlign: "center" },
   body: { fontFamily: fonts.ui, fontSize: 14, lineHeight: 21, color: colors.textSecondary, textAlign: "center" },

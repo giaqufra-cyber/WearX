@@ -119,7 +119,11 @@ const styles = StyleSheet.create({
   prefix: { fontFamily: fonts.ui, fontSize: fontSizes.input, color: colors.textTertiary, marginRight: 2 },
   input: {
     flex: 1,
+    // Senza minWidth 0 il campo non si restringe sotto la sua larghezza "naturale" (es. giorno/mese/anno affiancati).
+    minWidth: 0,
     minHeight: 50,
+    // Il bordo del riquadro indica già il focus: niente contorno del browser sul web.
+    outlineWidth: 0,
     fontFamily: fonts.ui,
     fontSize: fontSizes.input,
     color: colors.text,

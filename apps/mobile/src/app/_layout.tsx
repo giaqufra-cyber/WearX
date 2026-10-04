@@ -19,6 +19,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 
+import { AuthProvider, useAuth } from "@/features/auth/AuthProvider";
+import type { AppRoute } from "@/features/auth/routing";
 import { ToastProvider } from "@/ui/Toast";
 
 void SplashScreen.preventAutoHideAsync();
@@ -59,30 +61,59 @@ export default function RootLayout() {
     ArchivoExpanded_900: require("../../assets/fonts/ArchivoExpanded-900.ttf"),
   });
 
-  useEffect(() => {
-    // Se un font non carica si mostra comunque l'app con i font di sistema.
-    if (fontsLoaded || fontError) {
-      void SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError]);
-
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
+  // Se un font non carica si mostra comunque l'app con i font di sistema.
+  const fontsReady = fontsLoaded || Boolean(fontError);
 
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={navigationTheme}>
         <ToastProvider>
           <StatusBar style="light" />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: colors.background },
-            }}
-          />
+          <AuthProvider>{fontsReady ? <RootNavigator /> : null}</AuthProvider>
         </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
+  );
+}
+
+type ShownRoute = Exclude<AppRoute, "loading">;
+
+/**
+ * Un solo gruppo di schermate è raggiungibile alla volta, in base allo stato di accesso.
+ * Durante i caricamenti brevi (es. subito dopo l'accesso) resta visibile la schermata precedente;
+ * al primo avvio resta lo splash finché non si sa dove andare.
+ */
+function RootNavigator() {
+  const { route } = useAuth();
+  const [shown, setShown] = useState<ShownRoute | null>(null);
+  if (route !== "loading" && route !== shown) setShown(route);
+
+  useEffect(() => {
+    if (shown) void SplashScreen.hideAsync();
+  }, [shown]);
+
+  if (!shown) return null;
+
+  return (
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+      <Stack.Protected guard={shown === "app"}>
+        <Stack.Screen name="(tabs)" />
+      </Stack.Protected>
+      <Stack.Protected guard={shown === "auth"}>
+        <Stack.Screen name="(auth)" />
+      </Stack.Protected>
+      <Stack.Protected guard={shown === "onboarding"}>
+        <Stack.Screen name="(onboarding)" />
+      </Stack.Protected>
+      <Stack.Protected guard={shown === "offline"}>
+        <Stack.Screen name="offline" />
+      </Stack.Protected>
+      <Stack.Protected guard={shown === "suspended"}>
+        <Stack.Screen name="suspended" />
+      </Stack.Protected>
+      <Stack.Protected guard={__DEV__}>
+        <Stack.Screen name="dev/ui" />
+      </Stack.Protected>
+    </Stack>
   );
 }

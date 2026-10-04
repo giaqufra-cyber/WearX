@@ -7,7 +7,9 @@
  */
 import Constants from "expo-constants";
 
-export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000";
+import { env } from "@/lib/env";
+
+export const API_URL = env.apiUrl;
 export const APP_VERSION = Constants.expoConfig?.version ?? "0.0.0";
 
 export class ApiError extends Error {

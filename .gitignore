@@ -31,3 +31,6 @@ GoogleService-Info.plist
 
 # OS
 .DS_Store
+
+# Redis locale
+dump.rdb
