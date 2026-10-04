@@ -112,8 +112,9 @@ async def test_onboarding_requires_age_verification(client, keys, db_admin):
 async def test_failed_or_pending_verification_is_not_enough(client, keys, db_admin):
     user_id = create_auth_user(db_admin)
     db_admin.execute(
-        "insert into app.age_verifications (user_id, method, status, provider) values "
-        "(%s, 'selfie_estimation', 'failed', 'test'), (%s, 'id_document', 'pending', 'test')",
+        "insert into app.age_verifications (user_id, method, status, provider, failure_reason) "
+        "values (%s, 'selfie_estimation', 'failed', 'test', 'not_completed'), "
+        "(%s, 'id_document', 'pending', 'test', null)",
         (user_id, user_id),
     )
     r = await client.post(

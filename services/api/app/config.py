@@ -36,6 +36,18 @@ class Settings(BaseSettings):
     # è raggiungibile esclusivamente attraverso il proxy, altrimenti l'header è falsificabile.
     trust_proxy_headers: bool = False
 
+    # Verifica dell'età (sez. 11.2). Il fornitore vero si sceglie con la decisione D5;
+    # "fake" simula il fornitore (pagina di prova + webhook firmato) e in produzione è vietato.
+    age_provider: Literal["fake"] = "fake"
+    # Segreto condiviso con il fornitore per firmare i webhook (HMAC-SHA256).
+    age_webhook_secret: SecretStr = Field(default=SecretStr("local-only-age-webhook"))
+    # Tolleranza sul timestamp della firma: oltre, il webhook è rifiutato (anti-replay).
+    age_webhook_tolerance_seconds: int = 300
+    # Una verifica non completata entro questo tempo scade.
+    age_session_ttl_seconds: int = 3600
+    # Indirizzo pubblico dell'API (serve alla pagina di prova del fornitore finto).
+    public_api_url: str = "http://localhost:8000"
+
     # Versione dei termini che l'app mostra in registrazione.
     terms_version: str = "2026-10"
 
@@ -54,6 +66,16 @@ class Settings(BaseSettings):
         return self.env == "production"
 
     @property
+    def age_return_schemes(self) -> tuple[str, ...]:
+        """Indirizzi a cui il fornitore può riportare l'utente (niente redirect aperti)."""
+        if self.env in ("staging", "production"):
+            return ("wearx://",)
+        # exp:// è Expo Go; localhost:8081 l'anteprima web: solo per lo sviluppo.
+        if self.env == "dev":
+            return ("wearx://", "exp://")
+        return ("wearx://", "exp://", "http://localhost:8081/")
+
+    @property
     def jwt_issuer(self) -> str:
         return f"{self.supabase_url.rstrip('/')}/auth/v1"
 
@@ -67,4 +89,9 @@ def get_settings() -> Settings:
     settings = Settings()
     if settings.is_production and settings.vote_pepper.get_secret_value().startswith("local-"):
         raise RuntimeError("WEARX_VOTE_PEPPER non impostato in produzione")
+    if settings.is_production and settings.age_provider == "fake":
+        raise RuntimeError("WEARX_AGE_PROVIDER: il fornitore finto non è ammesso in produzione")
+    age_secret = settings.age_webhook_secret.get_secret_value()
+    if settings.is_production and age_secret.startswith("local-"):
+        raise RuntimeError("WEARX_AGE_WEBHOOK_SECRET non impostato in produzione")
     return settings

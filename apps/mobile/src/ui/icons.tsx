@@ -1,6 +1,6 @@
 /** Icone a tratto del prototipo (24×24, tratto 1.7). Mai emoji come icone. */
 import type { ColorValue } from "react-native";
-import Svg, { Circle, Path } from "react-native-svg";
+import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 type IconProps = { color: ColorValue; size?: number };
 
@@ -96,6 +96,47 @@ export function IconShield({ color, size = 20 }: IconProps) {
       strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
       <Path d="M8.5 12l2.5 2.5 4.5-5" />
+    </Svg>
+  );
+}
+
+export function IconFaceScan({ color, size = 22 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <Circle cx={12} cy={10} r={4} />
+      <Path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3" />
+    </Svg>
+  );
+}
+
+export function IconIdCard({ color, size = 22 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <Rect x={3} y={5} width={18} height={14} rx={2} />
+      <Circle cx={9} cy={12} r={2.5} />
+      <Path d="M14 10h4M14 14h3" />
+    </Svg>
+  );
+}
+
+export function IconDocument({ color, size = 22 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M6 3h9l4 4v14H6z" />
+      <Path d="M15 3v4h4M9 12h7M9 16h5" />
+    </Svg>
+  );
+}
+
+export function IconLock({ color, size = 16 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Rect x={5} y={11} width={14} height={10} rx={2} />
+      <Path d="M8 11V7a4 4 0 0 1 8 0v4" />
     </Svg>
   );
 }

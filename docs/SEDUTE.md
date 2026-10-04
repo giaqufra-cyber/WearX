@@ -32,6 +32,19 @@ fondatore (account, pagamenti, documenti legali) lo dicono nella colonna "Serve 
 | 24 | Qualità | Test E2E Maestro, test di carico k6, audit accessibilità, testi completi | — |
 | 25 | Beta | Build EAS, TestFlight e Play test interno, runbook | Account Apple (99 $/anno) e Google Play (25 $) |
 
+## Prima di far provare l'app ad altri (obbligatorio)
+
+Promemoria fissi: senza questi punti l'app funziona solo per il fondatore.
+
+- [ ] **Dominio** (circa 10 €/anno) e **servizio email** collegato a Supabase come SMTP
+      personalizzato. Senza: Supabase manda al massimo 2 email all'ora e solo agli indirizzi
+      del team del progetto.
+- [ ] Con l'SMTP: modello "Confirm signup" con `{{ .Token }}` e `EXPO_PUBLIC_EMAIL_OTP=1`
+      nell'app (conferma con codice a 6 cifre invece del link).
+- [ ] Supabase → Redirect URLs: togliere `exp://**` (resta solo `wearx://**`).
+- [ ] Fornitore vero di verifica dell'età (decisione D5) al posto di quello di prova, con il suo
+      segreto per i webhook (`WEARX_AGE_WEBHOOK_SECRET`).
+
 ## Registro
 
 ### Seduta 1 — 2026-10-04
@@ -185,3 +198,45 @@ Serve da te (dashboard Supabase):
 
 Da fare in seduta 5: verifica dell'età (fornitore astratto + finto per i test, webhook firmato),
 schermate tipo di profilo e stili, creazione del profilo.
+
+### Seduta 5 — 2026-10-04
+
+Fatto:
+- **Verifica dell'età, lato server** (`services/api/app/age/`):
+  - fornitore astratto (`AgeProvider`): il fornitore vero (D5) si aggiunge senza toccare il resto;
+  - fornitore di prova con la sua "pagina del fornitore" (`/v1/dev/fake-age/…`, solo sviluppo,
+    vietato in produzione dalla configurazione) che invia un webhook firmato come uno vero;
+  - webhook firmati HMAC-SHA256 con timestamp (rifiutati se più vecchi di 5 minuti), confronto
+    a tempo costante, rotazione del segreto, ripetizioni ignorate (vale il primo esito);
+  - decisione pura e testata: con documento/SPID/CIE vale la data letta; con la stima da selfie
+    si confronta con la data dichiarata e vince la fascia più protettiva; se non tornano si chiede
+    un documento. "Sotto i 16" blocca per un anno solo se viene da un documento;
+  - endpoint `GET /v1/age-verification`, `POST /v1/age-verification/sessions`,
+    `GET /v1/age-verification/sessions/{id}`, `POST /v1/webhooks/age/{fornitore}`;
+  - indirizzi di ritorno ammessi solo `wearx://` (più `exp://` e l'anteprima web in sviluppo):
+    niente redirect aperti; una sola verifica aperta per volta, scade dopo un'ora; 5 tentativi l'ora.
+  - Migrazione 0004: motivo dell'esito negativo; la data dichiarata esiste solo finché la
+    verifica è aperta (lo impone un vincolo del database). Nessuna foto, documento o data di
+    nascita salvati.
+  - `/v1/config` espone la versione dei termini.
+- **Onboarding nell'app** (passi 2-4 del prototipo): scelta del metodo (SPID/CIE compaiono quando
+  si accende il flag), apertura della pagina del fornitore, attesa dell'esito, tipo di profilo
+  (Business disattivato finché il flag è spento e sempre per i 16-17enni), scelta degli stili (i
+  16-17enni non vedono gli stili 18+), creazione del profilo ed entrata nell'app. Se l'app viene
+  riaperta a metà: data di nascita da reinserire, nickname recuperato dalla registrazione; se nel
+  frattempo il nickname è stato preso si sceglie un altro al volo.
+- Prova completa sull'anteprima web, con server e database veri e fornitore di prova: dalla
+  verifica fino al feed, sia maggiorenne sia 16-17 anni (qui è emerso anche il caso "nickname
+  preso nel frattempo", gestito). Screenshot: `docs/screens/seduta-05-onboarding.png`.
+- Corretto: l'etichetta degli stili ("Stagionale", "18+") finiva al centro del riquadro.
+
+Verifiche: 131 test API (+42) e 101 test app (+15); ruff, mypy, tsc puliti; bundle Android
+compilato.
+
+Note:
+- Per provare la verifica dal telefono con Expo Go, l'API deve essere raggiungibile dal telefono
+  (`WEARX_PUBLIC_API_URL` e `EXPO_PUBLIC_API_URL` con l'IP del computer): arriva con il deploy.
+- Il feed mostra ancora tutti gli stili nelle chip in alto: diventano i tuoi stili con le sedute 6-7.
+
+Da fare in seduta 6: stili lato server (ricerca, pagina stile, entrare/uscire da uno stile,
+regole d'età).

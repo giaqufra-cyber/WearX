@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { StyleSheet, type TextInput, View } from "react-native";
 
 import { AuthHeader } from "@/features/auth/AuthHeader";
+import { BirthDateFields } from "@/features/auth/BirthDateFields";
 import { authErrorMessage } from "@/features/auth/authErrors";
 import { normalizeContact, signUpCredentials } from "@/features/auth/credentials";
 import { emailRedirectUrl } from "@/features/auth/emailLink";
@@ -43,8 +44,6 @@ export default function SignupScreen() {
   const [leakError, setLeakError] = useState<string | null>(null);
   const contactRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
-  const monthRef = useRef<TextInput>(null);
-  const yearRef = useRef<TextInput>(null);
 
   const check = useMemo(() => checkSignup(form, new Date()), [form]);
   const availability = useNicknameAvailability(form.nickname);
@@ -56,7 +55,6 @@ export default function SignupScreen() {
     setFormError(null);
     if ("password" in patch) setLeakError(null);
   };
-  const digits = (value: string) => value.replace(/\D/g, "");
 
   const submit = async () => {
     if (!check.canSubmit || nickBlocked || submitting) return;
@@ -166,52 +164,7 @@ export default function SignupScreen() {
         </View>
 
         <View style={styles.group}>
-          <View style={styles.birthRow}>
-            <View style={styles.birthSmall}>
-              <TextField
-                label="GIORNO"
-                value={form.day}
-                onChangeText={(day) => {
-                  update({ day: digits(day) });
-                  if (digits(day).length === 2) monthRef.current?.focus();
-                }}
-                placeholder="GG"
-                keyboardType="number-pad"
-                maxLength={2}
-                autoComplete="birthdate-day"
-                centered
-              />
-            </View>
-            <View style={styles.birthSmall}>
-              <TextField
-                ref={monthRef}
-                label="MESE"
-                value={form.month}
-                onChangeText={(month) => {
-                  update({ month: digits(month) });
-                  if (digits(month).length === 2) yearRef.current?.focus();
-                }}
-                placeholder="MM"
-                keyboardType="number-pad"
-                maxLength={2}
-                autoComplete="birthdate-month"
-                centered
-              />
-            </View>
-            <View style={styles.birthYear}>
-              <TextField
-                ref={yearRef}
-                label="ANNO"
-                value={form.year}
-                onChangeText={(year) => update({ year: digits(year) })}
-                placeholder="AAAA"
-                keyboardType="number-pad"
-                maxLength={4}
-                autoComplete="birthdate-year"
-                centered
-              />
-            </View>
-          </View>
+          <BirthDateFields value={form} onChange={update} />
           <BirthNote underage={check.underage} ok={check.age !== null && !check.underage && !check.errors.birth} error={check.errors.birth} />
         </View>
 
@@ -275,8 +228,5 @@ const styles = StyleSheet.create({
   lead: { marginBottom: spacing[3] },
   fields: { gap: spacing[5] },
   group: { gap: spacing[2] },
-  birthRow: { flexDirection: "row", gap: spacing[2] },
-  birthSmall: { flex: 1 },
-  birthYear: { flex: 1.6 },
   consents: { gap: spacing[1] },
 });

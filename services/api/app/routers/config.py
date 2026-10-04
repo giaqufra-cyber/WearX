@@ -33,6 +33,8 @@ class LegalLinks(BaseModel):
 
 class ConfigOut(BaseModel):
     min_app_version: str
+    # Versione dei termini da inviare alla creazione del profilo.
+    terms_version: str
     feature_flags: dict[str, bool]
     styles: list[StyleOut]
     legal: LegalLinks
@@ -60,6 +62,7 @@ async def get_config(
     response.headers["Cache-Control"] = "public, max-age=300"
     return ConfigOut(
         min_app_version=settings.min_app_version,
+        terms_version=settings.terms_version,
         feature_flags=settings.feature_flags,
         styles=styles,
         legal=LegalLinks(

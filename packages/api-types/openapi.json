@@ -1,6 +1,167 @@
 {
   "components": {
     "schemas": {
+      "AgeSessionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "declared_birth_date": {
+            "format": "date",
+            "title": "Declared Birth Date",
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "selfie_estimation",
+              "id_document",
+              "spid",
+              "cie"
+            ],
+            "title": "Method",
+            "type": "string"
+          },
+          "return_url": {
+            "title": "Return Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "method",
+          "declared_birth_date",
+          "return_url"
+        ],
+        "title": "AgeSessionIn",
+        "type": "object"
+      },
+      "AgeSessionOut": {
+        "properties": {
+          "age_band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "16_17",
+                  "18_plus"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Band"
+          },
+          "failure_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "underage",
+                  "inconsistent",
+                  "not_completed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reason"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "selfie_estimation",
+              "id_document",
+              "spid",
+              "cie"
+            ],
+            "title": "Method",
+            "type": "string"
+          },
+          "redirect_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redirect Url"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "passed",
+              "failed",
+              "expired"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "method",
+          "status"
+        ],
+        "title": "AgeSessionOut",
+        "type": "object"
+      },
+      "AgeStatusOut": {
+        "properties": {
+          "age_band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "16_17",
+                  "18_plus"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Band"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgeSessionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "methods": {
+            "items": {
+              "enum": [
+                "selfie_estimation",
+                "id_document",
+                "spid",
+                "cie"
+              ],
+              "type": "string"
+            },
+            "title": "Methods",
+            "type": "array"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "verified",
+          "methods"
+        ],
+        "title": "AgeStatusOut",
+        "type": "object"
+      },
       "ConfigOut": {
         "properties": {
           "feature_flags": {
@@ -23,10 +184,15 @@
             },
             "title": "Styles",
             "type": "array"
+          },
+          "terms_version": {
+            "title": "Terms Version",
+            "type": "string"
           }
         },
         "required": [
           "min_app_version",
+          "terms_version",
           "feature_flags",
           "styles",
           "legal"
@@ -411,6 +577,111 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/v1/age-verification": {
+      "get": {
+        "operationId": "age_status_v1_age_verification_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgeStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Age Status",
+        "tags": [
+          "age"
+        ]
+      }
+    },
+    "/v1/age-verification/sessions": {
+      "post": {
+        "operationId": "start_age_session_v1_age_verification_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgeSessionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgeSessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Age Session",
+        "tags": [
+          "age"
+        ]
+      }
+    },
+    "/v1/age-verification/sessions/{verification_id}": {
+      "get": {
+        "operationId": "get_age_session_v1_age_verification_sessions__verification_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "verification_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Verification Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgeSessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Age Session",
+        "tags": [
+          "age"
+        ]
+      }
+    },
     "/v1/auth/nickname-check": {
       "post": {
         "operationId": "nickname_check_v1_auth_nickname_check_post",
@@ -571,6 +842,41 @@
         "summary": "Create Profile",
         "tags": [
           "account"
+        ]
+      }
+    },
+    "/v1/webhooks/age/{provider_name}": {
+      "post": {
+        "operationId": "age_webhook_v1_webhooks_age__provider_name__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider_name",
+            "required": true,
+            "schema": {
+              "title": "Provider Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Age Webhook",
+        "tags": [
+          "age"
         ]
       }
     }

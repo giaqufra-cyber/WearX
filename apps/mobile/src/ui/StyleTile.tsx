@@ -48,14 +48,15 @@ export function StyleTile({
       ]}
     >
       <View style={styles.top}>
-        {meta ? (
-          <Text style={styles.meta} numberOfLines={1}>
-            {meta}
-          </Text>
-        ) : (
-          <View />
-        )}
-        {badge ? <Badge label={badge} /> : null}
+        {/* Riga, etichetta a sinistra; il cerchio di selezione resta sempre a destra. */}
+        <View style={styles.topLeft}>
+          {meta ? (
+            <Text style={styles.meta} numberOfLines={1}>
+              {meta}
+            </Text>
+          ) : null}
+          {badge ? <Badge label={badge} /> : null}
+        </View>
         {selectable ? (
           <View style={[styles.dot, selected ? styles.dotOn : null]}>
             {selected ? <IconCheck color={colors.onAccent} size={14} strokeWidth={3} /> : null}
@@ -87,6 +88,7 @@ const styles = StyleSheet.create({
   selected: { borderColor: colors.accent },
   pressed: { opacity: 0.88 },
   top: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 6 },
+  topLeft: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6, minWidth: 0 },
   meta: { flexShrink: 1, fontFamily: fonts.mono, fontSize: 10, letterSpacing: 1, color: "rgba(242,239,233,0.72)" },
   dot: {
     width: 24,

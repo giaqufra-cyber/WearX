@@ -14,6 +14,10 @@ export type Profile = Schemas["ProfileOut"];
 export type ProfileUpdate = Schemas["ProfileUpdateIn"];
 export type OnboardingRequest = Schemas["OnboardingIn"];
 export type NicknameCheck = Schemas["NicknameCheckOut"];
+export type AgeStatus = Schemas["AgeStatusOut"];
+export type AgeSession = Schemas["AgeSessionOut"];
+export type AgeSessionRequest = Schemas["AgeSessionIn"];
+export type AgeMethod = Schemas["AgeSessionIn"]["method"];
 
 /** Codici di errore stabili restituiti dall'API (campo `code` di problem+json). */
 export type ApiErrorCode =
@@ -25,6 +29,14 @@ export type ApiErrorCode =
   | "auth.unavailable"
   | "account.suspended"
   | "account.business_requires_adult"
+  | "age.already_verified"
+  | "age.bad_return_url"
+  | "age.blocked"
+  | "age.invalid_birth_date"
+  | "age.method_unavailable"
+  | "age.provider_unavailable"
+  | "age.session_not_found"
+  | "age.underage"
   | "age.verification_required"
   | "feature.disabled"
   | "nickname.invalid"
@@ -41,4 +53,6 @@ export type ApiErrorCode =
   | "terms.outdated"
   | "text.invalid_characters"
   | "text.too_long"
-  | "text.too_many_lines";
+  | "text.too_many_lines"
+  | "webhook.rejected"
+  | "webhook.unknown_provider";

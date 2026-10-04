@@ -4,6 +4,57 @@
  */
 
 export interface paths {
+    "/v1/age-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Age Status */
+        get: operations["age_status_v1_age_verification_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/age-verification/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Age Session */
+        post: operations["start_age_session_v1_age_verification_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/age-verification/sessions/{verification_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Age Session */
+        get: operations["get_age_session_v1_age_verification_sessions__verification_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/nickname-check": {
         parameters: {
             query?: never;
@@ -73,10 +124,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/webhooks/age/{provider_name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Age Webhook */
+        post: operations["age_webhook_v1_webhooks_age__provider_name__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AgeSessionIn */
+        AgeSessionIn: {
+            /**
+             * Declared Birth Date
+             * Format: date
+             */
+            declared_birth_date: string;
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "selfie_estimation" | "id_document" | "spid" | "cie";
+            /** Return Url */
+            return_url: string;
+        };
+        /** AgeSessionOut */
+        AgeSessionOut: {
+            /** Age Band */
+            age_band?: ("16_17" | "18_plus") | null;
+            /** Failure Reason */
+            failure_reason?: ("underage" | "inconsistent" | "not_completed") | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "selfie_estimation" | "id_document" | "spid" | "cie";
+            /** Redirect Url */
+            redirect_url?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "passed" | "failed" | "expired";
+        };
+        /** AgeStatusOut */
+        AgeStatusOut: {
+            /** Age Band */
+            age_band?: ("16_17" | "18_plus") | null;
+            latest?: components["schemas"]["AgeSessionOut"] | null;
+            /** Methods */
+            methods: ("selfie_estimation" | "id_document" | "spid" | "cie")[];
+            /** Verified */
+            verified: boolean;
+        };
         /** ConfigOut */
         ConfigOut: {
             /** Feature Flags */
@@ -88,6 +205,8 @@ export interface components {
             min_app_version: string;
             /** Styles */
             styles: components["schemas"]["StyleOut"][];
+            /** Terms Version */
+            terms_version: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -227,6 +346,90 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    age_status_v1_age_verification_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgeStatusOut"];
+                };
+            };
+        };
+    };
+    start_age_session_v1_age_verification_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgeSessionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgeSessionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_age_session_v1_age_verification_sessions__verification_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                verification_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgeSessionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     nickname_check_v1_auth_nickname_check_post: {
         parameters: {
             query?: never;
@@ -354,6 +557,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ProfileOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    age_webhook_v1_webhooks_age__provider_name__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
