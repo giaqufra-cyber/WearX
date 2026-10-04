@@ -107,6 +107,23 @@ export interface paths {
         patch: operations["update_me_v1_me_patch"];
         trace?: never;
     };
+    "/v1/me/styles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Styles */
+        get: operations["my_styles_v1_me_styles_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/onboarding/profile": {
         parameters: {
             query?: never;
@@ -119,6 +136,58 @@ export interface paths {
         /** Create Profile */
         post: operations["create_profile_v1_onboarding_profile_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/styles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Styles */
+        get: operations["list_styles_v1_styles_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/styles/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Style */
+        get: operations["get_style_v1_styles__slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/styles/{slug}/membership": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Join Style */
+        put: operations["join_style_v1_styles__slug__membership_put"];
+        post?: never;
+        /** Leave Style */
+        delete: operations["leave_style_v1_styles__slug__membership_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -306,6 +375,63 @@ export interface components {
             hide_prices?: boolean | null;
             /** Hide Vote Count */
             hide_vote_count?: boolean | null;
+        };
+        /** StyleCard */
+        StyleCard: {
+            /** Active Until */
+            active_until: string | null;
+            /** Joined */
+            joined: boolean;
+            /** Member Count */
+            member_count: number;
+            /**
+             * Min Age Band
+             * @enum {string}
+             */
+            min_age_band: "16_17" | "18_plus";
+            /** Name */
+            name: string;
+            /** Seasonal */
+            seasonal: boolean;
+            /** Slug */
+            slug: string;
+            /** Tagline */
+            tagline: string;
+            /** Tone */
+            tone: string;
+        };
+        /** StyleDetail */
+        StyleDetail: {
+            /** Active Until */
+            active_until: string | null;
+            /** Joined */
+            joined: boolean;
+            /** Member Count */
+            member_count: number;
+            /**
+             * Min Age Band
+             * @enum {string}
+             */
+            min_age_band: "16_17" | "18_plus";
+            /** Name */
+            name: string;
+            /** Posts Last 7 Days */
+            posts_last_7_days: number;
+            /** Seasonal */
+            seasonal: boolean;
+            /** Slug */
+            slug: string;
+            /** Tagline */
+            tagline: string;
+            /** Tone */
+            tone: string;
+        };
+        /** StyleList */
+        StyleList: {
+            /** Items */
+            items: components["schemas"]["StyleCard"][];
+            /** Total */
+            total: number;
         };
         /** StyleOut */
         StyleOut: {
@@ -536,6 +662,26 @@ export interface operations {
             };
         };
     };
+    my_styles_v1_me_styles_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StyleList"];
+                };
+            };
+        };
+    };
     create_profile_v1_onboarding_profile_post: {
         parameters: {
             query?: never;
@@ -556,6 +702,130 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_styles_v1_styles_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StyleList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_style_v1_styles__slug__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StyleDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    join_style_v1_styles__slug__membership_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StyleCard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    leave_style_v1_styles__slug__membership_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StyleCard"];
                 };
             };
             /** @description Validation Error */

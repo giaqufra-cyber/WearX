@@ -477,6 +477,162 @@
         "title": "ProfileUpdateIn",
         "type": "object"
       },
+      "StyleCard": {
+        "properties": {
+          "active_until": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Until"
+          },
+          "joined": {
+            "title": "Joined",
+            "type": "boolean"
+          },
+          "member_count": {
+            "title": "Member Count",
+            "type": "integer"
+          },
+          "min_age_band": {
+            "enum": [
+              "16_17",
+              "18_plus"
+            ],
+            "title": "Min Age Band",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "seasonal": {
+            "title": "Seasonal",
+            "type": "boolean"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "tagline": {
+            "title": "Tagline",
+            "type": "string"
+          },
+          "tone": {
+            "title": "Tone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "tagline",
+          "tone",
+          "min_age_band",
+          "seasonal",
+          "active_until",
+          "member_count",
+          "joined"
+        ],
+        "title": "StyleCard",
+        "type": "object"
+      },
+      "StyleDetail": {
+        "properties": {
+          "active_until": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Until"
+          },
+          "joined": {
+            "title": "Joined",
+            "type": "boolean"
+          },
+          "member_count": {
+            "title": "Member Count",
+            "type": "integer"
+          },
+          "min_age_band": {
+            "enum": [
+              "16_17",
+              "18_plus"
+            ],
+            "title": "Min Age Band",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "posts_last_7_days": {
+            "title": "Posts Last 7 Days",
+            "type": "integer"
+          },
+          "seasonal": {
+            "title": "Seasonal",
+            "type": "boolean"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "tagline": {
+            "title": "Tagline",
+            "type": "string"
+          },
+          "tone": {
+            "title": "Tone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "tagline",
+          "tone",
+          "min_age_band",
+          "seasonal",
+          "active_until",
+          "member_count",
+          "joined",
+          "posts_last_7_days"
+        ],
+        "title": "StyleDetail",
+        "type": "object"
+      },
+      "StyleList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StyleCard"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "StyleList",
+        "type": "object"
+      },
       "StyleOut": {
         "properties": {
           "active_until": {
@@ -804,6 +960,27 @@
         ]
       }
     },
+    "/v1/me/styles": {
+      "get": {
+        "operationId": "my_styles_v1_me_styles_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StyleList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "My Styles",
+        "tags": [
+          "styles"
+        ]
+      }
+    },
     "/v1/onboarding/profile": {
       "post": {
         "operationId": "create_profile_v1_onboarding_profile_post",
@@ -842,6 +1019,180 @@
         "summary": "Create Profile",
         "tags": [
           "account"
+        ]
+      }
+    },
+    "/v1/styles": {
+      "get": {
+        "operationId": "list_styles_v1_styles_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StyleList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Styles",
+        "tags": [
+          "styles"
+        ]
+      }
+    },
+    "/v1/styles/{slug}": {
+      "get": {
+        "operationId": "get_style_v1_styles__slug__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StyleDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Style",
+        "tags": [
+          "styles"
+        ]
+      }
+    },
+    "/v1/styles/{slug}/membership": {
+      "delete": {
+        "operationId": "leave_style_v1_styles__slug__membership_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StyleCard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Leave Style",
+        "tags": [
+          "styles"
+        ]
+      },
+      "put": {
+        "operationId": "join_style_v1_styles__slug__membership_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StyleCard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Join Style",
+        "tags": [
+          "styles"
         ]
       }
     },

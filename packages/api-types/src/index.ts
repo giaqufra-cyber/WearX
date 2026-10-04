@@ -14,6 +14,9 @@ export type Profile = Schemas["ProfileOut"];
 export type ProfileUpdate = Schemas["ProfileUpdateIn"];
 export type OnboardingRequest = Schemas["OnboardingIn"];
 export type NicknameCheck = Schemas["NicknameCheckOut"];
+export type StyleCard = Schemas["StyleCard"];
+export type StyleDetail = Schemas["StyleDetail"];
+export type StyleList = Schemas["StyleList"];
 export type AgeStatus = Schemas["AgeStatusOut"];
 export type AgeSession = Schemas["AgeSessionOut"];
 export type AgeSessionRequest = Schemas["AgeSessionIn"];
@@ -49,6 +52,8 @@ export type ApiErrorCode =
   | "resource.not_found"
   | "server.error"
   | "style.age_restricted"
+  | "style.last_membership"
+  | "style.limit"
   | "style.not_found"
   | "terms.outdated"
   | "text.invalid_characters"

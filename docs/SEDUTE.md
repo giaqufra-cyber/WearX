@@ -240,3 +240,32 @@ Note:
 
 Da fare in seduta 6: stili lato server (ricerca, pagina stile, entrare/uscire da uno stile,
 regole d'età).
+
+### Seduta 6 — 2026-10-04
+
+Fatto (API, `services/api/app/routers/styles.py`):
+- `GET /v1/styles?q=`: elenco e ricerca. Trova anche senza accenti e maiuscole ("gala" → Galà),
+  con refusi ("jppo" → Jappo) e dalle parole della descrizione ("tokyo" → Jappo); prima i nomi
+  che iniziano con il testo, poi i contenuti, poi le somiglianze. Caratteri speciali (`%`, `_`,
+  apici) trattati come testo normale.
+- `GET /v1/styles/{slug}`: pagina dello stile (membri, se ci sei dentro, fit dell'ultima
+  settimana; la griglia dei fit arriva con il feed).
+- `PUT` / `DELETE /v1/styles/{slug}/membership`: entrare e uscire, ripetibili senza effetti
+  doppi. `GET /v1/me/styles`: i tuoi stili in ordine di adesione (per le chip del feed).
+- Regole: i 16-17enni non vedono né aprono né raggiungono gli stili 18+ (per loro "non esistono",
+  stessa risposta di uno stile inesistente); stili fuori stagione o spenti spariscono; se uno stile
+  diventa 18+ sparisce dagli stili dei minorenni; non si esce dall'ultimo stile visibile (anche
+  con due uscite in contemporanea: le modifiche di una persona passano una alla volta); massimo
+  30 stili; 60 modifiche l'ora.
+- Compiuti 18 anni si passa da soli alla fascia 18+ (alla prima richiesta; funzione
+  `app.promote_adults()` pronta anche per un job notturno).
+- Migrazione 0005: funzione `app.fold()` (minuscolo, senza accenti) e indice di ricerca su di essa.
+
+Verifiche: 155 test API (+24); ruff, mypy, tsc puliti.
+
+Nota per dopo: il prototipo, quando la ricerca non trova nulla, dice "Proponilo tu: se raggiunge
+500 adesioni, nasce". Le proposte di stile non sono nel piano: da decidere se aggiungerle
+(insieme all'admin, seduta 17).
+
+Da fare in seduta 7: stili nell'app (Esplora con ricerca, pagina stile, Aderisci/Esci, chip del
+feed con i tuoi stili).

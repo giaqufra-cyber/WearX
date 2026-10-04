@@ -43,6 +43,10 @@ ignore = ["S101"]  # assert nei test
 
 [tool.ruff.lint.per-file-ignores]
 "migrations/**" = ["E501", "S608"]  # SQL costruito solo da costanti nel file
+# Query composte da frammenti costanti del modulo (VISIBLE_STYLE_SQL, _CARD_COLUMNS);
+# i valori dell'utente passano SEMPRE come parametri (:q, :slug, ...), mai nel testo.
+"app/routers/styles.py" = ["S608"]
+"app/profiles.py" = ["S608"]
 
 [tool.mypy]
 strict = true

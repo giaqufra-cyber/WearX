@@ -103,7 +103,7 @@ async def _profile_out(session: AsyncSession, profile: Profile) -> ProfileOut:
         hide_prices=profile.hide_prices,
         hide_vote_count=profile.hide_vote_count,
         status=profile.status,
-        styles=await joined_style_slugs(session, profile.id),
+        styles=await joined_style_slugs(session, profile),
         created_at=profile.created_at,
     )
 

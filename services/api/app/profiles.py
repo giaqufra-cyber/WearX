@@ -46,16 +46,37 @@ _PROFILE_SQL = text(
 
 async def load_profile(session: AsyncSession, user_id: uuid.UUID) -> Profile | None:
     row = (await session.execute(_PROFILE_SQL, {"id": user_id})).mappings().first()
-    return Profile(**row) if row else None
+    if row is None:
+        return None
+    if (
+        row["age_band"] == "16_17"
+        and row["adult_on"] is not None
+        and row["adult_on"] <= date.today()
+    ):
+        # Ha compiuto 18 anni: passa alla fascia 18+ (sez. 11.2). Una sola volta, poi è salvato.
+        await session.execute(text("select app.promote_adults(:id)"), {"id": user_id})
+        await session.commit()
+        row = (await session.execute(_PROFILE_SQL, {"id": user_id})).mappings().first()
+        assert row is not None
+    return Profile(**row)
 
 
-async def joined_style_slugs(session: AsyncSession, user_id: uuid.UUID) -> list[str]:
+# Stili "visibili": attivi oggi e permessi alla fascia d'età (i 16-17 non vedono i 18+).
+VISIBLE_STYLE_SQL = """
+    s.is_active
+    and (s.active_from is null or s.active_from <= current_date)
+    and (s.active_until is null or s.active_until >= current_date)
+    and (cast(:adult as boolean) or s.min_age_band <> '18_plus')
+"""
+
+
+async def joined_style_slugs(session: AsyncSession, profile: Profile) -> list[str]:
     rows = await session.execute(
         text(
-            """select s.slug from app.style_memberships m join app.styles s on s.id = m.style_id
-                where m.user_id = :id order by s.sort_order, s.id"""
+            "select s.slug from app.style_memberships m join app.styles s on s.id = m.style_id "
+            f"where m.user_id = :id and {VISIBLE_STYLE_SQL} order by m.joined_at, s.sort_order"
         ),
-        {"id": user_id},
+        {"id": profile.id, "adult": profile.is_adult},
     )
     return [r[0] for r in rows]
 
