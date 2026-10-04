@@ -163,14 +163,25 @@ Note tecniche:
   compare la schermata "offline": è atteso finché l'API non è online (seduta 23).
 - Da fare più avanti: recupero password (seduta 20), schermata "aggiorna l'app" per il 426 (seduta 22).
 
-Serve da te (dashboard Supabase, 5 minuti):
-1. Authentication → Emails → "Confirm signup": il testo deve contenere `{{ .Token }}` (il codice a
-   6 cifre). Esempio: «Il tuo codice WearX è {{ .Token }}. Scade tra un'ora.» Lunghezza del codice
-   (Email OTP Length) a 6 cifre, scadenza 3600 s.
+Aggiornamento dopo la prova sulla dashboard: senza SMTP personalizzato Supabase non permette di
+modificare il modello dell'email (contiene solo il link) e consegna al massimo 2 email all'ora,
+solo agli indirizzi del team del progetto. Quindi:
+- Conferma email **con link** finché non c'è l'SMTP: il link conferma l'indirizzo e riapre l'app
+  su `/verify?code=…`; l'app scambia il codice monouso con la sessione (flusso PKCE: il codice
+  vale solo insieme al segreto rimasto sul telefono). Link scaduto/già usato e link aperto su un
+  altro dispositivo hanno la loro schermata ("Email confermata, ora accedi").
+- Il codice a 6 cifre resta pronto: si accende con `EXPO_PUBLIC_EMAIL_OTP=1` quando ci sarà l'SMTP.
+- 86 test app (+9).
+
+Serve da te (dashboard Supabase):
+1. Authentication → URL Configuration → Redirect URLs: aggiungi `wearx://**` e, solo per lo
+   sviluppo con Expo Go, `exp://**` (da togliere prima della beta).
 2. Authentication → Sign In / Providers → Email: "Confirm email" attivo; password minima 10
    caratteri con minuscole, maiuscole, numeri e simboli.
-3. Prima della beta: SMTP personalizzato (il mittente di prova di Supabase manda pochissime email
-   all'ora).
+3. Per le prove usa l'email con cui sei nel team Supabase (le altre non ricevono nulla) e conta
+   2 email all'ora.
+4. Prima di far provare l'app ad altri: SMTP personalizzato (serve un dominio), poi modello
+   "Confirm signup" con `{{ .Token }}` e `EXPO_PUBLIC_EMAIL_OTP=1`.
 
 Da fare in seduta 5: verifica dell'età (fornitore astratto + finto per i test, webhook firmato),
 schermate tipo di profilo e stili, creazione del profilo.

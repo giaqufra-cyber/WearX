@@ -8,21 +8,34 @@ import VerifyScreen from "@/app/(auth)/verify";
 import { checkPasswordLeak } from "@/features/auth/passwordLeak";
 import { useSignupDraft } from "@/features/auth/signupDraft";
 import { useNicknameAvailability } from "@/features/auth/useNicknameAvailability";
+import { env } from "@/lib/env";
 import { supabase } from "@/lib/supabase";
 import { ToastProvider } from "@/ui/Toast";
 
 jest.mock("@/lib/supabase", () => ({
   supabase: {
-    auth: { signUp: jest.fn(), verifyOtp: jest.fn(), resend: jest.fn(), signInWithPassword: jest.fn() },
+    auth: {
+      signUp: jest.fn(),
+      verifyOtp: jest.fn(),
+      resend: jest.fn(),
+      signInWithPassword: jest.fn(),
+      exchangeCodeForSession: jest.fn(),
+    },
   },
 }));
 jest.mock("expo-router", () => ({
   router: { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: () => false },
+  useLocalSearchParams: jest.fn(() => ({})),
 }));
+jest.mock("expo-linking", () => ({ createURL: (path: string) => `wearx://${path.replace(/^\//, "")}` }));
+jest.mock("@/lib/env", () => ({ env: { ...jest.requireActual("@/lib/env").env, emailOtp: false } }));
 jest.mock("@/features/auth/passwordLeak", () => ({ checkPasswordLeak: jest.fn() }));
 jest.mock("@/features/auth/useNicknameAvailability", () => ({ useNicknameAvailability: jest.fn() }));
 
-const { router } = jest.requireMock("expo-router") as { router: Record<string, jest.Mock> };
+const { router, useLocalSearchParams } = jest.requireMock("expo-router") as {
+  router: Record<string, jest.Mock>;
+  useLocalSearchParams: jest.Mock;
+};
 const auth = supabase.auth as unknown as Record<string, jest.Mock>;
 const leak = checkPasswordLeak as jest.Mock;
 const availability = useNicknameAvailability as jest.Mock;
@@ -40,6 +53,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   useSignupDraft.getState().clear();
   availability.mockReturnValue("available");
+  useLocalSearchParams.mockReturnValue({});
+  env.emailOtp = false;
   leak.mockResolvedValue("clean");
 });
 
@@ -75,7 +90,7 @@ describe("Registrazione", () => {
     expect(auth.signUp).toHaveBeenCalledWith({
       email: "francesco@example.com",
       password: "Trento-Monaco-2026!",
-      options: { data: { nickname: "francesco" } },
+      options: { data: { nickname: "francesco" }, emailRedirectTo: "wearx://verify" },
     });
     expect(router.push).toHaveBeenCalledWith("/verify");
     expect(useSignupDraft.getState()).toMatchObject({
@@ -125,12 +140,67 @@ describe("Registrazione", () => {
   });
 });
 
-describe("Codice di conferma", () => {
+describe("Conferma dell'email", () => {
   beforeEach(() => {
     useSignupDraft.getState().set({ contactMode: "email", contact: "francesco@example.com" });
   });
 
-  test("con 6 cifre verifica subito il codice email", async () => {
+  test("senza SMTP personalizzato: istruzioni per il link, nessun campo codice", async () => {
+    await render(<VerifyScreen />, { wrapper: Providers });
+    expect(screen.getByText(/Abbiamo mandato un link di conferma/)).toBeOnTheScreen();
+    expect(screen.queryByLabelText("CODICE")).toBeNull();
+    expect(screen.getByRole("button", { name: /Invia di nuovo tra 60s/ })).toBeDisabled();
+  });
+
+  test("reinvio del link dopo 60 secondi, con lo stesso indirizzo di ritorno", async () => {
+    jest.useFakeTimers();
+    try {
+      auth.resend!.mockResolvedValue({ data: {}, error: null });
+      await render(<VerifyScreen />, { wrapper: Providers });
+      for (let i = 0; i < 60; i++) {
+        await act(async () => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      await user.press(screen.getByRole("button", { name: "Invia di nuovo il link" }));
+      expect(auth.resend).toHaveBeenCalledWith({
+        type: "signup",
+        email: "francesco@example.com",
+        options: { emailRedirectTo: "wearx://verify" },
+      });
+      expect(screen.getByText("Link inviato di nuovo.")).toBeOnTheScreen();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test("aperta dal link: scambia il codice monouso con la sessione", async () => {
+    useSignupDraft.getState().clear(); // l'app può essere stata chiusa nel frattempo
+    useLocalSearchParams.mockReturnValue({ code: "5f0c2a8e-6a1b-4c0e-9d7e-3b2f1a0c9d8e" });
+    auth.exchangeCodeForSession!.mockResolvedValue({ data: {}, error: null });
+    await render(<VerifyScreen />, { wrapper: Providers });
+    expect(auth.exchangeCodeForSession).toHaveBeenCalledTimes(1);
+    expect(auth.exchangeCodeForSession).toHaveBeenCalledWith("5f0c2a8e-6a1b-4c0e-9d7e-3b2f1a0c9d8e");
+    expect(screen.getByText("Confermiamo il tuo account…")).toBeOnTheScreen();
+  });
+
+  test("link aperto su un altro dispositivo: email confermata, si accede", async () => {
+    useLocalSearchParams.mockReturnValue({ code: "5f0c2a8e-6a1b-4c0e-9d7e-3b2f1a0c9d8e" });
+    auth.exchangeCodeForSession!.mockResolvedValue({ data: {}, error: { code: "pkce_code_verifier_not_found" } });
+    await render(<VerifyScreen />, { wrapper: Providers });
+    expect(await screen.findByText("Email confermata")).toBeOnTheScreen();
+  });
+
+  test("link scaduto", async () => {
+    useLocalSearchParams.mockReturnValue({ error: "access_denied", error_code: "otp_expired" });
+    await render(<VerifyScreen />, { wrapper: Providers });
+    expect(screen.getByText("Link scaduto")).toBeOnTheScreen();
+    expect(auth.exchangeCodeForSession).not.toHaveBeenCalled();
+  });
+
+  test("con SMTP personalizzato: codice a 6 cifre verificato subito", async () => {
+    env.emailOtp = true;
     auth.verifyOtp!.mockResolvedValue({ data: {}, error: null });
     await render(<VerifyScreen />, { wrapper: Providers });
     expect(screen.getByText("francesco@example.com")).toBeOnTheScreen();
@@ -139,6 +209,7 @@ describe("Codice di conferma", () => {
   });
 
   test("codice sbagliato: messaggio e campo svuotato", async () => {
+    env.emailOtp = true;
     auth.verifyOtp!.mockResolvedValue({ data: {}, error: { code: "otp_expired" } });
     await render(<VerifyScreen />, { wrapper: Providers });
     await fireEvent.changeText(screen.getByLabelText("CODICE"), "000000");
@@ -146,24 +217,12 @@ describe("Codice di conferma", () => {
     expect(screen.getByLabelText("CODICE")).toHaveDisplayValue("");
   });
 
-  test("reinvio possibile solo dopo 60 secondi", async () => {
-    jest.useFakeTimers();
-    try {
-      auth.resend!.mockResolvedValue({ data: {}, error: null });
-      await render(<VerifyScreen />, { wrapper: Providers });
-      expect(screen.getByRole("button", { name: /Invia di nuovo tra 60s/ })).toBeDisabled();
-      for (let i = 0; i < 60; i++) {
-        await act(async () => {
-          jest.advanceTimersByTime(1000);
-        });
-      }
-      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
-      await user.press(screen.getByRole("button", { name: "Invia di nuovo il codice" }));
-      expect(auth.resend).toHaveBeenCalledWith({ type: "signup", email: "francesco@example.com" });
-      expect(screen.getByText("Codice inviato di nuovo.")).toBeOnTheScreen();
-    } finally {
-      jest.useRealTimers();
-    }
+  test("SMS: sempre con il codice", async () => {
+    useSignupDraft.getState().set({ contactMode: "phone", contact: "+393331234567" });
+    auth.verifyOtp!.mockResolvedValue({ data: {}, error: null });
+    await render(<VerifyScreen />, { wrapper: Providers });
+    await fireEvent.changeText(screen.getByLabelText("CODICE"), "654321");
+    expect(auth.verifyOtp).toHaveBeenCalledWith({ phone: "+393331234567", token: "654321", type: "sms" });
   });
 
   test("senza bozza (app riaperta) propone di accedere", async () => {

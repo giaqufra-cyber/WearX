@@ -6,6 +6,7 @@ import { StyleSheet, type TextInput, View } from "react-native";
 import { AuthHeader } from "@/features/auth/AuthHeader";
 import { authErrorMessage } from "@/features/auth/authErrors";
 import { normalizeContact, signUpCredentials } from "@/features/auth/credentials";
+import { emailRedirectUrl } from "@/features/auth/emailLink";
 import { checkPasswordLeak } from "@/features/auth/passwordLeak";
 import { checkSignup, emptySignup, type SignupForm } from "@/features/auth/signupForm";
 import { useSignupDraft } from "@/features/auth/signupDraft";
@@ -67,7 +68,7 @@ export default function SignupScreen() {
         return;
       }
       const { data, error } = await supabase.auth.signUp(
-        signUpCredentials(form.contactMode, form.contact, form.password, form.nickname),
+        signUpCredentials(form.contactMode, form.contact, form.password, form.nickname, emailRedirectUrl()),
       );
       if (error) {
         setFormError(authErrorMessage(error));

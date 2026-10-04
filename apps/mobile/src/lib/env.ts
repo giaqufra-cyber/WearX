@@ -18,6 +18,11 @@ export const env = {
   apiUrl: process.env.EXPO_PUBLIC_API_URL ?? DEFAULTS.apiUrl,
   /** La registrazione col telefono richiede un fornitore SMS configurato su Supabase. */
   phoneSignupEnabled: process.env.EXPO_PUBLIC_PHONE_SIGNUP === "1",
+  /**
+   * Conferma email con codice a 6 cifre invece del link. Richiede l'SMTP personalizzato su
+   * Supabase (senza, il modello dell'email non si può modificare e contiene solo il link).
+   */
+  emailOtp: process.env.EXPO_PUBLIC_EMAIL_OTP === "1",
 };
 
 if (/service_role|sb_secret_/i.test(env.supabasePublishableKey)) {

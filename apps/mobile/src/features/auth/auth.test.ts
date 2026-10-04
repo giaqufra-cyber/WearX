@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 
 import { authErrorMessage } from "@/features/auth/authErrors";
 import { signInCredentials, signUpCredentials } from "@/features/auth/credentials";
+import { parseAuthRedirect } from "@/features/auth/emailLink";
 import { checkPasswordLeak } from "@/features/auth/passwordLeak";
 import { decideRoute } from "@/features/auth/routing";
 import { checkSignup, emptySignup, normalizePhone, type SignupForm } from "@/features/auth/signupForm";
@@ -129,6 +130,13 @@ describe("checkSignup", () => {
 });
 
 describe("credenziali per Supabase", () => {
+  test("link di conferma che riporta nell'app", () => {
+    expect(signUpCredentials("email", "a@b.it", "pw", "fra", "wearx://verify").options).toEqual({
+      data: { nickname: "fra" },
+      emailRedirectTo: "wearx://verify",
+    });
+  });
+
   test("email minuscola, nickname nei metadati", () => {
     expect(signUpCredentials("email", " Francesco@Example.COM ", "pw", "Francesco")).toEqual({
       email: "francesco@example.com",
@@ -144,6 +152,26 @@ describe("credenziali per Supabase", () => {
       options: { data: { nickname: "fra" }, channel: "sms" },
     });
     expect(signInCredentials("phone", "333 1234567", "pw")).toEqual({ phone: "+393331234567", password: "pw" });
+  });
+});
+
+describe("ritorno dal link di conferma", () => {
+  test("codice PKCE", () => {
+    expect(parseAuthRedirect({ code: "5f0c2a8e-6a1b-4c0e-9d7e-3b2f1a0c9d8e" })).toEqual({
+      kind: "code",
+      code: "5f0c2a8e-6a1b-4c0e-9d7e-3b2f1a0c9d8e",
+    });
+  });
+
+  test("errore (link scaduto) ha la precedenza", () => {
+    expect(
+      parseAuthRedirect({ error: "access_denied", error_code: "otp_expired", error_description: "Email link is invalid" }),
+    ).toEqual({ kind: "error", code: "otp_expired", description: "Email link is invalid" });
+  });
+
+  test("nessun parametro o codice malformato: niente", () => {
+    expect(parseAuthRedirect({})).toBeNull();
+    expect(parseAuthRedirect({ code: "<script>" })).toBeNull();
   });
 });
 

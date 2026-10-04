@@ -16,6 +16,9 @@ export const supabase = createClient(env.supabaseUrl, env.supabasePublishableKey
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
+    // PKCE: il link di conferma riporta nell'app un codice monouso, non i token. Il codice vale
+    // solo insieme al segreto rimasto su questo telefono: un link intercettato non basta.
+    flowType: "pkce",
   },
 });
 

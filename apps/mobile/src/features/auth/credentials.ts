@@ -14,12 +14,14 @@ export function signUpCredentials(
   contact: string,
   password: string,
   nickname: string,
+  /** Dove riporta il link di conferma (solo email). */
+  emailRedirectTo?: string,
 ): SignUpWithPasswordCredentials {
   // Il nickname va nei metadati solo come promemoria: il profilo vero si crea dopo la verifica dell'età.
   const options = { data: { nickname: nickname.trim().toLowerCase() } };
   const value = normalizeContact(mode, contact);
   return mode === "email"
-    ? { email: value, password, options }
+    ? { email: value, password, options: emailRedirectTo ? { ...options, emailRedirectTo } : options }
     : { phone: value, password, options: { ...options, channel: "sms" } };
 }
 
