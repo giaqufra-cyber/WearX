@@ -15,6 +15,7 @@ export type ProfileUpdate = Schemas["ProfileUpdateIn"];
 export type OnboardingRequest = Schemas["OnboardingIn"];
 export type NicknameCheck = Schemas["NicknameCheckOut"];
 export type Post = Schemas["PostOut"];
+export type FeedPage = Schemas["FeedOut"];
 export type VoteSummary = Schemas["VoteSummary"];
 export type VoteRequest = Schemas["VoteIn"];
 export type PostCreate = Schemas["PostIn"];
@@ -51,6 +52,8 @@ export type ApiErrorCode =
   | "age.underage"
   | "age.verification_required"
   | "feature.disabled"
+  | "feed.cursor_expired"
+  | "feed.invalid_cursor"
   | "item.bad_media_position"
   | "item.incomplete"
   | "link.invalid"

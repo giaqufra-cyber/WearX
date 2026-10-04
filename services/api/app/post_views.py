@@ -1,0 +1,238 @@
+"""Come appare un post a chi lo guarda: modelli di risposta e caricamento IN BLOCCO
+(una manciata di query per una pagina intera di feed, mai una query per post)."""
+
+from __future__ import annotations
+
+import uuid
+from collections import defaultdict
+from datetime import datetime
+from decimal import Decimal
+from typing import Any, Literal
+
+from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.post_access import AUTHOR_SHOWN_SQL, POST_VISIBLE_SQL
+from app.profiles import Profile
+from app.routers.media import MediaUrls, media_urls
+from app.votes import CONFIRM_SAMPLE, style_match, voter_key
+
+
+class StyleRef(BaseModel):
+    slug: str
+    name: str
+    tone: str
+
+
+class AuthorRef(BaseModel):
+    nickname: str
+    account_type: Literal["private", "business"]
+
+
+class LinkOut(BaseModel):
+    id: uuid.UUID
+    domain: str
+    status: Literal["pending", "safe", "blocked"]
+    # Assente se il link è stato bloccato dai controlli.
+    url: str | None
+
+
+class ItemOut(BaseModel):
+    position: int
+    brand: str
+    name: str
+    # Assente se l'autore nasconde i prezzi (tranne che a sé stesso).
+    price_cents: int | None
+    currency: str
+    link: LinkOut | None
+    media_position: int | None
+    pin_x: float | None
+    pin_y: float | None
+
+
+class MediaOut(BaseModel):
+    position: int
+    width: int
+    height: int
+    blurhash: str
+    urls: MediaUrls
+
+
+class VoteSummary(BaseModel):
+    # Il tuo voto (null se non hai votato).
+    mine: int | None
+    my_style_confirm: bool | None
+    # Media e numero si vedono solo dopo aver votato (o se il post è tuo): nessuno si fa
+    # influenzare dal voto degli altri. vote_count è null anche se l'autore lo nasconde.
+    average: float | None
+    vote_count: int | None
+    # Quota di conferme dello stile (0-1), quando le risposte sono abbastanza.
+    style_match: float | None
+    # Mostrare la domanda "È davvero <stile>?" insieme al voto.
+    ask_style_confirm: bool
+
+
+class PostOut(BaseModel):
+    id: uuid.UUID
+    status: Literal["processing", "active", "style_rejected", "hidden_moderation", "deleted"]
+    style: StyleRef
+    # Assente quando il post è anonimo per chi guarda.
+    author: AuthorRef | None
+    is_own: bool
+    caption: str | None
+    media: list[MediaOut]
+    items: list[ItemOut]
+    published_at: datetime | None
+    created_at: datetime
+    # Solo per l'autore: si può ancora cambiare stile?
+    restyle_available: bool | None = None
+    vote: VoteSummary
+
+
+def _as_float(value: Decimal | None) -> float | None:
+    return float(value) if value is not None else None
+
+
+def _summary(viewer: Profile, row: Any) -> VoteSummary:
+    own = row["author_id"] == viewer.id
+    reveal = own or row["mine"] is not None
+    average = (
+        round(row["vote_wsum"] / row["vote_wcount"], 1)
+        if reveal and row["vote_wcount"] > 0
+        else None
+    )
+    show_count = reveal and (own or not row["hide_vote_count"])
+    sampling = row["confirm_yes"] + row["confirm_no"] < CONFIRM_SAMPLE
+    return VoteSummary(
+        mine=row["mine"],
+        my_style_confirm=row["my_confirm"],
+        average=average,
+        vote_count=row["vote_count"] if show_count else None,
+        style_match=style_match(row["confirm_yes"], row["confirm_no"]) if reveal else None,
+        ask_style_confirm=not own
+        and row["mine"] is None
+        and row["status"] == "active"
+        and sampling,
+    )
+
+
+async def posts_out(
+    session: AsyncSession, viewer: Profile, post_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, PostOut]:
+    """Post visibili a `viewer` tra quelli chiesti (gli altri mancano dal risultato)."""
+    if not post_ids:
+        return {}
+    params = {"ids": post_ids, "viewer": viewer.id, "adult": viewer.is_adult}
+    rows = (
+        (
+            await session.execute(
+                text(
+                    f"""select p.id, p.status::text as status, p.caption, p.author_id,
+                               p.restyle_used, p.published_at, p.created_at,
+                               s.slug, s.name, s.tone,
+                               a.nickname::text as nickname,
+                               a.account_type::text as account_type, a.hide_prices,
+                               a.hide_vote_count,
+                               {AUTHOR_SHOWN_SQL} as author_shown,
+                               coalesce(st.vote_count, 0) as vote_count,
+                               coalesce(st.vote_wsum, 0) as vote_wsum,
+                               coalesce(st.vote_wcount, 0) as vote_wcount,
+                               coalesce(st.confirm_yes, 0) as confirm_yes,
+                               coalesce(st.confirm_no, 0) as confirm_no,
+                               v.score as mine, v.style_confirm as my_confirm
+                          from app.posts p
+                          join app.profiles a on a.id = p.author_id
+                          join app.styles s on s.id = p.style_id
+                          left join app.post_stats st on st.post_id = p.id
+                          left join app.votes v on v.post_id = p.id and v.voter_key = :k
+                         where p.id = any(:ids) and {POST_VISIBLE_SQL}"""
+                ),
+                {**params, "k": voter_key(viewer.id)},
+            )
+        )
+        .mappings()
+        .all()
+    )
+    if not rows:
+        return {}
+    visible = [r["id"] for r in rows]
+    media: dict[uuid.UUID, list[MediaOut]] = defaultdict(list)
+    for m in (
+        await session.execute(
+            text(
+                """select post_id, position, width, height, blurhash, upload_id, variants
+                     from app.post_media where post_id = any(:ids) order by post_id, position"""
+            ),
+            {"ids": visible},
+        )
+    ).mappings():
+        media[m["post_id"]].append(
+            MediaOut(
+                position=m["position"],
+                width=m["width"],
+                height=m["height"],
+                blurhash=m["blurhash"],
+                urls=media_urls(m["upload_id"], list(m["variants"])),
+            )
+        )
+    items: dict[uuid.UUID, list[Any]] = defaultdict(list)
+    for i in (
+        await session.execute(
+            text(
+                """select i.post_id, i.position, i.brand, i.name, i.price_cents, i.currency,
+                          i.media_position, i.pin_x, i.pin_y,
+                          l.id as link_id, l.url, l.domain, l.status::text as link_status
+                     from app.post_items i left join app.links l on l.id = i.link_id
+                    where i.post_id = any(:ids) order by i.post_id, i.position"""
+            ),
+            {"ids": visible},
+        )
+    ).mappings():
+        items[i["post_id"]].append(i)
+
+    out: dict[uuid.UUID, PostOut] = {}
+    for row in rows:
+        own = row["author_id"] == viewer.id
+        hide_prices = row["hide_prices"] and not own
+        out[row["id"]] = PostOut(
+            id=row["id"],
+            status=row["status"],
+            style=StyleRef(slug=row["slug"], name=row["name"], tone=row["tone"]),
+            author=AuthorRef(nickname=row["nickname"], account_type=row["account_type"])
+            if row["author_shown"]
+            else None,
+            is_own=own,
+            caption=row["caption"],
+            media=media[row["id"]],
+            items=[
+                ItemOut(
+                    position=i["position"],
+                    brand=i["brand"],
+                    name=i["name"],
+                    price_cents=None if hide_prices else i["price_cents"],
+                    currency=i["currency"],
+                    link=LinkOut(
+                        id=i["link_id"],
+                        domain=i["domain"],
+                        status=i["link_status"],
+                        url=None if i["link_status"] == "blocked" else i["url"],
+                    )
+                    if i["link_id"]
+                    else None,
+                    media_position=i["media_position"],
+                    pin_x=_as_float(i["pin_x"]),
+                    pin_y=_as_float(i["pin_y"]),
+                )
+                for i in items[row["id"]]
+            ],
+            published_at=row["published_at"],
+            created_at=row["created_at"],
+            restyle_available=(not row["restyle_used"]) if own else None,
+            vote=_summary(viewer, row),
+        )
+    return out
+
+
+async def post_out(session: AsyncSession, viewer: Profile, post_id: uuid.UUID) -> PostOut | None:
+    return (await posts_out(session, viewer, [post_id])).get(post_id)

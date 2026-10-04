@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from collections.abc import Iterator
 
 import pytest
 
@@ -17,40 +16,6 @@ from tests.test_accounts import onboard
 def _slugs(response) -> list[str]:
     assert response.status_code == 200, response.text
     return [s["slug"] for s in response.json()["items"]]
-
-
-@pytest.fixture
-def temp_style(db_admin) -> Iterator[object]:
-    """Crea stili temporanei (es. fuori stagione) e li rimuove a fine test."""
-    created: list[str] = []
-
-    def make(slug_prefix: str = "tmp", **cols) -> str:
-        slug = f"{slug_prefix}-{uuid.uuid4().hex[:6]}"
-        values = {
-            "name": cols.pop("name", "Prova"),
-            "tagline": cols.pop("tagline", "Stile di prova"),
-            "tone": "#123456",
-            "min_age_band": cols.pop("min_age_band", "16_17"),
-            "active_from": cols.pop("active_from", None),
-            "active_until": cols.pop("active_until", None),
-        }
-        db_admin.execute(
-            """insert into app.styles (slug, name, tagline, tone, min_age_band, active_from,
-                                       active_until, sort_order)
-               values (%s, %s, %s, %s, %s, %s, %s, 999)""",
-            (slug, *values.values()),
-        )
-        created.append(slug)
-        return slug
-
-    yield make
-    for slug in created:
-        db_admin.execute(
-            "delete from app.style_memberships where style_id = "
-            "(select id from app.styles where slug = %s)",
-            (slug,),
-        )
-        db_admin.execute("delete from app.styles where slug = %s", (slug,))
 
 
 # ---------- Elenco e ricerca ----------

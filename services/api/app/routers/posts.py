@@ -10,8 +10,6 @@ from __future__ import annotations
 
 import re
 import uuid
-from datetime import datetime
-from decimal import Decimal
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Header, Response, status
@@ -21,17 +19,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.errors import ApiError
+from app.feed import on_post_published
 from app.links import normalize_shop_url
 from app.media.keys import variant_key
 from app.post_access import AUTHOR_SHOWN_SQL, POST_VISIBLE_SQL
+from app.post_views import PostOut, posts_out
 from app.profiles import CurrentProfile, Profile
 from app.ranking import key_now
 from app.ratelimit import rate_limit
 from app.redis_client import get_redis
-from app.routers.media import MediaUrls, media_urls
 from app.storage import get_store
 from app.text_policy import clean_text
-from app.votes import CONFIRM_SAMPLE, style_match, voter_key
 
 router = APIRouter(prefix="/v1/posts", tags=["posts"])
 
@@ -44,6 +42,8 @@ CAPTION_MAX_LINES = 3
 Currency = Literal["EUR", "USD", "GBP", "CHF"]
 IDEMPOTENCY_RE = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
 IDEMPOTENCY_TTL = 24 * 3600
+_PUBLISHED_SQL = """select style_id, extract(epoch from published_at)::float8
+                      from app.posts where id = :id"""
 
 
 # ---------- Modelli ----------
@@ -88,78 +88,14 @@ class PostPatch(BaseModel):
     style: str | None = Field(default=None, min_length=2, max_length=40)
 
 
-class StyleRef(BaseModel):
-    slug: str
-    name: str
-    tone: str
-
-
-class AuthorRef(BaseModel):
-    nickname: str
-    account_type: Literal["private", "business"]
-
-
-class LinkOut(BaseModel):
-    id: uuid.UUID
-    domain: str
-    status: Literal["pending", "safe", "blocked"]
-    # Assente se il link è stato bloccato dai controlli.
-    url: str | None
-
-
-class ItemOut(BaseModel):
-    position: int
-    brand: str
-    name: str
-    # Assente se l'autore nasconde i prezzi (tranne che a sé stesso).
-    price_cents: int | None
-    currency: str
-    link: LinkOut | None
-    media_position: int | None
-    pin_x: float | None
-    pin_y: float | None
-
-
-class MediaOut(BaseModel):
-    position: int
-    width: int
-    height: int
-    blurhash: str
-    urls: MediaUrls
-
-
-class VoteSummary(BaseModel):
-    # Il tuo voto (null se non hai votato).
-    mine: int | None
-    my_style_confirm: bool | None
-    # Media e numero si vedono solo dopo aver votato (o se il post è tuo): nessuno si fa
-    # influenzare dal voto degli altri. vote_count è null anche se l'autore lo nasconde.
-    average: float | None
-    vote_count: int | None
-    # Quota di conferme dello stile (0-1), quando le risposte sono abbastanza.
-    style_match: float | None
-    # Mostrare la domanda "È davvero <stile>?" insieme al voto.
-    ask_style_confirm: bool
-
-
-class PostOut(BaseModel):
-    id: uuid.UUID
-    status: Literal["processing", "active", "style_rejected", "hidden_moderation", "deleted"]
-    style: StyleRef
-    # Assente quando il post è anonimo per chi guarda.
-    author: AuthorRef | None
-    is_own: bool
-    caption: str | None
-    media: list[MediaOut]
-    items: list[ItemOut]
-    published_at: datetime | None
-    created_at: datetime
-    # Solo per l'autore: si può ancora cambiare stile?
-    restyle_available: bool | None = None
-    vote: VoteSummary
-
-
 # ---------- Lettura ----------
+
+
+async def _post_out(session: AsyncSession, viewer: Profile, post_id: uuid.UUID) -> PostOut:
+    out = (await posts_out(session, viewer, [post_id])).get(post_id)
+    if out is None:
+        raise ApiError(404, "post.not_found", "Post non trovato")
+    return out
 
 
 async def _load_post(session: AsyncSession, viewer: Profile, post_id: uuid.UUID) -> Any:
@@ -187,141 +123,6 @@ async def _load_post(session: AsyncSession, viewer: Profile, post_id: uuid.UUID)
     if row is None:
         raise ApiError(404, "post.not_found", "Post non trovato")
     return row
-
-
-async def vote_summary(session: AsyncSession, viewer: Profile, post_id: uuid.UUID) -> VoteSummary:
-    row = (
-        (
-            await session.execute(
-                text(
-                    """select st.vote_count, st.vote_wsum, st.vote_wcount,
-                              st.confirm_yes, st.confirm_no,
-                              p.author_id, p.status::text as status, a.hide_vote_count,
-                              v.score as mine, v.style_confirm as my_confirm
-                         from app.post_stats st
-                         join app.posts p on p.id = st.post_id
-                         join app.profiles a on a.id = p.author_id
-                         left join app.votes v on v.post_id = st.post_id and v.voter_key = :k
-                        where st.post_id = :p"""
-                ),
-                {"p": post_id, "k": voter_key(viewer.id)},
-            )
-        )
-        .mappings()
-        .first()
-    )
-    if row is None:
-        return VoteSummary(
-            mine=None,
-            my_style_confirm=None,
-            average=None,
-            vote_count=None,
-            style_match=None,
-            ask_style_confirm=False,
-        )
-    own = row["author_id"] == viewer.id
-    reveal = own or row["mine"] is not None
-    average = (
-        round(row["vote_wsum"] / row["vote_wcount"], 1)
-        if reveal and row["vote_wcount"] > 0
-        else None
-    )
-    show_count = reveal and (own or not row["hide_vote_count"])
-    sampling = row["confirm_yes"] + row["confirm_no"] < CONFIRM_SAMPLE
-    return VoteSummary(
-        mine=row["mine"],
-        my_style_confirm=row["my_confirm"],
-        average=average,
-        vote_count=row["vote_count"] if show_count else None,
-        style_match=style_match(row["confirm_yes"], row["confirm_no"]) if reveal else None,
-        ask_style_confirm=not own
-        and row["mine"] is None
-        and row["status"] == "active"
-        and sampling,
-    )
-
-
-async def _post_out(session: AsyncSession, viewer: Profile, row: Any) -> PostOut:
-    own = row["author_id"] == viewer.id
-    media_rows = (
-        (
-            await session.execute(
-                text(
-                    """select position, width, height, blurhash, upload_id, variants
-                         from app.post_media where post_id = :id order by position"""
-                ),
-                {"id": row["id"]},
-            )
-        )
-        .mappings()
-        .all()
-    )
-    item_rows = (
-        (
-            await session.execute(
-                text(
-                    """select i.position, i.brand, i.name, i.price_cents, i.currency,
-                              i.media_position, i.pin_x, i.pin_y,
-                              l.id as link_id, l.url, l.domain, l.status::text as link_status
-                         from app.post_items i left join app.links l on l.id = i.link_id
-                        where i.post_id = :id order by i.position"""
-                ),
-                {"id": row["id"]},
-            )
-        )
-        .mappings()
-        .all()
-    )
-    hide_prices = row["hide_prices"] and not own
-
-    def as_float(value: Decimal | None) -> float | None:
-        return float(value) if value is not None else None
-
-    return PostOut(
-        id=row["id"],
-        status=row["status"],
-        style=StyleRef(slug=row["slug"], name=row["name"], tone=row["tone"]),
-        author=AuthorRef(nickname=row["nickname"], account_type=row["account_type"])
-        if row["author_shown"]
-        else None,
-        is_own=own,
-        caption=row["caption"],
-        media=[
-            MediaOut(
-                position=m["position"],
-                width=m["width"],
-                height=m["height"],
-                blurhash=m["blurhash"],
-                urls=media_urls(m["upload_id"], list(m["variants"])),
-            )
-            for m in media_rows
-        ],
-        items=[
-            ItemOut(
-                position=i["position"],
-                brand=i["brand"],
-                name=i["name"],
-                price_cents=None if hide_prices else i["price_cents"],
-                currency=i["currency"],
-                link=LinkOut(
-                    id=i["link_id"],
-                    domain=i["domain"],
-                    status=i["link_status"],
-                    url=None if i["link_status"] == "blocked" else i["url"],
-                )
-                if i["link_id"]
-                else None,
-                media_position=i["media_position"],
-                pin_x=as_float(i["pin_x"]),
-                pin_y=as_float(i["pin_y"]),
-            )
-            for i in item_rows
-        ],
-        published_at=row["published_at"],
-        created_at=row["created_at"],
-        restyle_available=(not row["restyle_used"]) if own else None,
-        vote=await vote_summary(session, viewer, row["id"]),
-    )
 
 
 # ---------- Supporto alla scrittura ----------
@@ -424,8 +225,7 @@ async def create_post(
             if previous and previous != "pending":
                 # Stessa richiesta ripetuta (rete instabile): stesso post, nessun duplicato.
                 response.status_code = status.HTTP_200_OK
-                row = await _load_post(session, profile, uuid.UUID(previous))
-                return await _post_out(session, profile, row)
+                return await _post_out(session, profile, uuid.UUID(previous))
             raise ApiError(409, "request.in_progress", "Pubblicazione già in corso")
 
     try:
@@ -436,8 +236,14 @@ async def create_post(
         raise
     if redis_key:
         await get_redis().set(redis_key, str(post_id), ex=IDEMPOTENCY_TTL)
-    row = await _load_post(session, profile, post_id)
-    return await _post_out(session, profile, row)
+    published = (
+        await session.execute(
+            text(_PUBLISHED_SQL),
+            {"id": post_id},
+        )
+    ).one()
+    await on_post_published(int(published[0]), post_id, float(published[1]))
+    return await _post_out(session, profile, post_id)
 
 
 async def _insert_post(session: AsyncSession, profile: Profile, body: PostIn) -> uuid.UUID:
@@ -516,8 +322,7 @@ async def _insert_post(session: AsyncSession, profile: Profile, body: PostIn) ->
 
 @router.get("/{post_id}", response_model=PostOut)
 async def get_post(post_id: uuid.UUID, profile: CurrentProfile, session: Session) -> PostOut:
-    row = await _load_post(session, profile, post_id)
-    return await _post_out(session, profile, row)
+    return await _post_out(session, profile, post_id)
 
 
 async def _own_post(session: AsyncSession, profile: Profile, post_id: uuid.UUID) -> Any:
@@ -581,7 +386,7 @@ async def update_post(
     except BaseException:
         await session.rollback()
         raise
-    return await _post_out(session, profile, await _load_post(session, profile, post_id))
+    return await _post_out(session, profile, post_id)
 
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)

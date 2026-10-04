@@ -18,9 +18,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_session
 from app.errors import ApiError
 from app.post_access import POST_VISIBLE_SQL
+from app.post_views import VoteSummary, post_out
 from app.profiles import CurrentProfile, Profile
 from app.ratelimit import rate_limit
-from app.routers.posts import VoteSummary, vote_summary
 from app.votes import CONFIRM_SAMPLE, bucket, style_rejected, vote_weight, voter_key
 
 router = APIRouter(prefix="/v1/posts", tags=["votes"])
@@ -184,4 +184,7 @@ async def vote(
     except BaseException:
         await session.rollback()
         raise
-    return await vote_summary(session, profile, post_id)
+    out = await post_out(session, profile, post_id)
+    if out is None:  # sparito nel frattempo (es. eliminato)
+        raise ApiError(404, "post.not_found", "Post non trovato")
+    return out.vote

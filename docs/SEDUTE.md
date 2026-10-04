@@ -447,3 +447,36 @@ il lock; se servirà si accumulano in Redis e si scrivono a lotti.
 
 Da fare in seduta 12: feed lato server (punteggio dei post, Redis per stile, cursore di
 sessione, quota di esplorazione, ripiego senza Redis).
+
+### Seduta 12 — 2026-10-05
+
+Fatto (API, `app/feed.py` e `GET /v1/feed`):
+- **Punteggio R = qualità x freschezza**. Qualità: media dei voti "prudente" (bayesiana,
+  parte da 60 e conta 5 voti immaginari), così un solo 100 non porta un post in cima mentre venti
+  voti da 90 sì. Freschezza: 0,35 + 0,65 x e^(-ore/36), finestra di 14 giorni. La formula esiste
+  sia in SQL sia in Python e i test verificano che diano lo stesso numero.
+- **Quota di esplorazione**: un posto ogni 5 va a un fit nuovo (meno di 48 ore, meno di 10 voti),
+  in ordine casuale ma ripetibile: ogni post appena pubblicato ha la sua occasione.
+- **Redis per stile**: classifica (ZSET) e "nuovi" per ogni stile, ricostruiti dal worker ogni
+  5 minuti (che aggiorna anche `post_stats.hot_score`); un post appena pubblicato entra subito
+  tra i nuovi del suo stile.
+- **Sessione e cursore**: aprendo il feed si fissa l'elenco già filtrato per chi guarda (30
+  minuti); il cursore lo scorre senza doppioni né salti anche se intanto cambiano i voti. Il
+  cursore è firmato e legato all'utente e allo stile: manomesso o di un altro → 400; sessione
+  scaduta → 410 (l'app ricarica).
+- **Filtri per chi guarda**: niente post propri, niente post già votati, niente autori bloccati
+  in nessuna direzione, regole d'età; un post cancellato o bloccato dopo l'apertura non arriva
+  nelle pagine successive.
+- **Ripiego senza Redis**: se Redis non risponde il feed si calcola da PostgreSQL con lo stesso
+  ordine (il test confronta le due strade pagina per pagina).
+- `empty_reason` dice all'app perché il feed è vuoto ("no_styles" / "no_posts").
+- Lettura dei post riscritta "in blocco" (`app/post_views.py`): una pagina di 10 post = 4 query,
+  mai una query per post.
+
+Prova reale in locale con 5.000 post su 11 stili: apertura del feed 312 ms la prima volta
+(classifiche da costruire), poi 39 ms; pagine successive 6 ms.
+
+Verifiche: 263 test API (+13); ruff, mypy, tsc puliti.
+
+Da fare in seduta 13: feed nell'app (card, carosello delle foto, capi sulla foto, slider del
+voto con aggiornamento immediato).
