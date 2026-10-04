@@ -16,7 +16,11 @@ type Props = {
   badge?: string;
   /** Riga in alto a sinistra (es. numero di membri). */
   meta?: string;
+  /** Etichetta in alto a destra al posto del cerchio di selezione (es. "Aderito"). */
+  status?: string;
   height?: number;
+  /** Righe della descrizione (2 in Esplora, dove i riquadri sono più alti). */
+  taglineLines?: number;
   testID?: string;
 };
 
@@ -30,14 +34,16 @@ export function StyleTile({
   selected = false,
   badge,
   meta,
+  status,
   height = 112,
+  taglineLines = 1,
   testID,
 }: Props) {
   return (
     <Pressable
       testID={testID}
       role={selectable ? "checkbox" : "button"}
-      aria-label={`${name}. ${tagline}`}
+      aria-label={[name, tagline, meta, status].filter(Boolean).join(". ")}
       aria-checked={selectable ? selected : undefined}
       onPress={onPress}
       style={({ pressed }) => [
@@ -57,6 +63,7 @@ export function StyleTile({
           ) : null}
           {badge ? <Badge label={badge} /> : null}
         </View>
+        {status && !selectable ? <Badge label={status} tone="inverse" /> : null}
         {selectable ? (
           <View style={[styles.dot, selected ? styles.dotOn : null]}>
             {selected ? <IconCheck color={colors.onAccent} size={14} strokeWidth={3} /> : null}
@@ -67,7 +74,7 @@ export function StyleTile({
         <Text style={styles.name} numberOfLines={2}>
           {name}
         </Text>
-        <Text style={styles.tagline} numberOfLines={1}>
+        <Text style={styles.tagline} numberOfLines={taglineLines}>
           {tagline}
         </Text>
       </View>

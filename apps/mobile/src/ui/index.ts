@@ -8,6 +8,7 @@ export { IconButton } from "./IconButton";
 export { ErrorNotice, Loading } from "./LoadState";
 export { PasswordStrength } from "./PasswordStrength";
 export { Screen } from "./Screen";
+export { SearchField } from "./SearchField";
 export { SegmentedControl } from "./SegmentedControl";
 export { Sheet } from "./Sheet";
 export { Skeleton } from "./Skeleton";

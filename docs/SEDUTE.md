@@ -269,3 +269,29 @@ Nota per dopo: il prototipo, quando la ricerca non trova nulla, dice "Proponilo 
 
 Da fare in seduta 7: stili nell'app (Esplora con ricerca, pagina stile, Aderisci/Esci, chip del
 feed con i tuoi stili).
+
+### Seduta 7 — 2026-10-05
+
+Fatto (app):
+- **Esplora**: ricerca con pausa di battitura (trova anche senza accenti e con refusi, grazie
+  al server), stile stagionale in evidenza ("STAGIONALE · FINO AL 1 NOV"), griglia di tutti gli
+  stili con numero di membri ("15,1k membri") ed etichetta "Aderito", stato vuoto, scheletri di
+  caricamento, errore con "Riprova".
+- **Pagina dello stile** (`/style/[slug]`): intestazione nel colore dello stile, membri, pulsante
+  Entra / Sei dentro, regola del match al 70% dal prototipo, fit della settimana (la griglia dei
+  fit arriva con il feed). Stile fuori stagione o 18+ per un minorenne: "Stile non disponibile".
+- **Entrare e uscire si vede subito** (aggiornamento ottimistico su pagina, Esplora e feed); se il
+  server rifiuta (es. ultimo stile rimasto) tutto torna com'era e compare il motivo.
+- **Feed**: le chip in alto sono ora i TUOI stili, in ordine di adesione, più "+ Stili" che porta
+  a Esplora.
+- `ErrorNotice` con pulsante "Riprova"; nuovo componente `SearchField`; `StyleTile` con etichetta
+  di stato a destra e descrizione su due righe.
+- Prova completa nell'anteprima web con server e database veri: ricerca, pagina, entrata, uscita,
+  rifiuto dell'uscita dall'ultimo stile. Screenshot: `docs/screens/seduta-07-stili.png`.
+
+Verifiche: 111 test app (+10), 155 test API; tsc pulito; bundle Android compilato.
+Trovato e corretto: nei test, le cache di React Query lasciavano timer accesi e jest non si
+chiudeva (in CI sarebbe rimasto appeso).
+
+Da fare in seduta 8: pipeline delle foto (URL firmati per il caricamento, quarantena, worker che
+toglie i dati EXIF/GPS, crea le versioni WebP e il blurhash).

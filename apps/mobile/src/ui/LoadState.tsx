@@ -2,6 +2,7 @@ import { colors, spacing } from "@wearx/design-tokens";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import { ApiError } from "@/lib/api";
+import { Button } from "@/ui/Button";
 import { Text } from "@/ui/Text";
 
 /** Stati di caricamento ed errore comuni a tutte le schermate (sez. 2 della specifica). */
@@ -14,7 +15,7 @@ export function Loading({ label }: { label: string }) {
   );
 }
 
-export function ErrorNotice({ error }: { error: unknown }) {
+export function ErrorNotice({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
   const message =
     error instanceof ApiError && error.code === "app.update_required"
       ? "Aggiorna WearX per continuare."
@@ -24,6 +25,7 @@ export function ErrorNotice({ error }: { error: unknown }) {
     <View style={styles.box} accessibilityRole="alert">
       <Text color={colors.danger}>{message}</Text>
       {ref ? <Text variant="label">{ref}</Text> : null}
+      {onRetry ? <Button label="Riprova" variant="secondary" size="sm" onPress={onRetry} /> : null}
     </View>
   );
 }

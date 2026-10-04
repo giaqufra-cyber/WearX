@@ -98,6 +98,7 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
       <Stack.Protected guard={shown === "app"}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="style/[slug]" />
       </Stack.Protected>
       <Stack.Protected guard={shown === "auth"}>
         <Stack.Screen name="(auth)" />
