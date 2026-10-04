@@ -20,7 +20,7 @@ export default function FeedScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <Text variant="logo" accessibilityRole="header" accessibilityLabel="WearX">
+        <Text variant="logo" role="heading" aria-label="WearX">
           WEAR<Text variant="logo" color={colors.accent}>X</Text>
         </Text>
         <Text variant="secondary" style={styles.subtitle}>i tuoi stili</Text>

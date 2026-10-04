@@ -11,7 +11,7 @@ export default function ExploreScreen() {
   const config = useAppConfig();
   return (
     <Screen>
-      <Text variant="display" accessibilityRole="header" style={styles.title}>Esplora</Text>
+      <Text variant="display" role="heading" style={styles.title}>Esplora</Text>
       {config.isPending ? <Loading label="Carico gli stili…" /> : null}
       {config.isError ? <ErrorNotice error={config.error} /> : null}
       <View style={styles.grid}>

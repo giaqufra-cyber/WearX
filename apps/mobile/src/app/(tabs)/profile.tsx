@@ -8,7 +8,7 @@ import { Text } from "@/ui/Text";
 export default function ProfileScreen() {
   return (
     <Screen>
-      <Text variant="display" accessibilityRole="header" style={styles.title}>Il tuo portfolio</Text>
+      <Text variant="display" role="heading" style={styles.title}>Il tuo portfolio</Text>
       <Text variant="secondary">I tuoi fit, nell'ordine che scegli tu.</Text>
     </Screen>
   );

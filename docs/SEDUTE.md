@@ -93,3 +93,32 @@ Scelte e differenze rispetto alla specifica:
 
 Da fare in seduta 3: design system dell'app (componenti + test con jest-expo).
 Serve da te prima della seduta 4: progetto Supabase gratuito in regione Francoforte.
+
+### Seduta 3 — 2026-10-04
+
+Fatto:
+- Codice su GitHub: `giaqufra-cyber/WearX`, ramo `main` (sedute 1 e 2 caricate a inizio seduta).
+- Test dell'app con jest-expo + React Native Testing Library v14, impostati come da
+  documentazione Expo SDK 57; aggiunti alla CI.
+- Design system in `apps/mobile/src/ui/` (import unico da `@/ui`): Button (5 varianti, 3 misure,
+  caricamento senza cambiare larghezza), IconButton, Chip, TextField (prefisso, errore annunciato,
+  mostra/nascondi password), PasswordStrength, Toggle, Checkbox, SegmentedControl, Toast con
+  provider globale, Skeleton (fermo se "riduci movimento" è attivo), Sheet, EmptyState, Badge,
+  StyleTile. Tutti con ruoli e stati ARIA e aree toccabili ≥ 44 pt.
+- `src/lib/validation.ts`: nickname, robustezza password, età da data di nascita (date
+  inesistenti e 29 febbraio gestiti), allineati alle regole del server.
+- Catalogo dei componenti su `/dev/ui`, solo in sviluppo (in produzione rimanda alla home).
+  Screenshot: `docs/screens/seduta-03-design-system.png`.
+
+Verifiche: 39 test app (23 di validazione, 16 sui componenti) + 89 test API, tutti passati;
+tsc pulito; bundle Android compilato; catalogo controllato a schermo a 390x844.
+I test hanno trovato due difetti veri di accessibilità (indicatore password e avviso a comparsa
+non leggibili da VoiceOver/TalkBack): corretti. Il controllo a schermo ne ha trovati tre di
+impaginazione (selettore piccolo, pulsante in caricamento, etichetta tagliata): corretti.
+
+Note tecniche:
+- TypeScript 6 non include più i tipi globali per default: `types: ["jest", "node"]` nel tsconfig.
+- RNTL v14: render ed eventi sono asincroni (`await`), i timer finti vanno fatti avanzare in `act`.
+
+Da fare in seduta 4: schermate di registrazione e login collegate a Supabase.
+Serve da te prima della seduta 4: progetto Supabase gratuito in regione Francoforte.

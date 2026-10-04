@@ -19,6 +19,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 
+import { ToastProvider } from "@/ui/Toast";
+
 void SplashScreen.preventAutoHideAsync();
 
 /** Tema di navigazione scuro con i colori del brand (bordi, sfondi durante le transizioni). */
@@ -71,13 +73,15 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={navigationTheme}>
-        <StatusBar style="light" />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: colors.background },
-          }}
-        />
+        <ToastProvider>
+          <StatusBar style="light" />
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: colors.background },
+            }}
+          />
+        </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

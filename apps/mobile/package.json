@@ -26,7 +26,11 @@
     "react-native-web": "~0.21.3"
   },
   "devDependencies": {
+    "@testing-library/react-native": "^14.0.1",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.2.2",
+    "jest": "^30.5.2",
+    "jest-expo": "~57.0.5",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -35,7 +39,20 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "jest"
   },
-  "private": true
+  "private": true,
+  "jest": {
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|react-native-svg|@wearx/.*)"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    },
+    "testMatch": [
+      "<rootDir>/src/**/*.test.ts?(x)"
+    ]
+  }
 }

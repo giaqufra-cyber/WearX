@@ -51,7 +51,7 @@ jobs:
           WEARX_ENV: test
 
   mobile:
-    name: App (tipi, test token, bundle Android)
+    name: App (tipi, test, bundle Android)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -69,6 +69,7 @@ jobs:
           git diff --exit-code -- packages/api-types/src/schema.ts
       - run: pnpm --filter @wearx/api-types typecheck
       - run: pnpm --filter @wearx/mobile typecheck
+      - run: pnpm --filter @wearx/mobile test --ci
       - name: Bundle Android (verifica che il JavaScript compili)
         working-directory: apps/mobile
         run: npx expo export --platform android --output-dir /tmp/export
