@@ -372,3 +372,42 @@ Verifiche: 234 test API (+48); ruff, mypy, tsc puliti.
 
 Da fare in seduta 10: "Nuovo fit" nell'app (galleria con più foto, ordine del carosello, capi,
 didascalia, caricamento che riprende se la rete cade).
+
+### Seduta 10 — 2026-10-05
+
+Fatto (app, schermata "Nuovo fit" a tutto schermo dal "+" della barra):
+- **1 · Dalla galleria**: fino a 10 foto con la selezione multipla del telefono (nessun permesso
+  sulla galleria intera: si vedono solo le foto scelte). Ogni foto parte subito, due alla volta:
+  viene ridotta (lato lungo max 2160 px) e ricodificata in JPEG sul telefono, caricata
+  sull'archivio con la barra di avanzamento, poi il server la pulisce ("Togliamo GPS e dati").
+  Ordine del carosello con i pulsanti ‹ › (accessibili anche con VoiceOver/TalkBack), "×" per
+  togliere una foto (cancella anche il caricamento sul server).
+- **Caricamento con ripresa**: se la rete cade si riprova da solo dopo 1, 2, 4, 8 secondi; se il
+  permesso firmato scade se ne chiede un altro; dopo 4 tentativi compare "Riprova". Le foto
+  rifiutate dal server mostrano il motivo in italiano (es. "Formato troppo stretto o troppo
+  largo") e non si riprovano.
+- **2 · Stile del fit**: i tuoi stili per primi, poi gli altri visibili per la tua età.
+- **3 · I capi**: brand, capo, prezzo (accetta "89", "89,90", "1.250,50"), link al negozio con
+  avviso immediato se non è https; fino a 8 capi.
+- **4 · Didascalia** con contatore 140.
+- "Pubblica" si accende solo quando tutto è pronto; sopra c'è sempre scritto cosa manca
+  ("Carichiamo le foto: 1 di 3", "Scegli lo stile del fit"...). Pubblicazione con chiave
+  anti-doppioni: se la rete cade al momento sbagliato il post resta uno solo.
+- La bozza resta se chiudi e riapri la schermata; "×" chiede conferma prima di scartarla.
+- Trovato con la prova a schermo e corretto: su una foto rifiutata l'avviso copriva la "×" e
+  non si poteva più toglierla.
+
+Prova completa sull'anteprima web con archivio S3, worker e database veri: 3 foto (una troppo
+piccola, rifiutata e tolta), ordine invertito, capo Armani a 1.250,50 € con link corretto da
+http a https, pubblicazione → post salvato con foto nell'ordine giusto, prezzo 125050 centesimi.
+Screenshot: `docs/screens/seduta-10-nuovo-fit.png`.
+
+Verifiche: 154 test app (+43: prezzi, link, regole di pubblicazione, bozza, ripresa del
+caricamento con rete che cade/permesso scaduto/foto rifiutata/annullamento, schermata completa);
+234 test API; tsc pulito; bundle Android compilato.
+
+Limiti noti: la bozza vive in memoria (se il sistema chiude l'app a metà, si ricomincia); i punti
+dei capi sulla foto si aggiungono con la seduta 13, insieme alla loro visualizzazione nel feed.
+
+Da fare in seduta 11: voti (voto anonimo 1-100, conferma dello stile, statistiche aggiornate
+nella stessa operazione, test di concorrenza).

@@ -1,5 +1,5 @@
 import { colors, fonts, minTouchTarget, radii } from "@wearx/design-tokens";
-import { Tabs } from "expo-router";
+import { router, Tabs } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import { IconPlus, IconSearch, IconStyles, IconUser } from "@/ui/icons";
@@ -35,6 +35,13 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="create"
+        listeners={{
+          // Il "+" non è una scheda: apre "Nuovo fit" a tutto schermo sopra l'app.
+          tabPress: (event) => {
+            event.preventDefault();
+            router.push("/new-post");
+          },
+        }}
         options={{
           title: "",
           tabBarAccessibilityLabel: "Pubblica un fit",
