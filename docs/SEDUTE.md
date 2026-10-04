@@ -60,3 +60,36 @@ Scelte prese in questa seduta (rispetto alla specifica):
 - Decisioni aperte D1–D7: applicate le proposte della specifica (in attesa di conferma).
 
 Da fare in seduta 2: autenticazione (serve il progetto Supabase), profilo, limiti di frequenza.
+
+### Seduta 2 — 2026-10-04
+
+Fatto:
+- Verifica dei token Supabase (`app/auth.py`): solo ES256/RS256 dal JWKS, cache 10 minuti come
+  indica la documentazione Supabase, ricarica per `kid` sconosciuto al massimo una volta al minuto,
+  emittente, audience, scadenza e `sub` obbligatori, utenti anonimi rifiutati.
+- Limiti di frequenza su Redis (`app/ratelimit.py`): finestra scorrevole con script Lua atomico,
+  429 con `Retry-After`; se Redis è giù la richiesta passa e si registra un avviso.
+- Endpoint: `POST /v1/auth/nickname-check` (20/min per IP), `POST /v1/onboarding/profile`
+  (crea profilo + stili scelti, richiede verifica età superata e accettazione termini),
+  `GET /v1/me`, `PATCH /v1/me` (bio, nascondi prezzi, nascondi numero voti, tipo account).
+- Regole sui testi (`app/text_policy.py`): nickname riservati e frammenti vietati (wearx, admin,
+  support, staff, official…, anche mascherati con punti), bio senza caratteri invisibili o di
+  inversione del testo, massimo 150 caratteri e 4 righe.
+- Migrazione 0003: tabella `age_verifications` (solo esito, mai immagini o date di nascita),
+  `profiles.terms_version` e `terms_accepted_at` come prova del consenso.
+- `packages/api-types`: tipi TypeScript generati dall'OpenAPI; la CI fallisce se non sono
+  allineati all'API. Client dell'app esteso con chiamate autenticate e chiave di idempotenza.
+
+Verifiche: 89 test API passati (64 nuovi). Coperti: token scaduti, emittente o audience sbagliati,
+`alg: none`, HS256 firmato con la chiave pubblica, chiave simmetrica nel JWKS, firma di un'altra
+chiave, payload manomesso, `kid` sconosciuti a raffica, registrazioni simultanee con lo stesso
+nickname, minorenni su stili 18+ e Business, campi del profilo non modificabili, Redis spento.
+ruff, mypy strict, tsc puliti; export OpenAPI stabile; bundle Android compilato.
+
+Scelte e differenze rispetto alla specifica:
+- `PATCH /v1/me` invece di `PUT`: l'aggiornamento è parziale.
+- L'account Business resta dietro il flag `business_accounts` (spento fino alla Fase 2).
+- Log su stderr invece che stdout.
+
+Da fare in seduta 3: design system dell'app (componenti + test con jest-expo).
+Serve da te prima della seduta 4: progetto Supabase gratuito in regione Francoforte.

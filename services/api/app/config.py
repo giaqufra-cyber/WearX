@@ -22,6 +22,23 @@ class Settings(BaseSettings):
     # Segreto per lo pseudonimo dei votanti (HMAC). In produzione arriva dal secret manager.
     vote_pepper: SecretStr = Field(default=SecretStr("local-only-not-a-secret"))
 
+    # Supabase Auth. Token verificati SOLO con chiavi asimmetriche pubblicate nel JWKS.
+    # Esempio: https://abcdefgh.supabase.co
+    supabase_url: str = "http://localhost:54321"
+    jwt_audience: str = "authenticated"
+    jwt_algorithms: tuple[str, ...] = ("ES256", "RS256")
+    # Supabase mette in cache il JWKS per 10 minuti: non conviene tenerlo più a lungo.
+    jwks_cache_seconds: int = 600
+    # Tolleranza sull'orologio per exp/iat.
+    jwt_leeway_seconds: int = 30
+
+    # Dietro Cloudflare l'IP reale arriva in CF-Connecting-IP. Va attivato SOLO se l'API
+    # è raggiungibile esclusivamente attraverso il proxy, altrimenti l'header è falsificabile.
+    trust_proxy_headers: bool = False
+
+    # Versione dei termini che l'app mostra in registrazione.
+    terms_version: str = "2026-10"
+
     # Feature flag esposti all'app via /v1/config.
     feature_flags: dict[str, bool] = Field(
         default_factory=lambda: {
@@ -35,6 +52,14 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.env == "production"
+
+    @property
+    def jwt_issuer(self) -> str:
+        return f"{self.supabase_url.rstrip('/')}/auth/v1"
+
+    @property
+    def jwks_url(self) -> str:
+        return f"{self.jwt_issuer}/.well-known/jwks.json"
 
 
 @lru_cache

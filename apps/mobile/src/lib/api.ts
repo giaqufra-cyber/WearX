@@ -3,7 +3,7 @@
  * - aggiunge X-App-Version (l'API risponde 426 se l'app è troppo vecchia);
  * - trasforma le risposte application/problem+json in ApiError con `code` stabile.
  *
- * Dalla seduta 2 i tipi delle risposte arriveranno da packages/api-types (generati dall'OpenAPI).
+ * I tipi delle risposte arrivano da @wearx/api-types, generati dall'OpenAPI dell'API.
  */
 import Constants from "expo-constants";
 
@@ -39,34 +39,43 @@ export async function parseError(response: Response): Promise<ApiError> {
   return new ApiError(response.status, `http.${response.status}`, response.statusText, requestId);
 }
 
-export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
+type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+export type RequestOptions = {
+  body?: unknown;
+  /** Token di accesso Supabase. Mai salvato qui: lo passa chi chiama, preso dalla sessione. */
+  token?: string;
+  /** Per azioni ripetibili in caso di rete instabile (voti, pubblicazioni): stessa chiave = una sola esecuzione. */
+  idempotencyKey?: string;
+  signal?: AbortSignal;
+};
+
+export async function apiRequest<T>(method: Method, path: string, options: RequestOptions = {}): Promise<T> {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "X-App-Version": APP_VERSION,
+  };
+  if (options.body !== undefined) headers["Content-Type"] = "application/json";
+  if (options.token) headers.Authorization = `Bearer ${options.token}`;
+  if (options.idempotencyKey) headers["Idempotency-Key"] = options.idempotencyKey;
+
   const response = await fetch(`${API_URL}${path}`, {
-    ...init,
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      "X-App-Version": APP_VERSION,
-      ...init?.headers,
-    },
+    method,
+    headers,
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    signal: options.signal,
   });
   if (!response.ok) {
     throw await parseError(response);
   }
+  if (response.status === 204) {
+    return undefined as T;
+  }
   return (await response.json()) as T;
 }
 
-/** Forma di GET /v1/config (provvisoria, sarà generata dall'OpenAPI). */
-export type AppConfig = {
-  min_app_version: string;
-  feature_flags: Record<string, boolean>;
-  styles: Array<{
-    slug: string;
-    name: string;
-    tagline: string;
-    tone: string;
-    min_age_band: "16_17" | "18_plus";
-    seasonal: boolean;
-    active_until: string | null;
-  }>;
-  legal: { terms: string; privacy: string; community_rules: string; feed_explainer: string };
-};
+export function apiGet<T>(path: string, options?: Omit<RequestOptions, "body">): Promise<T> {
+  return apiRequest<T>("GET", path, options);
+}
+
+export type { AppConfig } from "@wearx/api-types";

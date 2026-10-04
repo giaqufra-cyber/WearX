@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { apiGet, type AppConfig } from "@/lib/api";
+import type { AppConfig } from "@wearx/api-types";
+
+import { apiGet } from "@/lib/api";
 
 /** Configurazione pubblica (stili attivi, flag, link legali). Si aggiorna ogni 5 minuti. */
 export function useAppConfig() {

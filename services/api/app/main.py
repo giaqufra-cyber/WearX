@@ -12,7 +12,7 @@ from app.errors import install_error_handlers
 from app.logging_setup import configure_logging
 from app.middleware import install_middleware
 from app.redis_client import close_redis
-from app.routers import config, health
+from app.routers import accounts, config, health
 
 
 @asynccontextmanager
@@ -50,6 +50,7 @@ def create_app() -> FastAPI:
         )
     app.include_router(health.router)
     app.include_router(config.router)
+    app.include_router(accounts.router)
     logging.getLogger("wearx").info("API avviata", extra={"env": settings.env})
     return app
 

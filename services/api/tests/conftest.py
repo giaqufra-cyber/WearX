@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+import uuid
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
@@ -97,3 +98,42 @@ async def client() -> AsyncIterator[object]:
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
         yield c
+
+
+@pytest.fixture(scope="session")
+def keys():
+    """Chiavi di firma di test e JWKS simulato, installati al posto di quelli di Supabase."""
+    from app.auth import set_jwks
+    from tests.authkit import KeySet
+
+    keyset = KeySet()
+    set_jwks(keyset.cache())
+    yield keyset
+    set_jwks(None)
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limits() -> Iterator[None]:
+    """Ogni test parte con i contatori dei limiti azzerati (Redis db 15, solo test)."""
+    import redis
+
+    r = redis.Redis.from_url(os.environ["WEARX_REDIS_URL"])
+    r.flushdb()
+    yield
+    r.close()
+
+
+def create_auth_user(conn: psycopg.Connection) -> uuid.UUID:
+    """Simula la registrazione su Supabase Auth (riga in auth.users)."""
+    user_id = uuid.uuid4()
+    conn.execute("insert into auth.users (id) values (%s)", (user_id,))
+    return user_id
+
+
+def pass_age_check(conn: psycopg.Connection, user_id: uuid.UUID, *, minor: bool = False) -> None:
+    conn.execute(
+        """insert into app.age_verifications
+             (user_id, method, status, age_band, adult_on, provider, completed_at)
+           values (%s, 'selfie_estimation', 'passed', %s, %s, 'test', now())""",
+        (user_id, "16_17" if minor else "18_plus", "2028-03-01" if minor else None),
+    )

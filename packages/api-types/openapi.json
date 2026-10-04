@@ -1,0 +1,578 @@
+{
+  "components": {
+    "schemas": {
+      "ConfigOut": {
+        "properties": {
+          "feature_flags": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Feature Flags",
+            "type": "object"
+          },
+          "legal": {
+            "$ref": "#/components/schemas/LegalLinks"
+          },
+          "min_app_version": {
+            "title": "Min App Version",
+            "type": "string"
+          },
+          "styles": {
+            "items": {
+              "$ref": "#/components/schemas/StyleOut"
+            },
+            "title": "Styles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "min_app_version",
+          "feature_flags",
+          "styles",
+          "legal"
+        ],
+        "title": "ConfigOut",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "LegalLinks": {
+        "properties": {
+          "community_rules": {
+            "title": "Community Rules",
+            "type": "string"
+          },
+          "feed_explainer": {
+            "title": "Feed Explainer",
+            "type": "string"
+          },
+          "privacy": {
+            "title": "Privacy",
+            "type": "string"
+          },
+          "terms": {
+            "title": "Terms",
+            "type": "string"
+          }
+        },
+        "required": [
+          "terms",
+          "privacy",
+          "community_rules",
+          "feed_explainer"
+        ],
+        "title": "LegalLinks",
+        "type": "object"
+      },
+      "NicknameCheckIn": {
+        "additionalProperties": false,
+        "properties": {
+          "nickname": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Nickname",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nickname"
+        ],
+        "title": "NicknameCheckIn",
+        "type": "object"
+      },
+      "NicknameCheckOut": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "nickname": {
+            "title": "Nickname",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "invalid",
+                  "reserved",
+                  "taken"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "nickname",
+          "available"
+        ],
+        "title": "NicknameCheckOut",
+        "type": "object"
+      },
+      "OnboardingIn": {
+        "additionalProperties": false,
+        "properties": {
+          "accept_community_rules": {
+            "const": true,
+            "title": "Accept Community Rules",
+            "type": "boolean"
+          },
+          "account_type": {
+            "default": "private",
+            "enum": [
+              "private",
+              "business"
+            ],
+            "title": "Account Type",
+            "type": "string"
+          },
+          "nickname": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Nickname",
+            "type": "string"
+          },
+          "styles": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 12,
+            "minItems": 1,
+            "title": "Styles",
+            "type": "array"
+          },
+          "terms_version": {
+            "maxLength": 20,
+            "title": "Terms Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nickname",
+          "terms_version",
+          "accept_community_rules",
+          "styles"
+        ],
+        "title": "OnboardingIn",
+        "type": "object"
+      },
+      "ProfileOut": {
+        "properties": {
+          "account_type": {
+            "enum": [
+              "private",
+              "business"
+            ],
+            "title": "Account Type",
+            "type": "string"
+          },
+          "age_band": {
+            "enum": [
+              "16_17",
+              "18_plus"
+            ],
+            "title": "Age Band",
+            "type": "string"
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "hide_prices": {
+            "title": "Hide Prices",
+            "type": "boolean"
+          },
+          "hide_vote_count": {
+            "title": "Hide Vote Count",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "nickname": {
+            "title": "Nickname",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "suspended",
+              "pending_deletion"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "styles": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Styles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "nickname",
+          "bio",
+          "account_type",
+          "age_band",
+          "hide_prices",
+          "hide_vote_count",
+          "status",
+          "styles",
+          "created_at"
+        ],
+        "title": "ProfileOut",
+        "type": "object"
+      },
+      "ProfileUpdateIn": {
+        "additionalProperties": false,
+        "properties": {
+          "account_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "private",
+                  "business"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Type"
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "hide_prices": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hide Prices"
+          },
+          "hide_vote_count": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hide Vote Count"
+          }
+        },
+        "title": "ProfileUpdateIn",
+        "type": "object"
+      },
+      "StyleOut": {
+        "properties": {
+          "active_until": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Until"
+          },
+          "min_age_band": {
+            "title": "Min Age Band",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "seasonal": {
+            "title": "Seasonal",
+            "type": "boolean"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "tagline": {
+            "title": "Tagline",
+            "type": "string"
+          },
+          "tone": {
+            "pattern": "^#[0-9A-F]{6}$",
+            "title": "Tone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "tagline",
+          "tone",
+          "min_age_band",
+          "seasonal",
+          "active_until"
+        ],
+        "title": "StyleOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "WearX API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/v1/auth/nickname-check": {
+      "post": {
+        "operationId": "nickname_check_v1_auth_nickname_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NicknameCheckIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NicknameCheckOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Nickname Check",
+        "tags": [
+          "account"
+        ]
+      }
+    },
+    "/v1/config": {
+      "get": {
+        "operationId": "get_config_v1_config_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfigOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Config",
+        "tags": [
+          "config"
+        ]
+      }
+    },
+    "/v1/me": {
+      "get": {
+        "operationId": "get_me_v1_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Me",
+        "tags": [
+          "account"
+        ]
+      },
+      "patch": {
+        "operationId": "update_me_v1_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileUpdateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Me",
+        "tags": [
+          "account"
+        ]
+      }
+    },
+    "/v1/onboarding/profile": {
+      "post": {
+        "operationId": "create_profile_v1_onboarding_profile_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnboardingIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Profile",
+        "tags": [
+          "account"
+        ]
+      }
+    }
+  }
+}

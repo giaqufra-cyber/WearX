@@ -42,6 +42,13 @@ jobs:
       - run: uv run pytest -q
         env:
           WEARX_TEST_ADMIN_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      - name: I tipi TypeScript corrispondono all'API
+        run: |
+          uv run -q python -m app.export_openapi > ../../packages/api-types/openapi.json
+          git diff --exit-code -- ../../packages/api-types/openapi.json \
+            || (echo "openapi.json non aggiornato: esegui 'pnpm --filter @wearx/api-types sync'" && exit 1)
+        env:
+          WEARX_ENV: test
 
   mobile:
     name: App (tipi, test token, bundle Android)
@@ -56,6 +63,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @wearx/design-tokens typecheck
       - run: pnpm --filter @wearx/design-tokens test
+      - name: Tipi generati aggiornati
+        run: |
+          pnpm --filter @wearx/api-types generate
+          git diff --exit-code -- packages/api-types/src/schema.ts
+      - run: pnpm --filter @wearx/api-types typecheck
       - run: pnpm --filter @wearx/mobile typecheck
       - name: Bundle Android (verifica che il JavaScript compili)
         working-directory: apps/mobile
