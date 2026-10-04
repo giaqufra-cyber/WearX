@@ -774,6 +774,9 @@
           },
           "style": {
             "$ref": "#/components/schemas/StyleRef"
+          },
+          "vote": {
+            "$ref": "#/components/schemas/VoteSummary"
           }
         },
         "required": [
@@ -786,7 +789,8 @@
           "media",
           "items",
           "published_at",
-          "created_at"
+          "created_at",
+          "vote"
         ],
         "title": "PostOut",
         "type": "object"
@@ -1405,6 +1409,106 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "VoteIn": {
+        "additionalProperties": false,
+        "properties": {
+          "score": {
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Score",
+            "type": "integer"
+          },
+          "style_confirm": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style Confirm"
+          }
+        },
+        "required": [
+          "score"
+        ],
+        "title": "VoteIn",
+        "type": "object"
+      },
+      "VoteSummary": {
+        "properties": {
+          "ask_style_confirm": {
+            "title": "Ask Style Confirm",
+            "type": "boolean"
+          },
+          "average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average"
+          },
+          "mine": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mine"
+          },
+          "my_style_confirm": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "My Style Confirm"
+          },
+          "style_match": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style Match"
+          },
+          "vote_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vote Count"
+          }
+        },
+        "required": [
+          "mine",
+          "my_style_confirm",
+          "average",
+          "vote_count",
+          "style_match",
+          "ask_style_confirm"
+        ],
+        "title": "VoteSummary",
         "type": "object"
       }
     }
@@ -2050,6 +2154,59 @@
         "summary": "Update Post",
         "tags": [
           "posts"
+        ]
+      }
+    },
+    "/v1/posts/{post_id}/vote": {
+      "put": {
+        "operationId": "vote_v1_posts__post_id__vote_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "post_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Post Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoteSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Vote",
+        "tags": [
+          "votes"
         ]
       }
     },

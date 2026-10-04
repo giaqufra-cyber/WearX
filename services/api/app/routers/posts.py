@@ -31,6 +31,7 @@ from app.redis_client import get_redis
 from app.routers.media import MediaUrls, media_urls
 from app.storage import get_store
 from app.text_policy import clean_text
+from app.votes import CONFIRM_SAMPLE, style_match, voter_key
 
 router = APIRouter(prefix="/v1/posts", tags=["posts"])
 
@@ -127,6 +128,20 @@ class MediaOut(BaseModel):
     urls: MediaUrls
 
 
+class VoteSummary(BaseModel):
+    # Il tuo voto (null se non hai votato).
+    mine: int | None
+    my_style_confirm: bool | None
+    # Media e numero si vedono solo dopo aver votato (o se il post è tuo): nessuno si fa
+    # influenzare dal voto degli altri. vote_count è null anche se l'autore lo nasconde.
+    average: float | None
+    vote_count: int | None
+    # Quota di conferme dello stile (0-1), quando le risposte sono abbastanza.
+    style_match: float | None
+    # Mostrare la domanda "È davvero <stile>?" insieme al voto.
+    ask_style_confirm: bool
+
+
 class PostOut(BaseModel):
     id: uuid.UUID
     status: Literal["processing", "active", "style_rejected", "hidden_moderation", "deleted"]
@@ -141,6 +156,7 @@ class PostOut(BaseModel):
     created_at: datetime
     # Solo per l'autore: si può ancora cambiare stile?
     restyle_available: bool | None = None
+    vote: VoteSummary
 
 
 # ---------- Lettura ----------
@@ -171,6 +187,58 @@ async def _load_post(session: AsyncSession, viewer: Profile, post_id: uuid.UUID)
     if row is None:
         raise ApiError(404, "post.not_found", "Post non trovato")
     return row
+
+
+async def vote_summary(session: AsyncSession, viewer: Profile, post_id: uuid.UUID) -> VoteSummary:
+    row = (
+        (
+            await session.execute(
+                text(
+                    """select st.vote_count, st.vote_wsum, st.vote_wcount,
+                              st.confirm_yes, st.confirm_no,
+                              p.author_id, p.status::text as status, a.hide_vote_count,
+                              v.score as mine, v.style_confirm as my_confirm
+                         from app.post_stats st
+                         join app.posts p on p.id = st.post_id
+                         join app.profiles a on a.id = p.author_id
+                         left join app.votes v on v.post_id = st.post_id and v.voter_key = :k
+                        where st.post_id = :p"""
+                ),
+                {"p": post_id, "k": voter_key(viewer.id)},
+            )
+        )
+        .mappings()
+        .first()
+    )
+    if row is None:
+        return VoteSummary(
+            mine=None,
+            my_style_confirm=None,
+            average=None,
+            vote_count=None,
+            style_match=None,
+            ask_style_confirm=False,
+        )
+    own = row["author_id"] == viewer.id
+    reveal = own or row["mine"] is not None
+    average = (
+        round(row["vote_wsum"] / row["vote_wcount"], 1)
+        if reveal and row["vote_wcount"] > 0
+        else None
+    )
+    show_count = reveal and (own or not row["hide_vote_count"])
+    sampling = row["confirm_yes"] + row["confirm_no"] < CONFIRM_SAMPLE
+    return VoteSummary(
+        mine=row["mine"],
+        my_style_confirm=row["my_confirm"],
+        average=average,
+        vote_count=row["vote_count"] if show_count else None,
+        style_match=style_match(row["confirm_yes"], row["confirm_no"]) if reveal else None,
+        ask_style_confirm=not own
+        and row["mine"] is None
+        and row["status"] == "active"
+        and sampling,
+    )
 
 
 async def _post_out(session: AsyncSession, viewer: Profile, row: Any) -> PostOut:
@@ -252,6 +320,7 @@ async def _post_out(session: AsyncSession, viewer: Profile, row: Any) -> PostOut
         published_at=row["published_at"],
         created_at=row["created_at"],
         restyle_available=(not row["restyle_used"]) if own else None,
+        vote=await vote_summary(session, viewer, row["id"]),
     )
 
 
@@ -495,6 +564,18 @@ async def update_post(
                         where id = :id"""
                 ),
                 {"s": style_id, "id": post_id},
+            )
+            # Nuovo stile, nuova verifica: le conferme ripartono da zero.
+            await session.execute(
+                text(
+                    """update app.post_stats set confirm_yes = 0, confirm_no = 0
+                        where post_id = :id"""
+                ),
+                {"id": post_id},
+            )
+            await session.execute(
+                text("update app.votes set style_confirm = null where post_id = :id"),
+                {"id": post_id},
             )
         await session.commit()
     except BaseException:

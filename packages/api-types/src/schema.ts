@@ -232,6 +232,23 @@ export interface paths {
         patch: operations["update_post_v1_posts__post_id__patch"];
         trace?: never;
     };
+    "/v1/posts/{post_id}/vote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Vote */
+        put: operations["vote_v1_posts__post_id__vote_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/styles": {
         parameters: {
             query?: never;
@@ -554,6 +571,7 @@ export interface components {
              */
             status: "processing" | "active" | "style_rejected" | "hidden_moderation" | "deleted";
             style: components["schemas"]["StyleRef"];
+            vote: components["schemas"]["VoteSummary"];
         };
         /** PostPatch */
         PostPatch: {
@@ -757,6 +775,28 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** VoteIn */
+        VoteIn: {
+            /** Score */
+            score: number;
+            /** Style Confirm */
+            style_confirm?: boolean | null;
+        };
+        /** VoteSummary */
+        VoteSummary: {
+            /** Ask Style Confirm */
+            ask_style_confirm: boolean;
+            /** Average */
+            average: number | null;
+            /** Mine */
+            mine: number | null;
+            /** My Style Confirm */
+            my_style_confirm: boolean | null;
+            /** Style Match */
+            style_match: number | null;
+            /** Vote Count */
+            vote_count: number | null;
         };
     };
     responses: never;
@@ -1251,6 +1291,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PostOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    vote_v1_posts__post_id__vote_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoteIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoteSummary"];
                 };
             };
             /** @description Validation Error */

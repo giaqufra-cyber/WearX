@@ -15,6 +15,8 @@ export type ProfileUpdate = Schemas["ProfileUpdateIn"];
 export type OnboardingRequest = Schemas["OnboardingIn"];
 export type NicknameCheck = Schemas["NicknameCheckOut"];
 export type Post = Schemas["PostOut"];
+export type VoteSummary = Schemas["VoteSummary"];
+export type VoteRequest = Schemas["VoteIn"];
 export type PostCreate = Schemas["PostIn"];
 export type PostUpdate = Schemas["PostPatch"];
 export type PostItem = Schemas["ItemOut"];
@@ -79,5 +81,7 @@ export type ApiErrorCode =
   | "text.invalid_characters"
   | "text.too_long"
   | "text.too_many_lines"
+  | "vote.not_allowed"
+  | "vote.own_post"
   | "webhook.rejected"
   | "webhook.unknown_provider";

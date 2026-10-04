@@ -411,3 +411,39 @@ dei capi sulla foto si aggiungono con la seduta 13, insieme alla loro visualizza
 
 Da fare in seduta 11: voti (voto anonimo 1-100, conferma dello stile, statistiche aggiornate
 nella stessa operazione, test di concorrenza).
+
+### Seduta 11 — 2026-10-05
+
+Fatto (API, `app/routers/votes.py` e `app/votes.py`):
+- **Voto da 1 a 100** con `PUT /v1/posts/{id}/vote`; si può cambiare; non si votano i propri
+  fit; i post che non vedi rispondono 404 (stessa regola dei post).
+- **Anonimato**: nella tabella dei voti non c'è chi ha votato, solo un'impronta
+  HMAC-SHA256 calcolata con un segreto del server: serve solo a impedire il doppio voto.
+- **Statistiche nella stessa operazione del voto** (conteggio, somma, media pesata,
+  istogramma a fasce di 10 punti), sotto il lock della riga del post: esatte anche con molti
+  voti insieme. Se lo stesso utente manda dieci voti in contemporanea ne resta uno.
+- **Media nascosta finché non voti**: chi non ha ancora votato non la vede (nessuno si fa
+  influenzare); l'autore la vede sempre. Se l'autore nasconde il numero di voti, gli altri
+  vedono solo la media.
+- **Conferma dello stile**: la domanda "È davvero <stile>?" va ai primi 30 votanti; con almeno
+  10 risposte, sotto il 70% di sì il post esce dalla pagina dello stile (resta nel portfolio e si
+  può ancora votare). Cambiando stile (una volta) la verifica riparte da zero. Vale solo la
+  prima risposta di ciascuno.
+- **Peso**: i voti degli account creati da meno di 24 ore contano la metà (difesa minima; la
+  seduta 22 aggiunge attestazione del dispositivo e anomalie).
+- `GET /v1/posts/{id}` include ora il riepilogo del voto.
+
+Trovato dai test e corretto: il peso 0,5 veniva arrotondato a 0 dal database (mancava il tipo
+esplicito del parametro).
+
+Prova di carico reale in locale: 200 voti nello stesso istante su un post, un solo processo API
+→ tutti accettati in 2,35 s, conteggio e somma esatti, istogramma coerente.
+
+Verifiche: 250 test API (+16, compresi 40 voti in parallelo e 10 voti in parallelo della stessa
+persona); ruff, mypy, tsc puliti.
+
+Nota per la scala (sedute 22-24): su un singolo post virale i voti passano uno alla volta per
+il lock; se servirà si accumulano in Redis e si scrivono a lotti.
+
+Da fare in seduta 12: feed lato server (punteggio dei post, Redis per stile, cursore di
+sessione, quota di esplorazione, ripiego senza Redis).
