@@ -79,24 +79,32 @@ def nickname_problem(nickname: str) -> str | None:
     return None
 
 
-def clean_bio(raw: str | None) -> str | None:
-    """Normalizza la bio; solleva 422 se contiene caratteri non ammessi o è troppo lunga."""
+def clean_text(raw: str | None, *, field: str, max_chars: int, max_lines: int = 1) -> str | None:
+    """Normalizza un testo libero; 422 se ha caratteri non ammessi, è troppo lungo o ha
+    troppe righe. `field` è il nome mostrato nell'errore ("La didascalia", "Il brand"...)."""
     if raw is None:
         return None
     text = unicodedata.normalize("NFC", raw).strip()
+    if max_lines == 1:
+        text = " ".join(text.split())  # a capo e spazi multipli -> uno spazio
     if not text:
         return None
     if _FORBIDDEN_CHARS.search(text):
-        raise ApiError(422, "text.invalid_characters", "La bio contiene caratteri non ammessi")
+        raise ApiError(422, "text.invalid_characters", f"{field} contiene caratteri non ammessi")
     for ch in text:
         if ch != "\n" and unicodedata.category(ch) in ("Cc", "Cf", "Co", "Cs"):
-            raise ApiError(422, "text.invalid_characters", "La bio contiene caratteri non ammessi")
-    if len(text) > BIO_MAX_CHARS:
+            raise ApiError(
+                422, "text.invalid_characters", f"{field} contiene caratteri non ammessi"
+            )
+    if len(text) > max_chars:
+        raise ApiError(422, "text.too_long", f"{field} può avere al massimo {max_chars} caratteri")
+    if text.count("\n") >= max_lines:
         raise ApiError(
-            422, "text.too_long", f"La bio può avere al massimo {BIO_MAX_CHARS} caratteri"
-        )
-    if text.count("\n") >= BIO_MAX_LINES:
-        raise ApiError(
-            422, "text.too_many_lines", f"La bio può avere al massimo {BIO_MAX_LINES} righe"
+            422, "text.too_many_lines", f"{field} può avere al massimo {max_lines} righe"
         )
     return text
+
+
+def clean_bio(raw: str | None) -> str | None:
+    """Normalizza la bio; solleva 422 se contiene caratteri non ammessi o è troppo lunga."""
+    return clean_text(raw, field="La bio", max_chars=BIO_MAX_CHARS, max_lines=BIO_MAX_LINES)

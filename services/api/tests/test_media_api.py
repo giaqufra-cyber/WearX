@@ -4,70 +4,18 @@
 from __future__ import annotations
 
 import io
-import socket
 import uuid
-from collections.abc import Iterator
 
 import httpx
 import pytest
 from PIL import Image
 
-from app.config import Settings
 from app.media import jobs
 from app.media.keys import quarantine_key, variant_key
 from app.media.scan import set_scanner
-from app.queue import set_queue
-from app.storage import ObjectStore, set_store
 from tests.authkit import bearer
 from tests.imagekit import has_metadata, photo
 from tests.test_accounts import onboard
-
-
-def _free_port() -> int:
-    with socket.socket() as s:
-        s.bind(("127.0.0.1", 0))
-        return int(s.getsockname()[1])
-
-
-@pytest.fixture(scope="module")
-def s3_url() -> Iterator[str]:
-    from moto.server import ThreadedMotoServer
-
-    port = _free_port()
-    server = ThreadedMotoServer(ip_address="127.0.0.1", port=port, verbose=False)
-    server.start()
-    yield f"http://127.0.0.1:{port}"
-    server.stop()
-
-
-class RecordingQueue:
-    def __init__(self) -> None:
-        self.jobs: list[tuple[str, tuple[object, ...], str]] = []
-
-    async def enqueue(self, function: str, *args: object, job_id: str) -> None:
-        self.jobs.append((function, args, job_id))
-
-
-@pytest.fixture
-async def store(s3_url) -> object:
-    settings = Settings(
-        storage_endpoint_url=s3_url,
-        storage_bucket=f"test-{uuid.uuid4().hex[:8]}",
-        storage_access_key="test",
-    )
-    store = ObjectStore(settings)
-    await store.ensure_bucket()
-    set_store(store)
-    yield store
-    set_store(None)
-
-
-@pytest.fixture
-def queue() -> Iterator[RecordingQueue]:
-    recorder = RecordingQueue()
-    previous = set_queue(recorder)
-    yield recorder
-    set_queue(previous)
 
 
 async def _create(client, headers, *, content_type="image/jpeg", size=100_000):

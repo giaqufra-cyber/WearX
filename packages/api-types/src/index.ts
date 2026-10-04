@@ -14,6 +14,11 @@ export type Profile = Schemas["ProfileOut"];
 export type ProfileUpdate = Schemas["ProfileUpdateIn"];
 export type OnboardingRequest = Schemas["OnboardingIn"];
 export type NicknameCheck = Schemas["NicknameCheckOut"];
+export type Post = Schemas["PostOut"];
+export type PostCreate = Schemas["PostIn"];
+export type PostUpdate = Schemas["PostPatch"];
+export type PostItem = Schemas["ItemOut"];
+export type PostItemInput = Schemas["ItemIn"];
 export type MediaUpload = Schemas["UploadOut"];
 export type MediaUploadRequest = Schemas["UploadIn"];
 export type StyleCard = Schemas["StyleCard"];
@@ -44,6 +49,11 @@ export type ApiErrorCode =
   | "age.underage"
   | "age.verification_required"
   | "feature.disabled"
+  | "item.bad_media_position"
+  | "item.incomplete"
+  | "link.invalid"
+  | "media.duplicate"
+  | "media.unavailable"
   | "media.not_found"
   | "media.not_uploaded"
   | "media.too_large"
@@ -52,8 +62,12 @@ export type ApiErrorCode =
   | "nickname.reserved"
   | "nickname.taken"
   | "onboarding.required"
+  | "post.not_found"
+  | "post.not_owner"
+  | "post.restyle_used"
   | "profile.exists"
   | "rate.limited"
+  | "request.in_progress"
   | "request.invalid"
   | "resource.not_found"
   | "server.error"

@@ -196,6 +196,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Post */
+        post: operations["create_post_v1_posts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/posts/{post_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Post */
+        get: operations["get_post_v1_posts__post_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Post */
+        delete: operations["delete_post_v1_posts__post_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Post */
+        patch: operations["update_post_v1_posts__post_id__patch"];
+        trace?: never;
+    };
     "/v1/styles": {
         parameters: {
             query?: never;
@@ -318,6 +354,16 @@ export interface components {
             /** Verified */
             verified: boolean;
         };
+        /** AuthorRef */
+        AuthorRef: {
+            /**
+             * Account Type
+             * @enum {string}
+             */
+            account_type: "private" | "business";
+            /** Nickname */
+            nickname: string;
+        };
         /** ConfigOut */
         ConfigOut: {
             /** Feature Flags */
@@ -337,6 +383,49 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** ItemIn */
+        ItemIn: {
+            /** Brand */
+            brand: string;
+            /**
+             * Currency
+             * @default EUR
+             * @enum {string}
+             */
+            currency: "EUR" | "USD" | "GBP" | "CHF";
+            /** Media Position */
+            media_position?: number | null;
+            /** Name */
+            name: string;
+            /** Pin X */
+            pin_x?: number | null;
+            /** Pin Y */
+            pin_y?: number | null;
+            /** Price Cents */
+            price_cents?: number | null;
+            /** Url */
+            url?: string | null;
+        };
+        /** ItemOut */
+        ItemOut: {
+            /** Brand */
+            brand: string;
+            /** Currency */
+            currency: string;
+            link: components["schemas"]["LinkOut"] | null;
+            /** Media Position */
+            media_position: number | null;
+            /** Name */
+            name: string;
+            /** Pin X */
+            pin_x: number | null;
+            /** Pin Y */
+            pin_y: number | null;
+            /** Position */
+            position: number;
+            /** Price Cents */
+            price_cents: number | null;
+        };
         /** LegalLinks */
         LegalLinks: {
             /** Community Rules */
@@ -347,6 +436,35 @@ export interface components {
             privacy: string;
             /** Terms */
             terms: string;
+        };
+        /** LinkOut */
+        LinkOut: {
+            /** Domain */
+            domain: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "safe" | "blocked";
+            /** Url */
+            url: string | null;
+        };
+        /** MediaOut */
+        MediaOut: {
+            /** Blurhash */
+            blurhash: string;
+            /** Height */
+            height: number;
+            /** Position */
+            position: number;
+            urls: components["schemas"]["MediaUrls"];
+            /** Width */
+            width: number;
         };
         /** MediaUrls */
         MediaUrls: {
@@ -393,6 +511,58 @@ export interface components {
             styles: string[];
             /** Terms Version */
             terms_version: string;
+        };
+        /** PostIn */
+        PostIn: {
+            /** Caption */
+            caption?: string | null;
+            /** Items */
+            items?: components["schemas"]["ItemIn"][];
+            /** Media */
+            media: string[];
+            /** Style */
+            style: string;
+        };
+        /** PostOut */
+        PostOut: {
+            author: components["schemas"]["AuthorRef"] | null;
+            /** Caption */
+            caption: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Own */
+            is_own: boolean;
+            /** Items */
+            items: components["schemas"]["ItemOut"][];
+            /** Media */
+            media: components["schemas"]["MediaOut"][];
+            /** Published At */
+            published_at: string | null;
+            /** Restyle Available */
+            restyle_available?: boolean | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "processing" | "active" | "style_rejected" | "hidden_moderation" | "deleted";
+            style: components["schemas"]["StyleRef"];
+        };
+        /** PostPatch */
+        PostPatch: {
+            /** Caption */
+            caption?: string | null;
+            /** Items */
+            items?: components["schemas"]["ItemIn"][] | null;
+            /** Style */
+            style?: string | null;
         };
         /** ProfileOut */
         ProfileOut: {
@@ -514,6 +684,15 @@ export interface components {
             slug: string;
             /** Tagline */
             tagline: string;
+            /** Tone */
+            tone: string;
+        };
+        /** StyleRef */
+        StyleRef: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
             /** Tone */
             tone: string;
         };
@@ -942,6 +1121,136 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_post_v1_posts_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_post_v1_posts__post_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_post_v1_posts__post_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_post_v1_posts__post_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostOut"];
                 };
             };
             /** @description Validation Error */

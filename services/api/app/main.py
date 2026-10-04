@@ -12,7 +12,7 @@ from app.errors import install_error_handlers
 from app.logging_setup import configure_logging
 from app.middleware import install_middleware
 from app.redis_client import close_redis
-from app.routers import accounts, age, config, health, media, styles
+from app.routers import accounts, age, config, health, media, posts, styles
 
 
 @asynccontextmanager
@@ -54,6 +54,7 @@ def create_app() -> FastAPI:
     app.include_router(age.router)
     app.include_router(styles.router)
     app.include_router(media.router)
+    app.include_router(posts.router)
     if settings.age_provider == "fake" and not settings.is_production:
         # Pagina del fornitore finto: solo sviluppo e test.
         from app.routers import dev_age

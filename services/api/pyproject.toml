@@ -52,6 +52,7 @@ ignore = ["S101"]  # assert nei test
 # i valori dell'utente passano SEMPRE come parametri (:q, :slug, ...), mai nel testo.
 "app/routers/styles.py" = ["S608"]
 "app/profiles.py" = ["S608"]
+"app/routers/posts.py" = ["S608"]
 
 [tool.mypy]
 strict = true

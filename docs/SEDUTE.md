@@ -338,3 +338,37 @@ Note:
 
 Da fare in seduta 9: post lato server (creazione con le foto pronte, capi con brand/prezzo/link,
 modifica, eliminazione) e la suite di test di autorizzazione.
+
+### Seduta 9 — 2026-10-05
+
+Fatto (API, `app/routers/posts.py`):
+- **Pubblicazione** `POST /v1/posts`: stile, didascalia (max 140 caratteri, 3 righe, ripulita),
+  da 1 a 10 foto già elaborate (nell'ordine del carosello) e fino a 8 capi con brand, nome,
+  prezzo (EUR/USD/GBP/CHF), link al negozio e punto sulla foto.
+  - Le foto si "prenotano" con un solo comando al database: due pubblicazioni in parallelo non
+    possono usare la stessa foto; se qualcosa va storto non resta nulla a metà.
+  - `Idempotency-Key`: se la rete cade e l'app ripete la richiesta, il post resta uno solo.
+  - Link ai negozi solo https verso siti pubblici (niente IP, localhost, credenziali
+    nell'indirizzo, porte strane); lo stesso negozio è una sola riga. Restano "da controllare"
+    fino alla seduta 21; un link bloccato non mostra più l'indirizzo.
+- **Lettura** `GET /v1/posts/{id}`: foto con URL firmati, capi, stile. L'autore compare solo se
+  è Business, se sei tu o se lo segui; altrimenti il post è anonimo. Prezzi nascosti agli altri
+  se l'autore lo ha scelto.
+- **Modifica** `PATCH`: didascalia e capi; **cambio di stile una volta sola** per post.
+- **Eliminazione** `DELETE`: il post sparisce, foto e capi cancellati subito (anche dall'archivio).
+- **Chiavi d'ordine del portfolio** (`app/ranking.py`): i post nuovi vanno in cima; pronte le
+  chiavi "in mezzo" per il riordino della seduta 14, verificate con 300 inserimenti casuali.
+- **Suite di autorizzazione (IDOR)**: per post eliminati, nascosti dalla moderazione, di autori
+  sospesi, in stili 18+ (per un minorenne) o inesistenti, lettura/modifica/eliminazione
+  rispondono sempre 404 identico, così non si scopre nemmeno che il post esiste; un post visibile
+  ma non tuo risponde 403 su modifica/eliminazione; blocchi in entrambe le direzioni.
+- Migrazione 0007. Testi liberi con un'unica regola (`clean_text`: niente caratteri invisibili o
+  che invertono il testo).
+
+Prova reale in locale: foto della seduta 8 → post in Galà con un capo Armani → foto leggibile
+con l'URL firmato; richiesta ripetuta → stesso post.
+
+Verifiche: 234 test API (+48); ruff, mypy, tsc puliti.
+
+Da fare in seduta 10: "Nuovo fit" nell'app (galleria con più foto, ordine del carosello, capi,
+didascalia, caricamento che riprende se la rete cade).

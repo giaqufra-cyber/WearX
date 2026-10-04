@@ -1,6 +1,6 @@
 """Solo sviluppo: crea il bucket delle foto nell'archivio locale (MinIO o moto_server).
 
-    uv run python -m app.storage_init
+uv run python -m app.storage_init
 """
 
 import asyncio

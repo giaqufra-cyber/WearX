@@ -10,6 +10,7 @@ Variabili: WEARX_TEST_ADMIN_URL (default postgres:postgres@localhost:5432).
 from __future__ import annotations
 
 import os
+import socket
 import subprocess
 import sys
 import uuid
@@ -137,3 +138,72 @@ def pass_age_check(conn: psycopg.Connection, user_id: uuid.UUID, *, minor: bool 
            values (%s, 'selfie_estimation', 'passed', %s, %s, 'test', now())""",
         (user_id, "16_17" if minor else "18_plus", "2028-03-01" if minor else None),
     )
+
+
+# ---------- Archivio S3 locale (moto) per foto e post ----------
+
+
+def _free_port() -> int:
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        return int(s.getsockname()[1])
+
+
+@pytest.fixture(scope="session")
+def s3_url() -> Iterator[str]:
+    from moto.server import ThreadedMotoServer
+
+    port = _free_port()
+    server = ThreadedMotoServer(ip_address="127.0.0.1", port=port, verbose=False)
+    server.start()
+    yield f"http://127.0.0.1:{port}"
+    server.stop()
+
+
+class RecordingQueue:
+    def __init__(self) -> None:
+        self.jobs: list[tuple[str, tuple[object, ...], str]] = []
+
+    async def enqueue(self, function: str, *args: object, job_id: str) -> None:
+        self.jobs.append((function, args, job_id))
+
+
+@pytest.fixture
+async def store(s3_url) -> AsyncIterator[object]:
+    from app.config import Settings
+    from app.storage import ObjectStore, set_store
+
+    settings = Settings(
+        storage_endpoint_url=s3_url,
+        storage_bucket=f"test-{uuid.uuid4().hex[:8]}",
+        storage_access_key="test",
+    )
+    store = ObjectStore(settings)
+    await store.ensure_bucket()
+    set_store(store)
+    yield store
+    set_store(None)
+
+
+@pytest.fixture
+def queue() -> Iterator[RecordingQueue]:
+    from app.queue import set_queue
+
+    recorder = RecordingQueue()
+    previous = set_queue(recorder)
+    yield recorder
+    set_queue(previous)
+
+
+def ready_upload(conn: psycopg.Connection, owner: uuid.UUID, *, width: int = 1080) -> uuid.UUID:
+    """Foto già elaborata (senza passare dall'archivio): per i test dei post."""
+    upload_id = uuid.uuid4()
+    conn.execute(
+        """insert into app.media_uploads
+             (id, owner_id, status, content_type, declared_bytes, width, height, blurhash,
+              sha256, phash, variants, processed_at)
+           values (%s, %s, 'ready', 'image/jpeg', 1000, %s, %s, 'LEHV6nWB2yk8pyo0adR*.7kCMdnj',
+                   %s, 42, '{320,640,1080}', now())""",
+        (upload_id, owner, width, round(width * 1.25), uuid.uuid4().bytes * 2),
+    )
+    return upload_id
