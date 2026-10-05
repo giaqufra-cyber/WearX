@@ -9,12 +9,12 @@ from arq import cron
 from arq.connections import RedisSettings
 from sqlalchemy import text
 
-from app.config import get_settings
+from app.config import Component, get_settings, require_secrets
 from app.db import session_scope
 from app.feed import refresh_all
 from app.insights import ROME, aggregate_recent
 from app.link_check import check_due_links
-from app.logging_setup import configure_logging
+from app.logging_setup import configure_logging, init_sentry
 from app.media.jobs import cleanup_uploads, process_upload
 from app.privacy import build_export, expire_exports, purge_deleted_accounts
 from app.push import check_receipts, get_sender, send_pending, vote_milestones
@@ -84,14 +84,40 @@ async def privacy_nightly(ctx: dict[str, Any]) -> tuple[int, int]:
 
 
 async def check_links(ctx: dict[str, Any]) -> int:
-    """Ogni 2 minuti: link ai negozi nuovi o da ricontrollare."""
+    """Ogni 2 minuti: link ai negozi nuovi o da ricontrollare (worker separato)."""
     async with session_scope() as session:
-        return await check_due_links(session)
+        checked = await check_due_links(session)
+        await heartbeat(session, "linkcheck")
+        return checked
 
 
-async def startup(ctx: dict[str, Any]) -> None:
-    settings = get_settings()
-    configure_logging(json_logs=settings.env not in ("local", "test"))
+async def worker_heartbeat(ctx: dict[str, Any]) -> None:
+    """Ogni minuto: "sono vivo" (lo controlla /healthz/workers, e quindi il monitoraggio)."""
+    async with session_scope() as session:
+        await heartbeat(session, "worker")
+
+
+async def heartbeat(session: Any, name: str) -> None:
+    await session.execute(
+        text(
+            """insert into app.job_runs (name, finished_at) values (:n, now())
+               on conflict (name) do update set finished_at = excluded.finished_at"""
+        ),
+        {"n": f"heartbeat:{name}"},
+    )
+    await session.commit()
+
+
+def _startup(component: Component) -> Any:
+    async def startup(ctx: dict[str, Any]) -> None:
+        settings = get_settings()
+        require_secrets(settings, component)
+        configure_logging(
+            json_logs=settings.env not in ("local", "test"), gcp_project=settings.gcp_project
+        )
+        init_sentry(settings, component)
+
+    return startup
 
 
 class WorkerSettings:
@@ -106,12 +132,32 @@ class WorkerSettings:
         cron(event_partitions, hour={3}, minute={17}),
         cron(insights_nightly, hour={3}, minute={40}),
         cron(privacy_nightly, hour={4}, minute={10}),
-        cron(check_links, minute=set(range(1, 60, 2))),
+        cron(worker_heartbeat, second=0),
     ]
     # Gli orari dei lavori sono in ora italiana (anche quando il server è in UTC).
     timezone = ROME
-    on_startup = startup
+    on_startup = _startup("worker")
     redis_settings = RedisSettings.from_dsn(get_settings().redis_url)
     max_jobs = 4
     job_timeout = 120
     max_tries = 3
+
+
+class LinkCheckSettings:
+    """Worker separato che visita i siti esterni (controllo dei link ai negozi).
+
+    Gira in un servizio a parte, con un'identità senza permessi e solo i segreti che gli
+    servono (database, Redis, Safe Browsing): se un sito malevolo riuscisse a ingannare i
+    controlli degli indirizzi, qui non troverebbe chiavi dell'archivio, di Supabase o dei push.
+    Avvio:  uv run arq app.worker.LinkCheckSettings
+    """
+
+    functions: ClassVar[list[Any]] = []
+    cron_jobs: ClassVar[list[Any]] = [cron(check_links, minute=set(range(1, 60, 2)))]
+    timezone = ROME
+    on_startup = _startup("linkcheck")
+    redis_settings = RedisSettings.from_dsn(get_settings().redis_url)
+    queue_name = "arq:links"
+    max_jobs = 2
+    job_timeout = 300
+    max_tries = 1

@@ -38,3 +38,28 @@ async def readiness(session: Annotated[AsyncSession, Depends(get_session)]) -> J
     return JSONResponse(
         {"status": "ok" if ok else "degraded", "checks": checks}, status_code=200 if ok else 503
     )
+
+
+# Battito dei worker: oltre questo ritardo il monitoraggio avvisa.
+WORKER_STALE = {"worker": 5 * 60, "linkcheck": 10 * 60}
+
+
+@router.get("/healthz/workers", include_in_schema=False)
+async def workers(session: Annotated[AsyncSession, Depends(get_session)]) -> JSONResponse:
+    """I worker in background sono vivi? (ultimo battito più recente di qualche minuto)"""
+    rows = await session.execute(
+        text(
+            """select substring(name from 11) as name,
+                      extract(epoch from now() - finished_at) as age
+                 from app.job_runs where name like 'heartbeat:%'"""
+        )
+    )
+    ages = {r[0]: float(r[1]) for r in rows}
+    checks = {
+        name: ("ok" if ages.get(name, float("inf")) <= limit else "stale")
+        for name, limit in WORKER_STALE.items()
+    }
+    ok = all(v == "ok" for v in checks.values())
+    return JSONResponse(
+        {"status": "ok" if ok else "degraded", "checks": checks}, status_code=200 if ok else 503
+    )

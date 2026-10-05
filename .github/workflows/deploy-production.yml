@@ -1,0 +1,22 @@
+name: Deploy produzione
+
+# Solo a mano (Actions → Deploy produzione → Run workflow) e con l'approvazione richiesta
+# dall'ambiente "production" di GitHub. Pubblica il commit più recente di main.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  production:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      environment: production
+      sha: ${{ github.sha }}

@@ -99,5 +99,10 @@ def install_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(Exception)
     async def _unexpected(request: Request, exc: Exception) -> JSONResponse:
-        logger.exception("Errore non gestito", extra={"path": request.url.path})
+        route = getattr(request.scope.get("route"), "path", None)
+        logger.exception("Errore non gestito", extra={"route": route})
+        # Sentry (se configurato); il doppione eventuale lo scarta Sentry stesso.
+        import sentry_sdk
+
+        sentry_sdk.capture_exception(exc)
         return problem(request, 500, "server.error", "Errore interno")

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import logging
 import re
+import time
 import uuid
 from collections.abc import Awaitable, Callable
 
@@ -10,6 +12,11 @@ from fastapi import FastAPI, Request, Response
 
 from app.config import get_settings
 from app.errors import problem
+from app.logging_setup import request_id_var, trace_from_headers, trace_var
+
+access_log = logging.getLogger("wearx.access")
+# Sondaggi di salute: si registrano solo quando falliscono (altrimenti sono rumore).
+_QUIET_PATHS = frozenset({"/healthz", "/readyz", "/healthz/workers"})
 
 _REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9-]{8,64}$")
 _VERSION_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
@@ -52,6 +59,9 @@ def install_middleware(app: FastAPI) -> None:
         incoming = request.headers.get("x-request-id", "")
         request_id = incoming if _REQUEST_ID_RE.match(incoming) else str(uuid.uuid4())
         request.state.request_id = request_id
+        request_id_var.set(request_id)
+        trace_var.set(trace_from_headers(request.headers))
+        started = time.perf_counter()
 
         # Versione minima: si controlla solo se l'app manda l'header (i webhook non lo mandano).
         app_version = request.headers.get("x-app-version")
@@ -69,4 +79,30 @@ def install_middleware(app: FastAPI) -> None:
                 )
                 return _secure(response, request_id, path)
 
-        return _secure(await call_next(request), request_id, path)
+        response = _secure(await call_next(request), request_id, path)
+        _log_request(request, response.status_code, started)
+        return response
+
+
+def _log_request(request: Request, status: int, started: float) -> None:
+    """Una riga per richiesta: metodo, percorso "modello" (senza id né nickname), esito, durata.
+    Niente IP, query string o intestazioni."""
+    path = request.url.path
+    if path in _QUIET_PATHS and status < 500:
+        return
+    route = request.scope.get("route")
+    template = getattr(route, "path", None) or "(nessuna rotta)"
+    level = logging.ERROR if status >= 500 else logging.INFO
+    access_log.log(
+        level,
+        "%s %s %s",
+        request.method,
+        template,
+        status,
+        extra={
+            "http_method": request.method,
+            "route": template,
+            "status": status,
+            "latency_ms": round((time.perf_counter() - started) * 1000, 1),
+        },
+    )

@@ -6,10 +6,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.config import get_settings
+from app.config import get_settings, require_secrets
 from app.db import dispose_engine
 from app.errors import install_error_handlers
-from app.logging_setup import configure_logging
+from app.logging_setup import configure_logging, init_sentry
 from app.middleware import install_middleware
 from app.redis_client import close_redis
 from app.routers import (
@@ -46,7 +46,11 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    configure_logging(json_logs=settings.env not in ("local", "test"))
+    require_secrets(settings, "api")
+    configure_logging(
+        json_logs=settings.env not in ("local", "test"), gcp_project=settings.gcp_project
+    )
+    init_sentry(settings, "api")
     app = FastAPI(
         title="WearX API",
         version="0.1.0",

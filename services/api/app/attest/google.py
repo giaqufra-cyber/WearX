@@ -5,7 +5,8 @@ a Google (decodeIntegrityToken) con un account di servizio e controlla:
 - stessa app (nome del pacchetto) e stessa sfida, token recente (10 minuti);
 - app riconosciuta da Google Play (installata dallo store, non modificata);
 - telefono che supera i controlli di integrità (MEETS_DEVICE_INTEGRITY).
-L'account di servizio (JSON con chiave privata) è un SEGRETO: solo nel secret manager.
+Su Google Cloud si usa l'identità del servizio (nessuna chiave); altrove un account di servizio
+(JSON con chiave privata: SEGRETO, solo nel secret manager).
 """
 
 from __future__ import annotations
@@ -36,21 +37,24 @@ class TokenDecoder(Protocol):
     async def decode(self, package: str, token: str) -> dict[str, Any]: ...
 
 
-class GooglePlayDecoder:
-    """Chiama decodeIntegrityToken; il token OAuth dell'account di servizio resta in memoria
-    finché vale."""
+class TokenSource(Protocol):
+    async def token(self) -> str: ...
 
-    def __init__(self, service_account_json: str, client: httpx.AsyncClient | None = None) -> None:
+
+class ServiceAccountTokens:
+    """Token OAuth da un account di servizio (JSON con chiave privata: SEGRETO)."""
+
+    def __init__(self, service_account_json: str, client: httpx.AsyncClient) -> None:
         info = json.loads(service_account_json)
         self._email: str = info["client_email"]
         self._key: str = info["private_key"]
         self._token_uri: str = info.get("token_uri", "https://oauth2.googleapis.com/token")
-        self._client = client or httpx.AsyncClient(timeout=10)
-        self._access: tuple[str, float] | None = None
+        self._client = client
+        self._cached: tuple[str, float] | None = None
 
-    async def _access_token(self) -> str:
-        if self._access and self._access[1] > time.time() + 60:
-            return self._access[0]
+    async def token(self) -> str:
+        if self._cached and self._cached[1] > time.time() + 60:
+            return self._cached[0]
         now = int(time.time())
         assertion = jwt.encode(
             {
@@ -72,11 +76,43 @@ class GooglePlayDecoder:
         )
         response.raise_for_status()
         body = response.json()
-        self._access = (body["access_token"], now + int(body.get("expires_in", 3600)))
-        return self._access[0]
+        self._cached = (body["access_token"], now + int(body.get("expires_in", 3600)))
+        return self._cached[0]
+
+
+class MetadataTokens:
+    """Su Google Cloud (Cloud Run): token dell'identità del servizio dal metadata server.
+    Nessuna chiave da custodire; i permessi sono quelli dell'account di servizio."""
+
+    URL = (
+        "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token"
+    )
+
+    def __init__(self, client: httpx.AsyncClient) -> None:
+        self._client = client
+        self._cached: tuple[str, float] | None = None
+
+    async def token(self) -> str:
+        if self._cached and self._cached[1] > time.time() + 60:
+            return self._cached[0]
+        response = await self._client.get(
+            self.URL, params={"scopes": SCOPE}, headers={"Metadata-Flavor": "Google"}
+        )
+        response.raise_for_status()
+        body = response.json()
+        self._cached = (body["access_token"], time.time() + int(body.get("expires_in", 3600)))
+        return self._cached[0]
+
+
+class GooglePlayDecoder:
+    """Chiama decodeIntegrityToken con il token OAuth della fonte scelta."""
+
+    def __init__(self, tokens: TokenSource, client: httpx.AsyncClient) -> None:
+        self._tokens = tokens
+        self._client = client
 
     async def decode(self, package: str, token: str) -> dict[str, Any]:
-        access = await self._access_token()
+        access = await self._tokens.token()
         response = await self._client.post(
             DECODE_URL.format(package=package),
             headers={"authorization": f"Bearer {access}"},

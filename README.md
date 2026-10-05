@@ -28,7 +28,8 @@ WEARX_MIGRATION_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:54
   uv run alembic upgrade head
 uv run python -m app.storage_init   # crea il bucket delle foto (MinIO di docker compose)
 uv run uvicorn app.main:app --reload --port 8000
-uv run arq app.worker.WorkerSettings # worker delle foto (in un altro terminale)
+uv run arq app.worker.WorkerSettings # worker in background (in un altro terminale)
+uv run arq app.worker.LinkCheckSettings # controllo dei link ai negozi (worker separato)
 uv run pytest                        # test su un database di test creato da zero
 
 # App (in un altro terminale)

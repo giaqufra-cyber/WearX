@@ -1,0 +1,100 @@
+name: Deploy (comune)
+
+# Usato da deploy-staging.yml (automatico dopo la CI verde su main) e deploy-production.yml
+# (a mano, con approvazione). Nessuna chiave: GitHub si identifica con Google tramite Workload
+# Identity Federation. Finché le variabili dell'ambiente non ci sono, non parte nulla.
+#
+# Variabili (non segrete) di ogni ambiente GitHub (Settings → Environments), vedi docs/INFRA.md:
+#   GCP_PROJECT_ID, GCP_REGION, GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_DEPLOYER, API_URL, ADMIN_URL,
+#   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      sha:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: Deploy su ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    env:
+      ENVIRONMENT: ${{ inputs.environment }}
+      SHA: ${{ inputs.sha }}
+    steps:
+      - name: Ambiente configurato?
+        id: ready
+        run: |
+          if [ -z "${{ vars.GCP_PROJECT_ID }}" ]; then
+            echo "::notice::Ambiente $ENVIRONMENT non ancora configurato (docs/INFRA.md): niente deploy."
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.ready.outputs.go == 'true'
+        with:
+          ref: ${{ env.SHA }}
+
+      - uses: google-github-actions/auth@v2
+        if: steps.ready.outputs.go == 'true'
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        if: steps.ready.outputs.go == 'true'
+
+      - name: Immagini
+        if: steps.ready.outputs.go == 'true'
+        run: |
+          REGISTRY="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/wearx"
+          echo "API_IMAGE=$REGISTRY/api:$SHA" >> "$GITHUB_ENV"
+          echo "ADMIN_IMAGE=$REGISTRY/admin:$SHA" >> "$GITHUB_ENV"
+          gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
+          docker build --build-arg RELEASE="$SHA" -t "$REGISTRY/api:$SHA" services/api
+          docker build -f apps/admin/Dockerfile -t "$REGISTRY/admin:$SHA" \
+            --build-arg NEXT_PUBLIC_API_URL="${{ vars.API_URL }}" \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL="${{ vars.SUPABASE_URL }}" \
+            --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="${{ vars.SUPABASE_PUBLISHABLE_KEY }}" .
+          docker push "$REGISTRY/api:$SHA"
+          docker push "$REGISTRY/admin:$SHA"
+
+      - name: Migrazioni del database (prima del nuovo codice)
+        if: steps.ready.outputs.go == 'true'
+        run: |
+          JOB="wearx-$ENVIRONMENT-migrate"
+          gcloud run jobs update "$JOB" --image "$API_IMAGE" --region "${{ vars.GCP_REGION }}" --quiet
+          gcloud run jobs execute "$JOB" --region "${{ vars.GCP_REGION }}" --wait
+
+      - name: API, worker e pannello
+        if: steps.ready.outputs.go == 'true'
+        run: |
+          R="${{ vars.GCP_REGION }}"
+          gcloud run deploy "wearx-$ENVIRONMENT-api" --image "$API_IMAGE" --region "$R" --quiet
+          gcloud beta run worker-pools deploy "wearx-$ENVIRONMENT-worker" --image "$API_IMAGE" --region "$R" --quiet
+          gcloud beta run worker-pools deploy "wearx-$ENVIRONMENT-linkcheck" --image "$API_IMAGE" --region "$R" --quiet
+          gcloud run deploy "wearx-$ENVIRONMENT-admin" --image "$ADMIN_IMAGE" --region "$R" --quiet
+
+      - name: Prova dopo il deploy
+        if: steps.ready.outputs.go == 'true'
+        run: |
+          curl -fsS "${{ vars.API_URL }}/readyz"
+          echo
+          # I worker battono entro un minuto dall'avvio.
+          for i in $(seq 1 30); do curl -fsS "${{ vars.API_URL }}/healthz/workers" && break; sleep 5; done
+          echo
+          curl -fsS "${{ vars.API_URL }}/healthz/workers"
+          curl -fsS -o /dev/null "${{ vars.ADMIN_URL }}/"
+          echo "Deploy di $SHA su $ENVIRONMENT riuscito."

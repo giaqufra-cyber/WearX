@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import type { NextConfig } from "next";
 
 /**
@@ -24,6 +26,9 @@ const csp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // Server autonomo per il container (seduta 23); la radice del monorepo per i pacchetti comuni.
+  output: "standalone",
+  outputFileTracingRoot: path.join(__dirname, "../.."),
   transpilePackages: ["@wearx/design-tokens", "@wearx/api-types"],
   poweredByHeader: false,
   devIndicators: false,

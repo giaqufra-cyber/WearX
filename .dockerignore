@@ -1,0 +1,12 @@
+**/node_modules
+**/.next
+**/.turbo
+**/.expo
+**/__pycache__
+.git
+.semgrep-cache
+apps/mobile/*
+!apps/mobile/package.json
+services
+docs
+infra

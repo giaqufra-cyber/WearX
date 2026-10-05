@@ -25,10 +25,13 @@ import type { AppRoute } from "@/features/auth/routing";
 import { useAppConfig } from "@/features/styles/useAppConfig";
 import { UpdateRequired } from "@/features/update/UpdateRequired";
 import { APP_VERSION } from "@/lib/api";
+import { initSentry } from "@/lib/sentry";
 import { isOlder, markUpdateRequired, useUpdateGate } from "@/lib/updateGate";
 import { ToastProvider } from "@/ui/Toast";
 
 void SplashScreen.preventAutoHideAsync();
+// Crash e errori su Sentry (solo se configurato: EXPO_PUBLIC_SENTRY_DSN).
+initSentry();
 
 /** Tema di navigazione scuro con i colori del brand (bordi, sfondi durante le transizioni). */
 const navigationTheme = {

@@ -118,6 +118,83 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://example.invalid
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci
 
+  containers:
+    name: Container (immagini e prova di avvio)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+    env:
+      DB: postgresql+asyncpg://postgres:postgres@localhost:5432/wearx
+    steps:
+      - uses: actions/checkout@v4
+      - name: Immagine API / worker / migrazioni
+        run: docker build -t wearx-api:ci services/api
+      - name: Immagine pannello staff
+        run: >-
+          docker build -f apps/admin/Dockerfile -t wearx-admin:ci
+          --build-arg NEXT_PUBLIC_API_URL=https://api.example.test .
+      - name: Migrazioni su un database vuoto
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -v ON_ERROR_STOP=1 \
+            -c "create role anon nologin" -c "create role authenticated nologin" \
+            -c "create database wearx"
+          docker run --rm --network host \
+            -e WEARX_MIGRATION_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/wearx \
+            wearx-api:ci alembic upgrade head
+      - name: Avvio di API, worker e worker dei link come in staging
+        run: |
+          common="--network host -e WEARX_ENV=staging -e WEARX_DATABASE_URL=$DB -e WEARX_REDIS_URL=redis://localhost:6379/0 -e WEARX_PROXY_MODE=google"
+          docker run -d --name api $common -e PORT=8080 wearx-api:ci
+          docker run -d --name worker $common wearx-api:ci arq app.worker.WorkerSettings
+          docker run -d --name links $common wearx-api:ci arq app.worker.LinkCheckSettings
+          docker run -d --name admin -p 3000:8080 wearx-admin:ci
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8080/readyz && break; sleep 2; done
+          echo
+          test "$(docker exec api id -u)" = "10001"
+          ! curl -sI http://127.0.0.1:8080/healthz | grep -i '^server:'
+          curl -sI http://127.0.0.1:8080/healthz | grep -i '^strict-transport-security:'
+          # I worker scrivono il loro battito entro un minuto.
+          for i in $(seq 1 45); do curl -sf http://127.0.0.1:8080/healthz/workers && break; sleep 3; done
+          echo
+          curl -sf http://127.0.0.1:8080/healthz/workers
+          curl -sf -o /dev/null http://127.0.0.1:3000/
+          curl -sI http://127.0.0.1:3000/ | grep -i '^content-security-policy:'
+      - name: Log dei container
+        if: always()
+        run: for c in api worker links admin; do echo "== $c"; docker logs --tail 40 $c || true; done
+
+  infra:
+    name: Infrastruttura (Terraform e Checkov)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.16.5
+      - run: terraform fmt -check -recursive
+      - run: terraform init -backend=false -input=false
+      - run: terraform validate
+      - uses: astral-sh/setup-uv@v6
+      - name: Checkov (Terraform, Dockerfile, workflow)
+        working-directory: .
+        run: |
+          uvx checkov==3.3.23 --quiet --compact --skip-download -d infra/terraform --framework terraform --var-file infra/terraform/envs/staging.tfvars
+          uvx checkov==3.3.23 --quiet --compact --skip-download -d infra/terraform --framework terraform --var-file infra/terraform/envs/production.tfvars
+          uvx checkov==3.3.23 --quiet --compact --skip-download -d . --framework dockerfile github_actions --skip-path node_modules
+
   security:
     name: Sicurezza (segreti, dipendenze, Semgrep)
     runs-on: ubuntu-latest

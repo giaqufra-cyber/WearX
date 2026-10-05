@@ -63,6 +63,14 @@
           "color": "#D7FF3A",
           "defaultChannel": "default"
         }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "wearx",
+          "project": "wearx-app",
+          "url": "https://de.sentry.io/"
+        }
       ]
     ],
     "experiments": {

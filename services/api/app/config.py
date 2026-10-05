@@ -41,9 +41,24 @@ class Settings(BaseSettings):
     # Origini del pannello web dello staff ammesse da CORS (es. https://admin.wearx.app).
     admin_origins: list[str] = Field(default_factory=list)
 
-    # Dietro Cloudflare l'IP reale arriva in CF-Connecting-IP. Va attivato SOLO se l'API
-    # è raggiungibile esclusivamente attraverso il proxy, altrimenti l'header è falsificabile.
+    # Da dove leggere l'IP di chi chiama (serve ai limiti per IP):
+    # - "none": la connessione (sviluppo);
+    # - "google": Cloud Run, ultimo valore di X-Forwarded-For (quello aggiunto da Google;
+    #   i valori prima li può scrivere chiunque);
+    # - "cloudflare": CF-Connecting-IP, SOLO se l'API è raggiungibile esclusivamente da
+    #   Cloudflare (altrimenti l'header è falsificabile).
+    proxy_mode: Literal["none", "google", "cloudflare"] = "none"
+    # Vecchio nome di proxy_mode="cloudflare" (seduta 2).
     trust_proxy_headers: bool = False
+
+    # Osservabilità (seduta 23). Progetto Google per collegare i log alle tracce; Sentry solo
+    # se c'è il DSN; release = commit del deploy.
+    gcp_project: str | None = None
+    sentry_dsn: SecretStr | None = None
+    sentry_traces_sample_rate: float = Field(default=0.0, ge=0, le=1)
+    release: str | None = None
+    # Su Google Cloud le chiamate alle API Google usano l'identità del servizio (nessuna chiave).
+    google_metadata_auth: bool = False
 
     # Verifica dell'età (sez. 11.2). Il fornitore vero si sceglie con la decisione D5;
     # "fake" simula il fornitore (pagina di prova + webhook firmato) e in produzione è vietato.
@@ -139,21 +154,10 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
+    """Configurazione; i controlli qui valgono per ogni componente (API, worker, worker link)."""
     settings = Settings()
-    if settings.is_production and settings.vote_pepper.get_secret_value().startswith("local-"):
-        raise RuntimeError("WEARX_VOTE_PEPPER non impostato in produzione")
     if settings.is_production and settings.age_provider == "fake":
         raise RuntimeError("WEARX_AGE_PROVIDER: il fornitore finto non è ammesso in produzione")
-    age_secret = settings.age_webhook_secret.get_secret_value()
-    if settings.is_production and age_secret.startswith("local-"):
-        raise RuntimeError("WEARX_AGE_WEBHOOK_SECRET non impostato in produzione")
-    storage_secret = settings.storage_secret_key.get_secret_value()
-    if settings.is_production and storage_secret.startswith("wearx-local"):
-        raise RuntimeError("WEARX_STORAGE_SECRET_KEY non impostato in produzione")
-    if settings.is_production and settings.supabase_secret_key is None:
-        raise RuntimeError("WEARX_SUPABASE_SECRET_KEY non impostato in produzione")
-    if settings.is_production and settings.push_provider != "expo":
-        raise RuntimeError("WEARX_PUSH_PROVIDER deve essere 'expo' in produzione")
     if settings.is_production and settings.attestation_mode == "off":
         raise RuntimeError("WEARX_ATTESTATION_MODE: in produzione almeno 'soft'")
     if settings.is_production and settings.app_attest_allow_development:
@@ -161,3 +165,31 @@ def get_settings() -> Settings:
     if settings.env in ("staging", "production") and not settings.staff_require_mfa:
         raise RuntimeError("WEARX_STAFF_REQUIRE_MFA non può essere spento in staging/produzione")
     return settings
+
+
+Component = Literal["api", "worker", "linkcheck"]
+
+
+def require_secrets(settings: Settings, component: Component) -> None:
+    """In produzione ogni componente parte solo con i SUOI segreti (seduta 23: ogni servizio
+    riceve solo quelli che usa, per esempio il worker dei link non ha le chiavi dell'archivio)."""
+    if not settings.is_production:
+        return
+    missing: list[str] = []
+    if component in ("api", "worker"):
+        if settings.vote_pepper.get_secret_value().startswith("local-"):
+            missing.append("WEARX_VOTE_PEPPER")
+        if settings.storage_secret_key.get_secret_value().startswith("wearx-local"):
+            missing.append("WEARX_STORAGE_SECRET_KEY")
+    if component == "api":
+        if settings.age_webhook_secret.get_secret_value().startswith("local-"):
+            missing.append("WEARX_AGE_WEBHOOK_SECRET")
+        if settings.proxy_mode == "none" and not settings.trust_proxy_headers:
+            missing.append("WEARX_PROXY_MODE ('google' o 'cloudflare')")
+    if component == "worker":
+        if settings.supabase_secret_key is None:
+            missing.append("WEARX_SUPABASE_SECRET_KEY")
+        if settings.push_provider != "expo":
+            missing.append("WEARX_PUSH_PROVIDER=expo")
+    if missing:
+        raise RuntimeError(f"Configurazione di produzione incompleta ({component}): {missing}")

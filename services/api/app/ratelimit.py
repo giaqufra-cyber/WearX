@@ -35,10 +35,17 @@ return {current, previous}
 
 
 def client_ip(request: Request) -> str:
-    if get_settings().trust_proxy_headers:
+    settings = get_settings()
+    mode = "cloudflare" if settings.trust_proxy_headers else settings.proxy_mode
+    if mode == "cloudflare":
         forwarded = request.headers.get("cf-connecting-ip")
         if forwarded:
             return forwarded.strip()
+    elif mode == "google":
+        # Google aggiunge in fondo l'IP da cui arriva la connessione: è l'unico affidabile.
+        chain = [p.strip() for p in request.headers.get("x-forwarded-for", "").split(",")]
+        if chain and chain[-1]:
+            return chain[-1]
     return request.client.host if request.client else "unknown"
 
 

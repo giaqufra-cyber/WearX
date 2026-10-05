@@ -15,13 +15,20 @@ import secrets
 from collections.abc import Callable
 from typing import Annotated, Literal
 
+import httpx
 from fastapi import APIRouter, Depends, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.attest.apple import AttestationError, verify_assertion, verify_attestation
-from app.attest.google import GooglePlayDecoder, TokenDecoder, check_verdict
+from app.attest.google import (
+    GooglePlayDecoder,
+    MetadataTokens,
+    ServiceAccountTokens,
+    TokenDecoder,
+    check_verdict,
+)
 from app.auth import CurrentAuth
 from app.config import get_settings
 from app.db import get_session
@@ -41,11 +48,19 @@ Session = Annotated[AsyncSession, Depends(get_session)]
 CHALLENGE_TTL = 300
 
 
+_http: httpx.AsyncClient | None = None
+
+
 def _play_decoder() -> TokenDecoder:
-    secret = get_settings().google_service_account_json
-    if secret is None:
-        raise ApiError(503, "attest.unavailable", "Verifica del dispositivo non disponibile")
-    return GooglePlayDecoder(secret.get_secret_value())
+    global _http
+    settings = get_settings()
+    _http = _http or httpx.AsyncClient(timeout=10)
+    secret = settings.google_service_account_json
+    if secret is not None:
+        return GooglePlayDecoder(ServiceAccountTokens(secret.get_secret_value(), _http), _http)
+    if settings.google_metadata_auth:
+        return GooglePlayDecoder(MetadataTokens(_http), _http)
+    raise ApiError(503, "attest.unavailable", "Verifica del dispositivo non disponibile")
 
 
 # Sostituibile nei test (niente rete).
