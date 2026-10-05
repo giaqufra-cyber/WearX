@@ -110,6 +110,11 @@ function RootNavigator() {
         <Stack.Screen name="notifications" />
         <Stack.Screen name="notification-settings" />
         <Stack.Screen name="insights" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="devices" />
+        <Stack.Screen name="data-export" />
+        <Stack.Screen name="delete-account" />
+        <Stack.Screen name="change-password" />
         <Stack.Screen name="new-post" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
       </Stack.Protected>
       <Stack.Protected guard={shown === "auth"}>
@@ -123,6 +128,9 @@ function RootNavigator() {
       </Stack.Protected>
       <Stack.Protected guard={shown === "suspended"}>
         <Stack.Screen name="suspended" />
+      </Stack.Protected>
+      <Stack.Protected guard={shown === "deleting"}>
+        <Stack.Screen name="deleting" />
       </Stack.Protected>
       <Stack.Protected guard={__DEV__}>
         <Stack.Screen name="dev/ui" />

@@ -88,7 +88,7 @@ export async function forgetThisDevice(token: string | undefined): Promise<void>
   if (Platform.OS !== "web") await Notifications.setBadgeCountAsync(0);
 }
 
-const SAFE_ROUTE = /^\/(notifications|moderation|post\/[A-Za-z0-9-]{1,64}|user\/[A-Za-z0-9._]{3,20})$/;
+const SAFE_ROUTE = /^\/(notifications|moderation|data-export|post\/[A-Za-z0-9-]{1,64}|user\/[A-Za-z0-9._]{3,20})$/;
 
 /** Solo percorsi interni noti: un push non deve poter aprire un indirizzo qualsiasi. */
 export function safeRoute(url: unknown): string | null {

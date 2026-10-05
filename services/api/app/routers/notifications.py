@@ -17,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth import CurrentAuth
 from app.db import get_session
 from app.errors import ApiError
 from app.notifications import CATEGORY, render
@@ -58,6 +59,7 @@ class NotificationOut(BaseModel):
         "vote_milestone",
         "moderation",
         "appeal_decided",
+        "export_ready",
     ]
     title: str
     body: str
@@ -263,22 +265,25 @@ async def mark_read(body: MarkRead, viewer: CurrentProfile, session: Session) ->
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(rate_limit("push_token", 30, 3600))],
 )
-async def register_token(body: PushTokenIn, viewer: CurrentProfile, session: Session) -> Response:
+async def register_token(
+    body: PushTokenIn, viewer: CurrentProfile, auth: CurrentAuth, session: Session
+) -> Response:
     """Registra il telefono per i push. Lo stesso telefono passato a un altro account cambia
     proprietario (un telefono riceve i push di un solo account: quello con cui è entrato)."""
     if not EXPO_TOKEN_RE.fullmatch(body.token):
         raise ApiError(422, "push.bad_token", "Token push non valido")
     await session.execute(
         text(
-            """insert into app.push_tokens (token, user_id, platform)
-               values (:token, :me, :platform)
+            """insert into app.push_tokens (token, user_id, platform, session_id)
+               values (:token, :me, :platform, :sid)
                on conflict (token) do update
                   set user_id = excluded.user_id, platform = excluded.platform,
+                      session_id = excluded.session_id,
                       last_seen = now(),
                       created_at = case when app.push_tokens.user_id = excluded.user_id
                                         then app.push_tokens.created_at else now() end"""
         ),
-        {"token": body.token, "me": viewer.id, "platform": body.platform},
+        {"token": body.token, "me": viewer.id, "platform": body.platform, "sid": auth.session_id},
     )
     # Al massimo 10 telefoni: i più vecchi escono.
     await session.execute(

@@ -10,6 +10,11 @@ export function emailRedirectUrl(): string {
   return Linking.createURL("/verify");
 }
 
+/** Indirizzo a cui riporta il link della mail di recupero della password. */
+export function recoveryRedirectUrl(): string {
+  return Linking.createURL("/reset-password");
+}
+
 export type AuthRedirect =
   | { kind: "code"; code: string }
   | { kind: "error"; code: string; description?: string }

@@ -34,8 +34,10 @@ NotificationType = Literal[
     "vote_milestone",
     "moderation",
     "appeal_decided",
+    "export_ready",
 ]
-Category = Literal["follows", "votes", "moderation"]
+# "account": notizie chieste dalla persona stessa (es. archivio pronto), sempre anche come push.
+Category = Literal["follows", "votes", "moderation", "account"]
 
 CATEGORY: dict[str, Category] = {
     "follow_request": "follows",
@@ -44,6 +46,7 @@ CATEGORY: dict[str, Category] = {
     "vote_milestone": "votes",
     "moderation": "moderation",
     "appeal_decided": "moderation",
+    "export_ready": "account",
 }
 
 # Traguardi di voti che meritano una notifica (mai un push per ogni singolo voto: dal momento
@@ -100,7 +103,8 @@ async def notify(
     )
     if row is None or row["blocked"] or row["status"] == "pending_deletion":
         return None
-    wants_push = bool(row[f"notify_{CATEGORY[type]}"])
+    category = CATEGORY[type]
+    wants_push = category == "account" or bool(row[f"notify_{category}"])
     now = await session.scalar(text("select now()"))
     assert isinstance(now, datetime)
     push_after = quiet_until(now) if row["age_band"] == "16_17" else None
@@ -260,4 +264,8 @@ def render(
             else "La decisione resta. Tocca per leggere la risposta."
         )
         return Rendered(title, body, "WearX", "Il tuo reclamo è stato deciso", "/moderation")
+    if type == "export_ready":
+        title = "Il tuo archivio dei dati è pronto"
+        body = "Scaricalo entro 7 giorni da Impostazioni > I tuoi dati."
+        return Rendered(title, body, "Archivio pronto", title, "/data-export")
     return Rendered("Novità su WearX", "", "WearX", "Novità su WearX", "/notifications")

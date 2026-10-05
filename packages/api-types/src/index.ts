@@ -60,6 +60,12 @@ export type InsightMetric = Schemas["Metric"];
 export type InsightPoint = Schemas["InsightPoint"];
 export type InsightPost = Schemas["InsightPost"];
 export type InsightPeriod = Schemas["InsightsOut"]["days"];
+export type Device = Schemas["DeviceOut"];
+export type DeviceInfo = Schemas["DeviceIn"];
+export type DataExport = Schemas["ExportOut"];
+export type DeletionRequest = Schemas["DeletionIn"];
+export type DeletionScheduled = Schemas["DeletionOut"];
+export type DeletionStatus = Schemas["DeletionStatus"];
 
 // Pannello dello staff (/v1/admin)
 export type StaffMe = Schemas["StaffMe"];
@@ -84,6 +90,7 @@ export type AuditRow = Schemas["AuditRow"];
 /** Codici di errore stabili restituiti dall'API (campo `code` di problem+json). */
 export type ApiErrorCode =
   | "account.business_requires_adult"
+  | "account.pending_deletion"
   | "account.posting_restricted"
   | "account.suspended"
   | "age.already_verified"
@@ -106,6 +113,7 @@ export type ApiErrorCode =
   | "auth.anonymous_not_allowed"
   | "auth.invalid_token"
   | "auth.required"
+  | "auth.session_revoked"
   | "auth.token_expired"
   | "auth.unavailable"
   | "block.self"
@@ -113,6 +121,13 @@ export type ApiErrorCode =
   | "capsule.name_required"
   | "capsule.name_taken"
   | "capsule.not_found"
+  | "deletion.already"
+  | "deletion.confirm_mismatch"
+  | "deletion.none"
+  | "deletion.suspended"
+  | "device.current"
+  | "device.not_found"
+  | "export.too_soon"
   | "feature.disabled"
   | "feed.cursor_expired"
   | "feed.invalid_cursor"

@@ -4,21 +4,23 @@
  */
 import { ApiError } from "@/lib/api";
 
-export type AppRoute = "loading" | "auth" | "onboarding" | "app" | "suspended" | "offline";
+export type AppRoute = "loading" | "auth" | "onboarding" | "app" | "suspended" | "deleting" | "offline";
 
 export type RouteInput = {
   /** La sessione salvata è ancora in lettura. */
   initializing: boolean;
   hasSession: boolean;
+  /** Recupero della password in corso: la sessione c'è già, ma prima va scelta la nuova password. */
+  recovering?: boolean;
   me:
     | { state: "loading" }
     | { state: "ok"; status: "active" | "suspended" | "pending_deletion" }
     | { state: "error"; error: unknown };
 };
 
-export function decideRoute({ initializing, hasSession, me }: RouteInput): AppRoute {
+export function decideRoute({ initializing, hasSession, recovering = false, me }: RouteInput): AppRoute {
   if (initializing) return "loading";
-  if (!hasSession) return "auth";
+  if (!hasSession || recovering) return "auth";
   if (me.state === "loading") return "loading";
   if (me.state === "error") {
     if (me.error instanceof ApiError) {
@@ -30,5 +32,6 @@ export function decideRoute({ initializing, hasSession, me }: RouteInput): AppRo
     return "offline";
   }
   if (me.status === "suspended") return "suspended";
+  if (me.status === "pending_deletion") return "deleting";
   return "app";
 }

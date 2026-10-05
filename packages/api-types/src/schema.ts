@@ -471,6 +471,130 @@ export interface paths {
         patch: operations["rename_capsule_v1_me_capsules__capsule_id__patch"];
         trace?: never;
     };
+    "/v1/me/deletion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Deletion Status */
+        get: operations["deletion_status_v1_me_deletion_get"];
+        put?: never;
+        /**
+         * Request Deletion
+         * @description Cancella l'account tra 30 giorni. Da subito: invisibile agli altri, niente push, fuori
+         *     dagli altri dispositivi. Entro i 30 giorni si annulla rientrando nell'app.
+         */
+        post: operations["request_deletion_v1_me_deletion_post"];
+        /**
+         * Cancel Deletion
+         * @description Ci ho ripensato: l'account torna com'era.
+         */
+        delete: operations["cancel_deletion_v1_me_deletion_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Devices */
+        get: operations["devices_v1_me_devices_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/devices/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Device Seen
+         * @description L'app dice "sono qui" all'avvio e quando torna in primo piano.
+         */
+        put: operations["device_seen_v1_me_devices_current_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/devices/revoke-others": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke Others
+         * @description Esci da tutti gli altri dispositivi (dopo un cambio di password, o per sicurezza).
+         */
+        post: operations["revoke_others_v1_me_devices_revoke_others_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/devices/{device_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke Device
+         * @description Esci da un altro dispositivo. Per questo dispositivo si usa "Esci" (normale).
+         */
+        delete: operations["revoke_device_v1_me_devices__device_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Export */
+        get: operations["get_export_v1_me_export_get"];
+        put?: never;
+        /**
+         * Request Export
+         * @description Un archivio al giorno (se l'ultimo non è fallito). Se uno è in preparazione, è quello.
+         */
+        post: operations["request_export_v1_me_export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/follow-requests": {
         parameters: {
             query?: never;
@@ -1326,6 +1450,64 @@ export interface components {
             /** Sanction */
             sanction: string | null;
         };
+        /** DeletionIn */
+        DeletionIn: {
+            /** Nickname */
+            nickname: string;
+        };
+        /** DeletionOut */
+        DeletionOut: {
+            /**
+             * Delete After
+             * Format: date-time
+             */
+            delete_after: string;
+        };
+        /** DeletionStatus */
+        DeletionStatus: {
+            /** Delete After */
+            delete_after: string | null;
+            /** Pending */
+            pending: boolean;
+        };
+        /** DeviceIn */
+        DeviceIn: {
+            /** App Version */
+            app_version?: string | null;
+            /** Label */
+            label: string;
+            /**
+             * Platform
+             * @enum {string}
+             */
+            platform: "ios" | "android" | "web";
+        };
+        /** DeviceOut */
+        DeviceOut: {
+            /** App Version */
+            app_version: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Current */
+            current: boolean;
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /**
+             * Last Seen
+             * Format: date-time
+             */
+            last_seen: string;
+            /**
+             * Platform
+             * @enum {string}
+             */
+            platform: "ios" | "android" | "web";
+        };
         /** EventBatch */
         EventBatch: {
             /** Events */
@@ -1335,6 +1517,29 @@ export interface components {
         EventsAccepted: {
             /** Accepted */
             accepted: number;
+        };
+        /** ExportOut */
+        ExportOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Expires At */
+            expires_at: string | null;
+            /** Id */
+            id: string;
+            /** Ready At */
+            ready_at: string | null;
+            /** Size Bytes */
+            size_bytes: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "ready" | "failed" | "expired";
+            /** Url */
+            url: string | null;
         };
         /** FeedOut */
         FeedOut: {
@@ -1630,7 +1835,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "follow_request" | "new_follower" | "follow_accepted" | "vote_milestone" | "moderation" | "appeal_decided";
+            type: "follow_request" | "new_follower" | "follow_accepted" | "vote_milestone" | "moderation" | "appeal_decided" | "export_ready";
             /** Url */
             url: string;
         };
@@ -2062,6 +2267,11 @@ export interface components {
             decision: "accept" | "reject";
             /** Nickname */
             nickname: string;
+        };
+        /** RevokedOut */
+        RevokedOut: {
+            /** Revoked */
+            revoked: number;
         };
         /** SanctionIn */
         SanctionIn: {
@@ -3367,6 +3577,217 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deletion_status_v1_me_deletion_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionStatus"];
+                };
+            };
+        };
+    };
+    request_deletion_v1_me_deletion_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_deletion_v1_me_deletion_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    devices_v1_me_devices_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceOut"][];
+                };
+            };
+        };
+    };
+    device_seen_v1_me_devices_current_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_others_v1_me_devices_revoke_others_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevokedOut"];
+                };
+            };
+        };
+    };
+    revoke_device_v1_me_devices__device_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                device_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_export_v1_me_export_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportOut"] | null;
+                };
+            };
+        };
+    };
+    request_export_v1_me_export_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportOut"];
                 };
             };
         };

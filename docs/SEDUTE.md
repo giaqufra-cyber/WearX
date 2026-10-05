@@ -27,7 +27,7 @@ fondatore (account, pagamenti, documenti legali) lo dicono nella colonna "Serve 
 | 19 | Insight | Aggregazione notturna, API, schermata Insight con soglie minime | — |
 | 20 | Privacy e sicurezza (app) | Dispositivi collegati, export dati, cancellazione con 30 giorni, impostazioni | — |
 | 21 | Business e link negozi | Account Business, controllo dei link, redirect, click | — |
-| 22 | Hardening | Attestazione dispositivo, anti-abuso voti, Semgrep, scansione ZAP | — |
+| 22 | Hardening | Attestazione dispositivo, anti-abuso voti, media e numero dei voti sul proprio fit aggiornati ogni ora (deciso in seduta 19), Semgrep, scansione ZAP | — |
 | 23 | Infrastruttura | Terraform, deploy staging, segreti, osservabilità | Account cloud e Expo |
 | 24 | Qualità | Test E2E Maestro, test di carico k6, audit accessibilità, testi completi | — |
 | 25 | Beta | Build EAS, TestFlight e Play test interno, runbook | Account Apple (99 $/anno) e Google Play (25 $) |
@@ -57,6 +57,11 @@ Promemoria fissi: senza questi punti l'app funziona solo per il fondatore.
       progetto Expo con il suo token in `WEARX_EXPO_ACCESS_TOKEN` (segreto, solo sul server),
       `WEARX_PUSH_PROVIDER=expo`. Prova su un telefono vero con una build di sviluppo (Expo Go su
       Android non riceve più i push).
+- [ ] **Account e password** (seduta 20): chiave segreta di Supabase solo nel secret manager del
+      server (`WEARX_SUPABASE_SECRET_KEY`, serve a cancellare gli account dopo i 30 giorni: senza,
+      la cancellazione definitiva aspetta); con l'SMTP, modello "Reset Password" con
+      `{{ .Token }}` (codice a 6 cifre); in Redirect URLs resta `wearx://**` (serve al link di
+      recupero quando non c'è il codice).
 
 ## Registro
 
@@ -861,4 +866,52 @@ Schermate: `docs/screens/seduta-19-insight.png`.
 
 Da fare in seduta 20: privacy e sicurezza nell'app (dispositivi collegati, scarica i tuoi dati,
 cancellazione dell'account con 30 giorni per ripensarci, impostazioni) e recupero password.
+
+### Seduta 20 — 2026-10-05
+
+Fatto (API, migrazione 0014):
+- **Dispositivi collegati**: l'app dice "sono qui" all'avvio e al ritorno in primo piano (nome del
+  telefono, sistema, versione). Elenco con "questo dispositivo"; **Esci** da un dispositivo o da
+  **tutti gli altri**: da quel momento l'API rifiuta i token di quell'accesso (anche rinnovati) e
+  quel telefono smette di ricevere push; l'app lì esce da sola.
+- **Scarica i tuoi dati** (GDPR art. 15 e 20): archivio ZIP preparato in background con LEGGIMI,
+  profilo, consensi, esito della verifica dell'età, stili, fit con capi/prezzi/link e foto,
+  capsule, follow e blocchi, **voti dati** (ritrovati ricalcolando lo pseudonimo, solo per te),
+  segnalazioni, moderazione e reclami, notifiche, dispositivi, eventi degli Insight. Notifica
+  quando è pronto; scaricabile 7 giorni (link valido un'ora); uno al giorno.
+- **Cancellazione dell'account con 30 giorni**: conferma scrivendo il proprio nickname; da subito
+  profilo, fit e capsule invisibili a tutti, fuori dagli altri dispositivi, niente push; entro 30
+  giorni si annulla rientrando. Poi un lavoro notturno cancella foto, archivi, dati e l'utente di
+  Supabase Auth. Restano senza alcun collegamento con la persona: voti dati (dentro le medie) e
+  decisioni di moderazione (rapporti di trasparenza DSA).
+- Un account in cancellazione può solo vedere il suo stato e annullare (403 altrove).
+
+Fatto (app):
+- **Privacy e sicurezza** (Account): nascondi i prezzi, nascondi il numero dei voti, cambia
+  password, dispositivi collegati, notifiche, scarica i tuoi dati, cancella l'account, esci.
+- **Password dimenticata?** nell'accesso: email, poi codice a 6 cifre (con l'SMTP) o link nella
+  mail; nuova password con le stesse regole della registrazione (robustezza, controllo delle
+  password violate); la risposta è identica che l'email esista o no; dopo il cambio si esce da
+  tutti gli altri dispositivi. Finché la nuova password non è salvata l'app resta sulle schermate
+  di accesso.
+- **Cambia password** da dentro l'app: serve quella attuale.
+- Schermata **Account in cancellazione** con la data e "Annulla la cancellazione".
+
+Provato davvero (web, 390×844, worker acceso): impostazioni, dispositivi (uscita da un iPhone),
+archivio chiesto, preparato dal worker, notificato e scaricabile, cancellazione con nickname,
+schermata di cancellazione, annullamento e ritorno al feed.
+
+Verifiche: 346 test API (+5); 239 test app (+12); ruff, mypy, tsc puliti.
+
+Note e decisioni da confermare:
+- Durante una **sospensione** l'account non si può cancellare (i dati possono servire alle
+  verifiche e alle autorità): la persona scrive al supporto.
+- I **voti dati** da chi cancella l'account restano nelle medie, anonimi: toglierli cambierebbe
+  le medie dei fit di altri.
+- La prova reale di "password dimenticata" con le mail vere si fa quando c'è l'SMTP (prima della
+  beta); oggi è coperta dai test.
+
+Schermate: `docs/screens/seduta-20-privacy.png`.
+
+Da fare in seduta 21: account Business e link ai negozi (controllo dei link, redirect, click).
 

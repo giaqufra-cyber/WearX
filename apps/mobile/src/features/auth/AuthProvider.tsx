@@ -7,10 +7,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Profile } from "@wearx/api-types";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
+import { useRecovery } from "@/features/auth/recovery";
 import { decideRoute, type AppRoute } from "@/features/auth/routing";
 import { useSignupDraft } from "@/features/auth/signupDraft";
 import { forgetThisDevice } from "@/features/notifications/push";
-import { apiGet } from "@/lib/api";
+import { ApiError, apiGet } from "@/lib/api";
 import { resetEvents } from "@/lib/events";
 import { supabase } from "@/lib/supabase";
 
@@ -61,9 +62,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     staleTime: 60_000,
   });
 
+  const recovering = useRecovery((state) => state.recovering);
+
+  // Questo dispositivo è stato tolto da un altro: si esce davvero (anche dal telefono).
+  const revoked = me.error instanceof ApiError && me.error.code === "auth.session_revoked";
+  useEffect(() => {
+    if (revoked) void supabase.auth.signOut({ scope: "local" });
+  }, [revoked]);
+
   const route = decideRoute({
     initializing,
     hasSession: Boolean(session),
+    recovering,
     me: me.isPending
       ? { state: "loading" }
       : me.isError

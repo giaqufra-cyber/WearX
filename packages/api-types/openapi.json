@@ -842,6 +842,157 @@
         "title": "DecisionOut",
         "type": "object"
       },
+      "DeletionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "nickname": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Nickname",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nickname"
+        ],
+        "title": "DeletionIn",
+        "type": "object"
+      },
+      "DeletionOut": {
+        "properties": {
+          "delete_after": {
+            "format": "date-time",
+            "title": "Delete After",
+            "type": "string"
+          }
+        },
+        "required": [
+          "delete_after"
+        ],
+        "title": "DeletionOut",
+        "type": "object"
+      },
+      "DeletionStatus": {
+        "properties": {
+          "delete_after": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delete After"
+          },
+          "pending": {
+            "title": "Pending",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "pending",
+          "delete_after"
+        ],
+        "title": "DeletionStatus",
+        "type": "object"
+      },
+      "DeviceIn": {
+        "additionalProperties": false,
+        "properties": {
+          "app_version": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "App Version"
+          },
+          "label": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "platform": {
+            "enum": [
+              "ios",
+              "android",
+              "web"
+            ],
+            "title": "Platform",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "platform"
+        ],
+        "title": "DeviceIn",
+        "type": "object"
+      },
+      "DeviceOut": {
+        "properties": {
+          "app_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "App Version"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current": {
+            "title": "Current",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "last_seen": {
+            "format": "date-time",
+            "title": "Last Seen",
+            "type": "string"
+          },
+          "platform": {
+            "enum": [
+              "ios",
+              "android",
+              "web"
+            ],
+            "title": "Platform",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "platform",
+          "app_version",
+          "created_at",
+          "last_seen",
+          "current"
+        ],
+        "title": "DeviceOut",
+        "type": "object"
+      },
       "EventBatch": {
         "additionalProperties": false,
         "properties": {
@@ -894,6 +1045,86 @@
           "accepted"
         ],
         "title": "EventsAccepted",
+        "type": "object"
+      },
+      "ExportOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ready_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ready At"
+          },
+          "size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Bytes"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "ready",
+              "failed",
+              "expired"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "created_at",
+          "ready_at",
+          "expires_at",
+          "size_bytes",
+          "url"
+        ],
+        "title": "ExportOut",
         "type": "object"
       },
       "FeedOut": {
@@ -1828,7 +2059,8 @@
               "follow_accepted",
               "vote_milestone",
               "moderation",
-              "appeal_decided"
+              "appeal_decided",
+              "export_ready"
             ],
             "title": "Type",
             "type": "string"
@@ -3149,6 +3381,19 @@
           "decision"
         ],
         "title": "RequestDecision",
+        "type": "object"
+      },
+      "RevokedOut": {
+        "properties": {
+          "revoked": {
+            "title": "Revoked",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revoked"
+        ],
+        "title": "RevokedOut",
         "type": "object"
       },
       "SanctionIn": {
@@ -5621,6 +5866,247 @@
         "summary": "Rename Capsule",
         "tags": [
           "portfolio"
+        ]
+      }
+    },
+    "/v1/me/deletion": {
+      "delete": {
+        "description": "Ci ho ripensato: l'account torna com'era.",
+        "operationId": "cancel_deletion_v1_me_deletion_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Cancel Deletion",
+        "tags": [
+          "privacy"
+        ]
+      },
+      "get": {
+        "operationId": "deletion_status_v1_me_deletion_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Deletion Status",
+        "tags": [
+          "privacy"
+        ]
+      },
+      "post": {
+        "description": "Cancella l'account tra 30 giorni. Da subito: invisibile agli altri, niente push, fuori\ndagli altri dispositivi. Entro i 30 giorni si annulla rientrando nell'app.",
+        "operationId": "request_deletion_v1_me_deletion_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeletionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Deletion",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
+    "/v1/me/devices": {
+      "get": {
+        "operationId": "devices_v1_me_devices_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceOut"
+                  },
+                  "title": "Response Devices V1 Me Devices Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Devices",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
+    "/v1/me/devices/current": {
+      "put": {
+        "description": "L'app dice \"sono qui\" all'avvio e quando torna in primo piano.",
+        "operationId": "device_seen_v1_me_devices_current_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Device Seen",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
+    "/v1/me/devices/revoke-others": {
+      "post": {
+        "description": "Esci da tutti gli altri dispositivi (dopo un cambio di password, o per sicurezza).",
+        "operationId": "revoke_others_v1_me_devices_revoke_others_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Revoke Others",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
+    "/v1/me/devices/{device_id}": {
+      "delete": {
+        "description": "Esci da un altro dispositivo. Per questo dispositivo si usa \"Esci\" (normale).",
+        "operationId": "revoke_device_v1_me_devices__device_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "device_id",
+            "required": true,
+            "schema": {
+              "title": "Device Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Device",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
+    "/v1/me/export": {
+      "get": {
+        "operationId": "get_export_v1_me_export_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ExportOut"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Get Export V1 Me Export Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Export",
+        "tags": [
+          "privacy"
+        ]
+      },
+      "post": {
+        "description": "Un archivio al giorno (se l'ultimo non è fallito). Se uno è in preparazione, è quello.",
+        "operationId": "request_export_v1_me_export_post",
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Request Export",
+        "tags": [
+          "privacy"
         ]
       }
     },

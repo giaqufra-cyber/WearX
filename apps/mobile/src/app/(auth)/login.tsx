@@ -116,6 +116,9 @@ export default function LoginScreen() {
           </Text>
         ) : null}
         <Button label="Accedi" onPress={() => void submit()} disabled={!canSubmit} loading={submitting} fullWidth />
+        {isEmail ? (
+          <Button label="Password dimenticata?" variant="ghost" size="md" onPress={() => router.push("/forgot")} fullWidth />
+        ) : null}
         <Button label="Crea un account" variant="ghost" size="md" onPress={() => router.replace("/signup")} fullWidth />
       </View>
     </Screen>

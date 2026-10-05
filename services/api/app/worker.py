@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from typing import Any, ClassVar
 
 from arq import cron
@@ -14,7 +15,9 @@ from app.feed import refresh_all
 from app.insights import ROME, aggregate_recent
 from app.logging_setup import configure_logging
 from app.media.jobs import cleanup_uploads, process_upload
+from app.privacy import build_export, expire_exports, purge_deleted_accounts
 from app.push import check_receipts, get_sender, send_pending, vote_milestones
+from app.storage import get_store
 
 
 async def refresh_feeds(ctx: dict[str, Any]) -> int:
@@ -56,13 +59,27 @@ async def insights_nightly(ctx: dict[str, Any]) -> int:
         return await aggregate_recent(session)
 
 
+async def export_data(ctx: dict[str, Any], export_id: str) -> bool:
+    """Archivio dei dati chiesto da una persona (GDPR)."""
+    async with session_scope() as session:
+        return await build_export(session, get_store(), uuid.UUID(export_id))
+
+
+async def privacy_nightly(ctx: dict[str, Any]) -> tuple[int, int]:
+    """Ogni notte: archivi scaduti e account oltre i 30 giorni di cancellazione."""
+    async with session_scope() as session:
+        expired = await expire_exports(session, get_store())
+        purged = await purge_deleted_accounts(session, get_store())
+        return expired, purged
+
+
 async def startup(ctx: dict[str, Any]) -> None:
     settings = get_settings()
     configure_logging(json_logs=settings.env not in ("local", "test"))
 
 
 class WorkerSettings:
-    functions: ClassVar[list[Any]] = [process_upload]
+    functions: ClassVar[list[Any]] = [process_upload, export_data]
     cron_jobs: ClassVar[list[Any]] = [
         cron(cleanup_uploads, minute={5, 35}),
         cron(refresh_feeds, minute=set(range(0, 60, 5))),
@@ -71,6 +88,7 @@ class WorkerSettings:
         cron(push_receipts, minute={7, 22, 37, 52}),
         cron(event_partitions, hour={3}, minute={17}),
         cron(insights_nightly, hour={3}, minute={40}),
+        cron(privacy_nightly, hour={4}, minute={10}),
     ]
     # Gli orari dei lavori sono in ora italiana (anche quando il server è in UTC).
     timezone = ROME

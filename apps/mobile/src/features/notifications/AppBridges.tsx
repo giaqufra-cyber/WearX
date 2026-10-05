@@ -2,7 +2,8 @@
  * Collegamenti attivi solo dentro l'app (dopo l'accesso):
  * - push: rinnova il token se il permesso c'è già, apre la schermata giusta al tocco di un push,
  *   aggiorna lista e campanella quando ne arriva uno con l'app aperta, tiene il numero sull'icona;
- * - eventi d'uso: li spedisce a gruppi, e subito quando l'app va in background.
+ * - eventi d'uso: li spedisce a gruppi, e subito quando l'app va in background;
+ * - dispositivi collegati: segnala che questo dispositivo è attivo.
  */
 import { useQueryClient } from "@tanstack/react-query";
 import * as Notifications from "expo-notifications";
@@ -14,6 +15,7 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { useUnreadCount } from "@/features/notifications/api";
 import { NOTIFICATIONS_KEY } from "@/features/notifications/keys";
 import { enablePush, safeRoute, setForegroundHandler } from "@/features/notifications/push";
+import { pingDevice } from "@/features/privacy/api";
 import { configureEvents, FLUSH_EVERY_MS, flushEvents, resetEvents } from "@/lib/events";
 
 export function AppBridges() {
@@ -38,6 +40,23 @@ export function AppBridges() {
       sub.remove();
       void flushEvents();
     };
+  }, [uid]);
+
+  // Dispositivi collegati: "sono qui" all'avvio e al ritorno in primo piano (al massimo ogni 5 minuti).
+  const lastPing = useRef(0);
+  useEffect(() => {
+    const ping = () => {
+      const current = tokenRef.current;
+      if (!current || Date.now() - lastPing.current < 5 * 60_000) return;
+      lastPing.current = Date.now();
+      void pingDevice(current).catch(() => undefined);
+    };
+    lastPing.current = 0;
+    ping();
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") ping();
+    });
+    return () => sub.remove();
   }, [uid]);
 
   // Push: solo telefoni veri. Il permesso NON si chiede qui.

@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # Supabase Auth. Token verificati SOLO con chiavi asimmetriche pubblicate nel JWKS.
     # Esempio: https://abcdefgh.supabase.co
     supabase_url: str = "http://localhost:54321"
+    # Chiave segreta di Supabase: SOLO sul server (secret manager), mai nell'app. Serve a
+    # cancellare l'utente di Supabase Auth alla fine dei 30 giorni di una cancellazione.
+    supabase_secret_key: SecretStr | None = None
     jwt_audience: str = "authenticated"
     jwt_algorithms: tuple[str, ...] = ("ES256", "RS256")
     # Supabase mette in cache il JWKS per 10 minuti: non conviene tenerlo più a lungo.
@@ -124,6 +127,8 @@ def get_settings() -> Settings:
     storage_secret = settings.storage_secret_key.get_secret_value()
     if settings.is_production and storage_secret.startswith("wearx-local"):
         raise RuntimeError("WEARX_STORAGE_SECRET_KEY non impostato in produzione")
+    if settings.is_production and settings.supabase_secret_key is None:
+        raise RuntimeError("WEARX_SUPABASE_SECRET_KEY non impostato in produzione")
     if settings.is_production and settings.push_provider != "expo":
         raise RuntimeError("WEARX_PUSH_PROVIDER deve essere 'expo' in produzione")
     if settings.env in ("staging", "production") and not settings.staff_require_mfa:

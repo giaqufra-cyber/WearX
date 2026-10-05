@@ -441,10 +441,15 @@ function AccountSheet({ visible, onClose }: { visible: boolean; onClose: () => v
           router.push({ pathname: "/people", params: { tab: "blocks" } });
         }}
       />
-      <Text style={styles.sheetText}>
-        Privacy e sicurezza (dispositivi collegati, nascondi prezzi, scarica i tuoi dati) arrivano qui con un
-        prossimo aggiornamento.
-      </Text>
+      <Button
+        label="Privacy e sicurezza"
+        variant="secondary"
+        size="md"
+        onPress={() => {
+          onClose();
+          router.push("/settings");
+        }}
+      />
       <Button
         label="Esci"
         variant="secondary"
@@ -564,5 +569,4 @@ const styles = StyleSheet.create({
   tabOn: { borderBottomColor: colors.accent },
   tabText: { fontFamily: fonts.uiBold, fontSize: 14, color: colors.textSecondary },
   tabTextOn: { color: colors.text },
-  sheetText: { fontFamily: fonts.ui, fontSize: 14, lineHeight: 20, color: colors.textSecondary },
 });
