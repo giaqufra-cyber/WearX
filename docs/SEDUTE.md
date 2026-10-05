@@ -480,3 +480,39 @@ Verifiche: 263 test API (+13); ruff, mypy, tsc puliti.
 
 Da fare in seduta 13: feed nell'app (card, carosello delle foto, capi sulla foto, slider del
 voto con aggiornamento immediato).
+
+### Seduta 13 — 2026-10-05
+
+Fatto (app, `src/app/(tabs)/index.tsx` e `src/features/feed/`):
+- **Feed vero** al posto del segnaposto: chip "Tutti" + i tuoi stili (e "+ Stili"), la regola
+  della casa ("Qui non si commenta. Si vota da 1 a 100, in forma anonima."), scorrimento
+  infinito con il cursore della seduta 12, tira giù per aggiornare, nessun doppione tra pagine.
+  Se la sessione del feed scade (app aperta a lungo) si riparte dall'inizio da soli.
+- **Card del fit**: avatar con il colore dello stile e le iniziali (o "Fit anonimo"), stile e
+  "% match" quando ci sono abbastanza conferme, didascalia, riquadro "IL FIT" con marchio, capo,
+  prezzo, **totale del look** e pulsante che apre il negozio nel browser interno.
+- **Carosello**: foto 4:5 con anteprima sfocata (blurhash) mentre carica, la variante giusta per
+  lo schermo (320/640/1080), scorrimento a pagine, zone di tocco a destra/sinistra, contatore
+  "2/3" e pallini.
+- **Capi sulla foto**: il pulsante "Capi · n" mostra i punti con il marchio sopra la foto
+  (solo i capi di quella foto); "Nascondi" li toglie.
+- **Slider del voto 1-100** fatto su misura: si trascina o si tocca il binario, − e + per un
+  punto, numero grande e la "frase" del voto (es. "Fit pazzesco"); con VoiceOver/TalkBack si
+  regola con i gesti su/giù. Il trascinamento non fa scorrere il feed.
+- **Voto immediato**: appena premi "Vota" la card passa a "MEDIA COMMUNITY · il tuo 92" senza
+  aspettare; la media arriva con la risposta del server. Se il server rifiuta (post sparito,
+  troppi voti) si torna com'era con un messaggio chiaro.
+- **"È davvero Galà?"** Sì/No compare solo quando il server lo chiede (primi 30 votanti).
+- I tuoi fit mostrano "IL TUO FIT · MEDIA" invece dello slider.
+
+Provato davvero sul web con API, worker, Redis e archivio foto locali: 4 fit pubblicati con la
+pipeline vera, trascinamento dello slider fino a 92, conferma dello stile, voto registrato nel
+database, media mostrata, carosello a 3 foto navigato.
+
+Verifiche: 168 test app (+14: testi e calcoli, slider, card, capi sulla foto, voto ottimistico
+con conferma, rifiuto con ripristino, pagine successive, filtro per stile, stati vuoti, errore
+di rete); tsc pulito; export Android ok.
+
+Schermate: `docs/screens/seduta-13-feed.png`.
+
+Da fare in seduta 14: portfolio (griglia dei tuoi fit, riordino trascinando, copertina, capsule).

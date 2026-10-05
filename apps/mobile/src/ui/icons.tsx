@@ -140,3 +140,32 @@ export function IconLock({ color, size = 16 }: IconProps) {
     </Svg>
   );
 }
+
+export function IconArrowUpRight({ color, size = 18 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M7 17L17 7M8 7h9v9" />
+    </Svg>
+  );
+}
+
+export function IconTag({ color, size = 16 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z" />
+      <Circle cx={8} cy={8} r={1.5} />
+    </Svg>
+  );
+}
+
+export function IconChat({ color, size = 18 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M4 5h16v11H9l-5 4z" />
+      <Path d="M4 4l16 16" />
+    </Svg>
+  );
+}

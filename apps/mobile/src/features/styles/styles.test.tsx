@@ -184,7 +184,10 @@ describe("Pagina dello stile", () => {
 
 describe("Feed", () => {
   test("le chip sono i tuoi stili, più la scorciatoia per aggiungerne", async () => {
-    get.mockResolvedValue({ items: [card("old-money", "Old Money", { joined: true }), card("gala", "Galà")], total: 2 });
+    const mine = { items: [card("old-money", "Old Money", { joined: true }), card("gala", "Galà")], total: 2 };
+    get.mockImplementation((path: string) =>
+      Promise.resolve(path.startsWith("/v1/feed") ? { items: [], next_cursor: null, empty_reason: "no_posts" } : mine),
+    );
     const user = userEvent.setup();
     await render(<FeedScreen />, { wrapper: Providers });
     expect(await screen.findByRole("button", { name: "Old Money" })).toBeOnTheScreen();
