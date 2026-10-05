@@ -85,6 +85,13 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
 
   return (
     <View style={styles.actions}>
+      {post.status === "hidden_moderation" ? (
+        <View style={styles.hidden} role="alert">
+          <Text style={styles.hiddenTitle}>Nascosto dalla moderazione</Text>
+          <Text style={styles.hiddenText}>Gli altri non lo vedono. Trovi il motivo e puoi fare reclamo.</Text>
+          <Button label="Vedi il motivo" variant="secondary" size="sm" onPress={() => router.push("/moderation")} />
+        </View>
+      ) : null}
       <Text style={styles.kicker}>IL TUO PORTFOLIO</Text>
       <Button
         label={capsuleName ? `Capsula: ${capsuleName}` : "Aggiungi a una capsula"}
@@ -171,6 +178,16 @@ const styles = StyleSheet.create({
   headerSpacer: { width: 44 },
   content: { alignSelf: "center", paddingBottom: spacing[8] },
   actions: { paddingHorizontal: spacing[4], paddingTop: spacing[5], gap: spacing[2] },
+  hidden: {
+    gap: spacing[2],
+    padding: spacing[4],
+    marginBottom: spacing[3],
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.warning,
+  },
+  hiddenTitle: { fontFamily: fonts.uiBold, fontSize: 15, color: colors.warning },
+  hiddenText: { fontFamily: fonts.ui, fontSize: 13, lineHeight: 18, color: colors.textSecondary },
   kicker: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 1.5, color: colors.textSecondary, marginBottom: 2 },
   sheetText: { fontFamily: fonts.ui, fontSize: 14, lineHeight: 20, color: colors.textSecondary },
   sheetButtons: { flexDirection: "row", gap: spacing[2] },

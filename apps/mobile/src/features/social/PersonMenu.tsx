@@ -8,8 +8,18 @@ import { Button } from "@/ui/Button";
 import { Sheet } from "@/ui/Sheet";
 import { useToast } from "@/ui/Toast";
 
-/** Azioni su un'altra persona. Per ora: blocca (le segnalazioni arrivano con la moderazione). */
-export function PersonMenu({ nickname, visible, onClose }: { nickname: string; visible: boolean; onClose: () => void }) {
+/** Azioni su un'altra persona: segnala, blocca. */
+export function PersonMenu({
+  nickname,
+  visible,
+  onClose,
+  onReport,
+}: {
+  nickname: string;
+  visible: boolean;
+  onClose: () => void;
+  onReport: () => void;
+}) {
   const toast = useToast();
   const block = useBlock(nickname);
   const [confirm, setConfirm] = useState(false);
@@ -46,7 +56,19 @@ export function PersonMenu({ nickname, visible, onClose }: { nickname: string; v
           <Button label="Annulla" variant="ghost" size="md" fullWidth onPress={() => setConfirm(false)} />
         </>
       ) : (
-        <Button label="Blocca" variant="danger" size="md" fullWidth onPress={() => setConfirm(true)} />
+        <>
+          <Button
+            label="Segnala"
+            variant="secondary"
+            size="md"
+            fullWidth
+            onPress={() => {
+              close();
+              onReport();
+            }}
+          />
+          <Button label="Blocca" variant="danger" size="md" fullWidth onPress={() => setConfirm(true)} />
+        </>
       )}
     </Sheet>
   );

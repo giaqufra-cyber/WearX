@@ -12,6 +12,7 @@ import re
 import unicodedata
 
 from app.errors import ApiError
+from app.moderation.text import offensive_compact, offensive_word
 
 NICKNAME_RE = re.compile(r"^[a-z0-9._]{3,20}$")
 
@@ -74,6 +75,8 @@ def nickname_problem(nickname: str) -> str | None:
         return "reserved"
     if any(fragment in compact for fragment in RESERVED_FRAGMENTS):
         return "reserved"
+    if offensive_compact(compact):
+        return "reserved"
     if nickname[0] in "._" or nickname[-1] in "._" or ".." in nickname:
         return "invalid"
     return None
@@ -98,6 +101,8 @@ def clean_text(raw: str | None, *, field: str, max_chars: int, max_lines: int = 
             )
     if len(text) > max_chars:
         raise ApiError(422, "text.too_long", f"{field} può avere al massimo {max_chars} caratteri")
+    if offensive_word(text):
+        raise ApiError(422, "text.not_allowed", f"{field} contiene parole non ammesse")
     if text.count("\n") >= max_lines:
         raise ApiError(
             422, "text.too_many_lines", f"{field} può avere al massimo {max_lines} righe"

@@ -21,9 +21,11 @@ from app.db import get_session
 from app.errors import ApiError
 from app.feed import on_post_published
 from app.links import normalize_shop_url
-from app.media.keys import variant_key
-from app.portfolio import after_post_deleted, new_post_rank
+from app.moderation.actions import hide_post
+from app.moderation.reports import file_report
+from app.portfolio import new_post_rank
 from app.post_access import AUTHOR_SHOWN_SQL, POST_VISIBLE_SQL
+from app.post_purge import purge_post
 from app.post_views import PostOut, posts_out
 from app.profiles import CurrentProfile, Profile
 from app.ratelimit import rate_limit
@@ -215,6 +217,19 @@ async def create_post(
 ) -> PostOut:
     if len(set(body.media)) != len(body.media):
         raise ApiError(422, "media.duplicate", "La stessa foto compare due volte")
+    blocked_until = await session.scalar(
+        text(
+            """select posting_blocked_until from app.profiles
+                where id = :id and posting_blocked_until > now()"""
+        ),
+        {"id": profile.id},
+    )
+    if blocked_until is not None:
+        raise ApiError(
+            403,
+            "account.posting_restricted",
+            f"Non puoi pubblicare fino al {blocked_until:%d/%m/%Y}",
+        )
 
     redis_key = None
     if idempotency_key is not None:
@@ -261,7 +276,8 @@ async def _insert_post(session: AsyncSession, profile: Profile, body: PostIn) ->
                         """update app.media_uploads set attached_at = now()
                             where id = any(:ids) and owner_id = :uid and status = 'ready'
                               and attached_at is null
-                        returning id, width, height, blurhash, sha256, phash, variants"""
+                        returning id, width, height, blurhash, sha256, phash, variants,
+                                  needs_review, scan_labels"""
                     ),
                     {"ids": body.media, "uid": profile.id},
                 )
@@ -319,11 +335,40 @@ async def _insert_post(session: AsyncSession, profile: Profile, body: PostIn) ->
         await session.execute(
             text("insert into app.post_stats (post_id) values (:id)"), {"id": post_id}
         )
+        flagged = [m for m in claimed if m["needs_review"]]
+        if flagged:
+            await _queue_for_review(session, profile, post_id, flagged)
         await session.commit()
     except BaseException:
         await session.rollback()
         raise
     return post_id
+
+
+async def _queue_for_review(
+    session: AsyncSession, profile: Profile, post_id: uuid.UUID, flagged: list[Any]
+) -> None:
+    """Foto "da rivedere" secondo il classificatore: il fit entra in coda di moderazione.
+    Se l'autore ha 16-17 anni resta nascosto finché un moderatore non decide."""
+    labels: dict[str, float] = {}
+    for m in flagged:
+        for key, value in (m["scan_labels"] or {}).items():
+            labels[key] = max(labels.get(key, 0.0), float(value))
+    top = max(labels, key=lambda k: labels[k]) if labels else "other"
+    reason = {"nudity": "nudity", "sexual": "nudity", "hate": "harassment"}.get(top, "other")
+    details = ", ".join(f"{k} {v:.2f}" for k, v in sorted(labels.items()))
+    await file_report(
+        session,
+        reporter_id=None,
+        target_type="post",
+        target_id=post_id,
+        reason=reason,
+        details=f"Controllo automatico delle foto: {details}"[:500],
+        subject_id=profile.id,
+        auto=True,
+    )
+    if not profile.is_adult:
+        await hide_post(session, post_id, ground="image_classifier", automated=True, actor_id=None)
 
 
 @router.get("/{post_id}", response_model=PostOut)
@@ -410,37 +455,8 @@ async def update_post(
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(post_id: uuid.UUID, profile: CurrentProfile, session: Session) -> Response:
     await _own_post(session, profile, post_id)
-    media = (
-        (
-            await session.execute(
-                text(
-                    """select upload_id, variants from app.post_media
-                        where post_id = :id and upload_id is not null"""
-                ),
-                {"id": post_id},
-            )
-        )
-        .mappings()
-        .all()
-    )
-    await session.execute(
-        text(
-            """update app.posts set status = 'deleted', deleted_at = now(), caption = null,
-                      capsule_id = null
-                where id = :id"""
-        ),
-        {"id": post_id},
-    )
-    await after_post_deleted(session, profile.id, post_id)
-    # Capi e foto spariscono subito; resta solo la riga del post (per i conteggi storici).
-    await session.execute(text("delete from app.post_items where post_id = :id"), {"id": post_id})
-    await session.execute(text("delete from app.post_media where post_id = :id"), {"id": post_id})
-    await session.execute(
-        text("delete from app.media_uploads where id = any(:ids)"),
-        {"ids": [m["upload_id"] for m in media]},
-    )
+    purged = await purge_post(session, post_id, profile.id)
     await session.commit()
-    keys = [variant_key(m["upload_id"], w) for m in media for w in m["variants"]]
-    if keys:
-        await get_store().delete(*keys)
+    if purged.storage_keys:
+        await get_store().delete(*purged.storage_keys)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

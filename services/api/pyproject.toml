@@ -60,6 +60,7 @@ ignore = ["S101"]  # assert nei test
 "app/portfolio.py" = ["S608"]  # SQL composto solo da costanti del modulo
 "app/routers/portfolio.py" = ["S608"]
 "app/routers/social.py" = ["S608"]
+"app/routers/reports.py" = ["S608"]
 
 [tool.mypy]
 strict = true

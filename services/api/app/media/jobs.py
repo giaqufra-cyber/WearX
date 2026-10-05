@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import uuid
 from typing import Any
@@ -13,7 +14,9 @@ from app.config import get_settings
 from app.db import session_scope
 from app.media.keys import quarantine_key, variant_key
 from app.media.processing import Processed, process_image
-from app.media.scan import get_scanner
+from app.moderation.actions import suspend_pending_review
+from app.moderation.reports import file_report
+from app.moderation.scanning import UploadDecision, scan_image
 from app.storage import get_store
 
 log = logging.getLogger("wearx.media")
@@ -33,6 +36,25 @@ async def _reject(upload_id: uuid.UUID, reason: str) -> None:
             {"id": upload_id, "reason": reason},
         )
         await session.commit()
+
+
+async def _incident(owner: uuid.UUID, decision: UploadDecision) -> None:
+    """Materiale illegale noto: account sospeso subito e caso P0 per i moderatori (entro 1 ora).
+    La foto non viene salvata: restano solo le impronte nella lista e il caso aperto."""
+    async with session_scope() as session:
+        await suspend_pending_review(session, owner, ground="csam_hash_match")
+        await file_report(
+            session,
+            reporter_id=None,
+            target_type="profile",
+            target_id=owner,
+            reason="minor_safety",
+            details=f"Controllo automatico: {decision.reason}",
+            subject_id=owner,
+            auto=True,
+        )
+        await session.commit()
+    log.error("corrispondenza con lista di materiale illegale", extra={"owner": str(owner)})
 
 
 async def process_upload(ctx: dict[str, Any], upload_id: str) -> str:
@@ -66,9 +88,25 @@ async def process_upload(ctx: dict[str, Any], upload_id: str) -> str:
             await _reject(uid, result.reason)
             return f"rejected:{result.reason}"
 
-        verdict = await get_scanner().scan(data, result.sha256, result.phash)
-        if verdict == "block":
+        async with session_scope() as session:
+            owner, minor = (
+                await session.execute(
+                    text(
+                        """select u.owner_id, p.age_band = '16_17' from app.media_uploads u
+                             join app.profiles p on p.id = u.owner_id where u.id = :id"""
+                    ),
+                    {"id": uid},
+                )
+            ).one()
+            decision = await scan_image(session, data, result.sha256, result.phash, minor=minor)
+        if decision.verdict == "block":
+            if decision.incident:
+                await _incident(owner, decision)
             await _reject(uid, "blocked")
+            log.warning(
+                "foto bloccata dai controlli",
+                extra={"upload_id": upload_id, "reason": decision.reason},
+            )
             return "rejected:blocked"
 
         for width, webp in result.variants.items():
@@ -80,6 +118,7 @@ async def process_upload(ctx: dict[str, Any], upload_id: str) -> str:
                     """update app.media_uploads
                           set status = 'ready', width = :w, height = :h, blurhash = :bh,
                               sha256 = :sha, phash = :ph, variants = :variants,
+                              scan_labels = cast(:labels as jsonb), needs_review = :review,
                               processed_at = now()
                         where id = :id and status = 'processing'"""
                 ),
@@ -91,6 +130,8 @@ async def process_upload(ctx: dict[str, Any], upload_id: str) -> str:
                     "sha": result.sha256,
                     "ph": result.phash,
                     "variants": sorted(result.variants),
+                    "labels": json.dumps(decision.labels),
+                    "review": decision.verdict == "review",
                 },
             )
             await session.commit()

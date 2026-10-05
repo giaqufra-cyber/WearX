@@ -1,6 +1,71 @@
 {
   "components": {
     "schemas": {
+      "ActionOut": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "appeal_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Appeal Status"
+          },
+          "automated": {
+            "title": "Automated",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "ground": {
+            "title": "Ground",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "statement": {
+            "title": "Statement",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "action",
+          "ground",
+          "automated",
+          "created_at",
+          "expires_at",
+          "statement",
+          "appeal_status"
+        ],
+        "title": "ActionOut",
+        "type": "object"
+      },
       "AgeSessionIn": {
         "additionalProperties": false,
         "properties": {
@@ -162,6 +227,137 @@
         "title": "AgeStatusOut",
         "type": "object"
       },
+      "AppealDecisionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "enum": [
+              "uphold",
+              "reverse"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "note": {
+            "maxLength": 1000,
+            "minLength": 2,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision",
+          "note"
+        ],
+        "title": "AppealDecisionIn",
+        "type": "object"
+      },
+      "AppealIn": {
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "AppealIn",
+        "type": "object"
+      },
+      "AppealItem": {
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/ActionOut"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nickname",
+          "text",
+          "created_at",
+          "action"
+        ],
+        "title": "AppealItem",
+        "type": "object"
+      },
+      "AppealOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decision_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Note"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "upheld",
+              "reversed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "created_at",
+          "decided_at",
+          "decision_note"
+        ],
+        "title": "AppealOut",
+        "type": "object"
+      },
       "AuthorRef": {
         "properties": {
           "account_type": {
@@ -260,6 +456,108 @@
           "legal"
         ],
         "title": "ConfigOut",
+        "type": "object"
+      },
+      "DecisionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "enum": [
+              "dismiss",
+              "hide",
+              "remove",
+              "restore",
+              "none"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "ground": {
+            "maxLength": 40,
+            "minLength": 2,
+            "title": "Ground",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "sanction": {
+            "default": "none",
+            "enum": [
+              "none",
+              "auto",
+              "warn",
+              "limit_posting",
+              "ban"
+            ],
+            "title": "Sanction",
+            "type": "string"
+          },
+          "target_id": {
+            "format": "uuid",
+            "title": "Target Id",
+            "type": "string"
+          },
+          "target_type": {
+            "enum": [
+              "post",
+              "profile",
+              "link"
+            ],
+            "title": "Target Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_type",
+          "target_id",
+          "decision",
+          "ground"
+        ],
+        "title": "DecisionIn",
+        "type": "object"
+      },
+      "DecisionOut": {
+        "properties": {
+          "actions": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "resolved_reports": {
+            "title": "Resolved Reports",
+            "type": "integer"
+          },
+          "sanction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sanction"
+          }
+        },
+        "required": [
+          "actions",
+          "sanction",
+          "resolved_reports"
+        ],
+        "title": "DecisionOut",
         "type": "object"
       },
       "FeedOut": {
@@ -692,6 +990,111 @@
           "available"
         ],
         "title": "NicknameCheckOut",
+        "type": "object"
+      },
+      "NoticeOut": {
+        "properties": {
+          "action": {
+            "enum": [
+              "hide",
+              "remove",
+              "restyle",
+              "suspend",
+              "ban",
+              "restore",
+              "warn",
+              "limit_posting"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "appeal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AppealOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "appeal_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Appeal Until"
+          },
+          "automated": {
+            "title": "Automated",
+            "type": "boolean"
+          },
+          "can_appeal": {
+            "title": "Can Appeal",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Post Id"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "statement": {
+            "title": "Statement",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "action",
+          "reason",
+          "statement",
+          "automated",
+          "created_at",
+          "expires_at",
+          "post_id",
+          "appeal",
+          "can_appeal",
+          "appeal_until"
+        ],
+        "title": "NoticeOut",
         "type": "object"
       },
       "OnboardingIn": {
@@ -1199,6 +1602,47 @@
         "title": "PostPatch",
         "type": "object"
       },
+      "PostPreview": {
+        "properties": {
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          },
+          "photo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MediaUrls"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "style": {
+            "title": "Style",
+            "type": "string"
+          }
+        },
+        "required": [
+          "caption",
+          "style",
+          "status",
+          "photo"
+        ],
+        "title": "PostPreview",
+        "type": "object"
+      },
       "ProfileOut": {
         "properties": {
           "account_type": {
@@ -1338,6 +1782,113 @@
         "title": "ProfileUpdateIn",
         "type": "object"
       },
+      "QueueItem": {
+        "properties": {
+          "automated": {
+            "title": "Automated",
+            "type": "boolean"
+          },
+          "details": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Details",
+            "type": "array"
+          },
+          "due_at": {
+            "format": "date-time",
+            "title": "Due At",
+            "type": "string"
+          },
+          "first_at": {
+            "format": "date-time",
+            "title": "First At",
+            "type": "string"
+          },
+          "overdue": {
+            "title": "Overdue",
+            "type": "boolean"
+          },
+          "post": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PostPreview"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "integer"
+          },
+          "reasons": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Reasons",
+            "type": "object"
+          },
+          "reports": {
+            "title": "Reports",
+            "type": "integer"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject"
+          },
+          "subject_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Status"
+          },
+          "target_id": {
+            "format": "uuid",
+            "title": "Target Id",
+            "type": "string"
+          },
+          "target_type": {
+            "enum": [
+              "post",
+              "profile",
+              "link"
+            ],
+            "title": "Target Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_type",
+          "target_id",
+          "priority",
+          "reasons",
+          "reports",
+          "automated",
+          "first_at",
+          "due_at",
+          "overdue",
+          "subject",
+          "subject_status",
+          "post",
+          "details"
+        ],
+        "title": "QueueItem",
+        "type": "object"
+      },
       "Relationship": {
         "properties": {
           "following": {
@@ -1359,6 +1910,100 @@
           "follows_you"
         ],
         "title": "Relationship",
+        "type": "object"
+      },
+      "ReportIn": {
+        "additionalProperties": false,
+        "properties": {
+          "details": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname"
+          },
+          "reason": {
+            "enum": [
+              "nudity",
+              "minor_safety",
+              "harassment",
+              "spam",
+              "wrong_style",
+              "dangerous_link",
+              "stolen_photo",
+              "other"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "target_type": {
+            "enum": [
+              "post",
+              "profile",
+              "link"
+            ],
+            "title": "Target Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_type",
+          "reason"
+        ],
+        "title": "ReportIn",
+        "type": "object"
+      },
+      "ReportOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "integer"
+          },
+          "review_within_hours": {
+            "title": "Review Within Hours",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "priority",
+          "review_within_hours"
+        ],
+        "title": "ReportOut",
         "type": "object"
       },
       "RequestDecision": {
@@ -1384,6 +2029,44 @@
           "decision"
         ],
         "title": "RequestDecision",
+        "type": "object"
+      },
+      "SanctionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "ground": {
+            "maxLength": 40,
+            "minLength": 2,
+            "title": "Ground",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "sanction": {
+            "enum": [
+              "warn",
+              "limit_posting",
+              "ban"
+            ],
+            "title": "Sanction",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sanction",
+          "ground"
+        ],
+        "title": "SanctionIn",
         "type": "object"
       },
       "StyleCard": {
@@ -1776,6 +2459,70 @@
         "title": "UploadTarget",
         "type": "object"
       },
+      "UserCase": {
+        "properties": {
+          "account_type": {
+            "title": "Account Type",
+            "type": "string"
+          },
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/ActionOut"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "age_band": {
+            "title": "Age Band",
+            "type": "string"
+          },
+          "next_sanction": {
+            "title": "Next Sanction",
+            "type": "string"
+          },
+          "nickname": {
+            "title": "Nickname",
+            "type": "string"
+          },
+          "open_reports": {
+            "title": "Open Reports",
+            "type": "integer"
+          },
+          "posting_blocked_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posting Blocked Until"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "strikes": {
+            "title": "Strikes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "nickname",
+          "status",
+          "age_band",
+          "account_type",
+          "posting_blocked_until",
+          "strikes",
+          "next_sanction",
+          "open_reports",
+          "actions"
+        ],
+        "title": "UserCase",
+        "type": "object"
+      },
       "UserOut": {
         "properties": {
           "account_type": {
@@ -2050,6 +2797,286 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/v1/admin/appeals": {
+      "get": {
+        "operationId": "appeals_v1_admin_appeals_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AppealItem"
+                  },
+                  "title": "Response Appeals V1 Admin Appeals Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Appeals",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/appeals/{appeal_id}": {
+      "post": {
+        "operationId": "decide_appeal_v1_admin_appeals__appeal_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appeal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Appeal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppealDecisionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppealItem"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide Appeal",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/reports/decide": {
+      "post": {
+        "operationId": "decide_v1_admin_reports_decide_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/reports/queue": {
+      "get": {
+        "operationId": "queue_v1_admin_reports_queue_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "priority",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 2,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Priority"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/QueueItem"
+                  },
+                  "title": "Response Queue V1 Admin Reports Queue Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Queue",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/users/{nickname}": {
+      "get": {
+        "operationId": "user_case_v1_admin_users__nickname__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nickname",
+            "required": true,
+            "schema": {
+              "title": "Nickname",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserCase"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "User Case",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/users/{nickname}/sanction": {
+      "post": {
+        "operationId": "sanction_v1_admin_users__nickname__sanction_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nickname",
+            "required": true,
+            "schema": {
+              "title": "Nickname",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SanctionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sanction",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/v1/age-verification": {
       "get": {
         "operationId": "age_status_v1_age_verification_get",
@@ -2763,6 +3790,84 @@
         ]
       }
     },
+    "/v1/me/moderation": {
+      "get": {
+        "operationId": "my_notices_v1_me_moderation_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NoticeOut"
+                  },
+                  "title": "Response My Notices V1 Me Moderation Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "My Notices",
+        "tags": [
+          "moderation"
+        ]
+      }
+    },
+    "/v1/me/moderation/{action_id}/appeal": {
+      "post": {
+        "operationId": "appeal_v1_me_moderation__action_id__appeal_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Action Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppealIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppealOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Appeal",
+        "tags": [
+          "moderation"
+        ]
+      }
+    },
     "/v1/me/portfolio/order": {
       "put": {
         "operationId": "reorder_v1_me_portfolio_order_put",
@@ -3258,6 +4363,47 @@
         "summary": "Vote",
         "tags": [
           "votes"
+        ]
+      }
+    },
+    "/v1/reports": {
+      "post": {
+        "operationId": "report_v1_reports_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Report",
+        "tags": [
+          "moderation"
         ]
       }
     },

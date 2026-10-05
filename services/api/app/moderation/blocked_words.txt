@@ -1,0 +1,42 @@
+# Parole vietate in nickname, bio, didascalie, brand e nomi dei capi (sez. 14.2).
+# Una per riga, minuscole. Si confrontano dopo la normalizzazione (accenti, numeri al posto
+# delle lettere, lettere ripetute). Elenco iniziale: va rivisto e ampliato dalla moderazione.
+
+# Insulti sessisti e sessuali (IT)
+puttana
+troia
+zoccola
+mignotta
+baldracca
+# Insulti omofobi e transfobici (IT)
+frocio
+ricchione
+# Insulti razzisti (IT)
+negro
+negra
+# Abilismo (IT)
+mongoloide
+ritardato
+ritardata
+# Incitamento all'autolesionismo (IT)
+ammazzati
+suicidati
+# Insulti sessisti e sessuali (EN)
+whore
+slut
+skank
+# Insulti omofobi e transfobici (EN)
+faggot
+fag
+tranny
+# Insulti razzisti (EN)
+nigger
+nigga
+chink
+spic
+kike
+# Abilismo (EN)
+retard
+# Incitamento all'autolesionismo (EN)
+kys
+killyourself

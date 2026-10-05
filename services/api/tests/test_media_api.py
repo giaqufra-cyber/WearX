@@ -12,7 +12,7 @@ from PIL import Image
 
 from app.media import jobs
 from app.media.keys import quarantine_key, variant_key
-from app.media.scan import set_scanner
+from app.moderation.scanning import set_classifier
 from tests.authkit import bearer
 from tests.imagekit import has_metadata, photo
 from tests.test_accounts import onboard
@@ -112,16 +112,16 @@ async def test_file_non_immagine_rifiutato_e_cancellato(client, keys, db_admin, 
 
 
 async def test_foto_bloccata_dalla_moderazione(client, keys, db_admin, store, queue):
-    class BlockAll:
-        async def scan(self, image, sha256, phash):
-            return "block"
+    class Explicit:
+        async def classify(self, image):
+            return {"sexual": 0.99}
 
-    set_scanner(BlockAll())
+    set_classifier(Explicit())
     try:
         _, headers, _ = await onboard(client, keys, db_admin)
         upload_id, outcome = await _upload_and_process(client, headers, store, queue, photo())
     finally:
-        set_scanner(None)
+        set_classifier(None)
     assert outcome == "rejected:blocked"
     assert await store.size(variant_key(uuid.UUID(upload_id), 1080)) is None
 

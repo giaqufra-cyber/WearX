@@ -30,6 +30,7 @@ const PUBLISH_ERRORS: Record<string, string> = {
   "text.invalid_characters": "C'è un carattere non ammesso nella didascalia o nei capi.",
   "text.too_long": "Un testo è troppo lungo.",
   "rate.limited": "Hai pubblicato molto in poco tempo: riprova tra un po'.",
+  "text.not_allowed": "Ci sono parole non ammesse nella didascalia o nei capi.",
 };
 
 /** Nuovo fit (prototipo, schermata Create). Si apre a tutto schermo dal "+" della barra. */
@@ -106,7 +107,9 @@ export default function NewPostScreen() {
       close();
     } catch (caught) {
       const code = caught instanceof ApiError ? caught.code : "";
-      setError(PUBLISH_ERRORS[code] ?? "Non riusciamo a pubblicare. Controlla la connessione e riprova.");
+      // Pubblicazione sospesa: il messaggio del server ha la data di fine.
+      const suspended = caught instanceof ApiError && code === "account.posting_restricted" ? `${caught.title}.` : null;
+      setError(suspended ?? PUBLISH_ERRORS[code] ?? "Non riusciamo a pubblicare. Controlla la connessione e riprova.");
     } finally {
       setPublishing(false);
     }

@@ -4,6 +4,108 @@
  */
 
 export interface paths {
+    "/v1/admin/appeals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Appeals */
+        get: operations["appeals_v1_admin_appeals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/appeals/{appeal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide Appeal */
+        post: operations["decide_appeal_v1_admin_appeals__appeal_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reports/decide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide */
+        post: operations["decide_v1_admin_reports_decide_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reports/queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Queue */
+        get: operations["queue_v1_admin_reports_queue_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/{nickname}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** User Case */
+        get: operations["user_case_v1_admin_users__nickname__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/{nickname}/sanction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sanction */
+        post: operations["sanction_v1_admin_users__nickname__sanction_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/age-verification": {
         parameters: {
             query?: never;
@@ -249,6 +351,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/moderation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Notices */
+        get: operations["my_notices_v1_me_moderation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/moderation/{action_id}/appeal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Appeal */
+        post: operations["appeal_v1_me_moderation__action_id__appeal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/portfolio/order": {
         parameters: {
             query?: never;
@@ -408,6 +544,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Report */
+        post: operations["report_v1_reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/styles": {
         parameters: {
             query?: never;
@@ -557,6 +710,31 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActionOut */
+        ActionOut: {
+            /** Action */
+            action: string;
+            /** Appeal Status */
+            appeal_status: string | null;
+            /** Automated */
+            automated: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Expires At */
+            expires_at: string | null;
+            /** Ground */
+            ground: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Statement */
+            statement: string;
+        };
         /** AgeSessionIn */
         AgeSessionIn: {
             /**
@@ -606,6 +784,56 @@ export interface components {
             /** Verified */
             verified: boolean;
         };
+        /** AppealDecisionIn */
+        AppealDecisionIn: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "uphold" | "reverse";
+            /** Note */
+            note: string;
+        };
+        /** AppealIn */
+        AppealIn: {
+            /** Text */
+            text: string;
+        };
+        /** AppealItem */
+        AppealItem: {
+            action: components["schemas"]["ActionOut"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Nickname */
+            nickname: string | null;
+            /** Text */
+            text: string;
+        };
+        /** AppealOut */
+        AppealOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Decided At */
+            decided_at: string | null;
+            /** Decision Note */
+            decision_note: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "upheld" | "reversed";
+        };
         /** AuthorRef */
         AuthorRef: {
             /**
@@ -646,6 +874,43 @@ export interface components {
             styles: components["schemas"]["StyleOut"][];
             /** Terms Version */
             terms_version: string;
+        };
+        /** DecisionIn */
+        DecisionIn: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "dismiss" | "hide" | "remove" | "restore" | "none";
+            /** Ground */
+            ground: string;
+            /** Note */
+            note?: string | null;
+            /**
+             * Sanction
+             * @default none
+             * @enum {string}
+             */
+            sanction: "none" | "auto" | "warn" | "limit_posting" | "ban";
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            /**
+             * Target Type
+             * @enum {string}
+             */
+            target_type: "post" | "profile" | "link";
+        };
+        /** DecisionOut */
+        DecisionOut: {
+            /** Actions */
+            actions: string[];
+            /** Resolved Reports */
+            resolved_reports: number;
+            /** Sanction */
+            sanction: string | null;
         };
         /** FeedOut */
         FeedOut: {
@@ -777,6 +1042,39 @@ export interface components {
             nickname: string;
             /** Reason */
             reason?: ("invalid" | "reserved" | "taken") | null;
+        };
+        /** NoticeOut */
+        NoticeOut: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "hide" | "remove" | "restyle" | "suspend" | "ban" | "restore" | "warn" | "limit_posting";
+            appeal: components["schemas"]["AppealOut"] | null;
+            /** Appeal Until */
+            appeal_until: string | null;
+            /** Automated */
+            automated: boolean;
+            /** Can Appeal */
+            can_appeal: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Expires At */
+            expires_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Post Id */
+            post_id: string | null;
+            /** Reason */
+            reason: string;
+            /** Statement */
+            statement: string;
         };
         /** OnboardingIn */
         OnboardingIn: {
@@ -923,6 +1221,16 @@ export interface components {
             /** Style */
             style?: string | null;
         };
+        /** PostPreview */
+        PostPreview: {
+            /** Caption */
+            caption: string | null;
+            photo: components["schemas"]["MediaUrls"] | null;
+            /** Status */
+            status: string;
+            /** Style */
+            style: string;
+        };
         /** ProfileOut */
         ProfileOut: {
             /**
@@ -972,6 +1280,48 @@ export interface components {
             /** Hide Vote Count */
             hide_vote_count?: boolean | null;
         };
+        /** QueueItem */
+        QueueItem: {
+            /** Automated */
+            automated: boolean;
+            /** Details */
+            details: string[];
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /**
+             * First At
+             * Format: date-time
+             */
+            first_at: string;
+            /** Overdue */
+            overdue: boolean;
+            post: components["schemas"]["PostPreview"] | null;
+            /** Priority */
+            priority: number;
+            /** Reasons */
+            reasons: {
+                [key: string]: number;
+            };
+            /** Reports */
+            reports: number;
+            /** Subject */
+            subject: string | null;
+            /** Subject Status */
+            subject_status: string | null;
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            /**
+             * Target Type
+             * @enum {string}
+             */
+            target_type: "post" | "profile" | "link";
+        };
         /** Relationship */
         Relationship: {
             /**
@@ -982,6 +1332,37 @@ export interface components {
             /** Follows You */
             follows_you: boolean;
         };
+        /** ReportIn */
+        ReportIn: {
+            /** Details */
+            details?: string | null;
+            /** Nickname */
+            nickname?: string | null;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "nudity" | "minor_safety" | "harassment" | "spam" | "wrong_style" | "dangerous_link" | "stolen_photo" | "other";
+            /** Target Id */
+            target_id?: string | null;
+            /**
+             * Target Type
+             * @enum {string}
+             */
+            target_type: "post" | "profile" | "link";
+        };
+        /** ReportOut */
+        ReportOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Priority */
+            priority: number;
+            /** Review Within Hours */
+            review_within_hours: number;
+        };
         /** RequestDecision */
         RequestDecision: {
             /**
@@ -991,6 +1372,18 @@ export interface components {
             decision: "accept" | "reject";
             /** Nickname */
             nickname: string;
+        };
+        /** SanctionIn */
+        SanctionIn: {
+            /** Ground */
+            ground: string;
+            /** Note */
+            note?: string | null;
+            /**
+             * Sanction
+             * @enum {string}
+             */
+            sanction: "warn" | "limit_posting" | "ban";
         };
         /** StyleCard */
         StyleCard: {
@@ -1124,6 +1517,27 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** UserCase */
+        UserCase: {
+            /** Account Type */
+            account_type: string;
+            /** Actions */
+            actions: components["schemas"]["ActionOut"][];
+            /** Age Band */
+            age_band: string;
+            /** Next Sanction */
+            next_sanction: string;
+            /** Nickname */
+            nickname: string;
+            /** Open Reports */
+            open_reports: number;
+            /** Posting Blocked Until */
+            posting_blocked_until: string | null;
+            /** Status */
+            status: string;
+            /** Strikes */
+            strikes: number;
+        };
         /** UserOut */
         UserOut: {
             /**
@@ -1205,6 +1619,192 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    appeals_v1_admin_appeals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppealItem"][];
+                };
+            };
+        };
+    };
+    decide_appeal_v1_admin_appeals__appeal_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appeal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppealDecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppealItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_v1_admin_reports_decide_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    queue_v1_admin_reports_queue_get: {
+        parameters: {
+            query?: {
+                priority?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueueItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    user_case_v1_admin_users__nickname__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nickname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserCase"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sanction_v1_admin_users__nickname__sanction_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nickname: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SanctionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     age_status_v1_age_verification_get: {
         parameters: {
             query?: never;
@@ -1728,6 +2328,61 @@ export interface operations {
             };
         };
     };
+    my_notices_v1_me_moderation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoticeOut"][];
+                };
+            };
+        };
+    };
+    appeal_v1_me_moderation__action_id__appeal_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                action_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppealIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppealOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     reorder_v1_me_portfolio_order_put: {
         parameters: {
             query?: never;
@@ -2088,6 +2743,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VoteSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_v1_reports_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
                 };
             };
             /** @description Validation Error */

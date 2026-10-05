@@ -2,14 +2,16 @@ import type { Post } from "@wearx/api-types";
 import { colors, fonts, spacing } from "@wearx/design-tokens";
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { formatPrice } from "@/features/create/form";
 import { Carousel } from "@/features/feed/Carousel";
 import { initials, matchLabel, totalPrice } from "@/features/feed/format";
 import { VotePanel } from "@/features/feed/VotePanel";
-import { IconArrowUpRight, IconShield } from "@/ui/icons";
+import { ReportSheet } from "@/features/moderation/ReportSheet";
+import { IconButton } from "@/ui/IconButton";
+import { IconArrowUpRight, IconMore, IconShield } from "@/ui/icons";
 
 type Props = {
   post: Post;
@@ -23,6 +25,7 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting }: 
   const name = post.author ? `@${post.author.nickname}` : "Fit anonimo";
   const match = matchLabel(post.vote.style_match);
   const total = totalPrice(post.items);
+  const [reporting, setReporting] = useState(false);
 
   return (
     <View style={styles.card} role="article" aria-label={`${name}, ${post.style.name}`}>
@@ -58,9 +61,17 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting }: 
             ) : null}
           </View>
         </View>
+        {!post.is_own ? (
+          <IconButton label="Segnala il fit" onPress={() => setReporting(true)}>
+            <IconMore color={colors.textSecondary} />
+          </IconButton>
+        ) : null}
       </View>
 
       <Carousel post={post} width={width} authorLabel={name} />
+      {!post.is_own ? (
+        <ReportSheet target={{ type: "post", id: post.id }} visible={reporting} onClose={() => setReporting(false)} />
+      ) : null}
 
       <VotePanel post={post} busy={voting} onVote={(score, confirm) => onVote(post, score, confirm)} />
 
@@ -113,7 +124,14 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting }: 
 
 const styles = StyleSheet.create({
   card: { borderBottomWidth: 1, borderBottomColor: colors.divider, paddingBottom: 20 },
-  head: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 10, paddingHorizontal: spacing[4] },
+  head: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 6,
+    paddingLeft: spacing[4],
+    paddingRight: 4,
+  },
   avatar: {
     width: 38,
     height: 38,

@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     # Tolleranza sull'orologio per exp/iat.
     jwt_leeway_seconds: int = 30
 
+    # Staff di moderazione: serve il secondo fattore (Supabase MFA, claim aal = "aal2").
+    # Si può spegnere solo in locale e nei test; in staging e produzione è sempre richiesto.
+    staff_require_mfa: bool = True
+
     # Dietro Cloudflare l'IP reale arriva in CF-Connecting-IP. Va attivato SOLO se l'API
     # è raggiungibile esclusivamente attraverso il proxy, altrimenti l'header è falsificabile.
     trust_proxy_headers: bool = False
@@ -112,4 +116,6 @@ def get_settings() -> Settings:
     storage_secret = settings.storage_secret_key.get_secret_value()
     if settings.is_production and storage_secret.startswith("wearx-local"):
         raise RuntimeError("WEARX_STORAGE_SECRET_KEY non impostato in produzione")
+    if settings.env in ("staging", "production") and not settings.staff_require_mfa:
+        raise RuntimeError("WEARX_STAFF_REQUIRE_MFA non può essere spento in staging/produzione")
     return settings

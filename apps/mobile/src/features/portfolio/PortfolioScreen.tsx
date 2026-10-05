@@ -21,6 +21,7 @@ import { afterIdForStep, useMoveFit, usePortfolio, useUser } from "@/features/po
 import { CapsuleManager } from "@/features/portfolio/CapsuleManager";
 import { FitTile } from "@/features/portfolio/FitTile";
 import { accountTypeLabel, statValue } from "@/features/portfolio/format";
+import { ReportSheet } from "@/features/moderation/ReportSheet";
 import { FollowButton } from "@/features/social/FollowButton";
 import { PersonMenu } from "@/features/social/PersonMenu";
 import { ApiError } from "@/lib/api";
@@ -48,6 +49,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
   const [managing, setManaging] = useState(false);
   const [settings, setSettings] = useState(false);
   const [menu, setMenu] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const activeCapsule = capsule && profile?.capsules.some((c) => c.id === capsule) ? capsule : null;
 
   const grid = usePortfolio(nickname, activeCapsule, profile?.can_view_posts ?? false);
@@ -297,7 +299,21 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
       />
       {own ? <CapsuleManager visible={managing} onClose={() => setManaging(false)} /> : null}
       {own ? <AccountSheet visible={settings} onClose={() => setSettings(false)} /> : null}
-      {!own ? <PersonMenu nickname={profile.nickname} visible={menu} onClose={() => setMenu(false)} /> : null}
+      {!own ? (
+        <PersonMenu
+          nickname={profile.nickname}
+          visible={menu}
+          onClose={() => setMenu(false)}
+          onReport={() => setReporting(true)}
+        />
+      ) : null}
+      {!own ? (
+        <ReportSheet
+          target={{ type: "profile", nickname: profile.nickname }}
+          visible={reporting}
+          onClose={() => setReporting(false)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -385,6 +401,15 @@ function AccountSheet({ visible, onClose }: { visible: boolean; onClose: () => v
   const { signOut } = useAuth();
   return (
     <Sheet visible={visible} title="Account" onClose={onClose}>
+      <Button
+        label="Avvisi della moderazione"
+        variant="secondary"
+        size="md"
+        onPress={() => {
+          onClose();
+          router.push("/moderation");
+        }}
+      />
       <Button
         label="Account bloccati"
         variant="secondary"

@@ -44,6 +44,11 @@ Promemoria fissi: senza questi punti l'app funziona solo per il fondatore.
 - [ ] Supabase → Redirect URLs: togliere `exp://**` (resta solo `wearx://**`).
 - [ ] Fornitore vero di verifica dell'età (decisione D5) al posto di quello di prova, con il suo
       segreto per i webhook (`WEARX_AGE_WEBHOOK_SECRET`).
+- [ ] **Moderazione** (seduta 16): richiedere l'accesso a un servizio di hash matching per
+      materiale pedopornografico noto (Microsoft PhotoDNA o Thorn Safer: tempi non immediati),
+      scegliere il classificatore delle foto (Rekognition, Vision SafeSearch o Hive, trattamento
+      nell'UE), almeno un moderatore reperibile per i P0 (1 ora) più uno di riserva, procedura
+      scritta con il legale per la segnalazione alla Polizia Postale e la conservazione delle prove.
 
 ## Registro
 
@@ -614,3 +619,63 @@ Schermate: `docs/screens/seduta-15-account-privati.png`.
 
 Da fare in seduta 16: moderazione lato server (segnalazioni con priorità, azioni dei moderatori,
 classificatore immagini e hash dietro interfacce, pulsante "Segnala").
+
+### Seduta 16 — 2026-10-05
+
+Fatto (API, `app/moderation/`, migrazione 0010):
+- **Controlli sulle foto prima della pubblicazione**, dietro due interfacce:
+  - *liste di impronte*: sempre attiva la lista locale (foto rimosse dai moderatori, anche
+    ricompresse o leggermente modificate, e impronte indicate dalle autorità); il servizio
+    esterno per il materiale illegale noto si collega quando l'accesso è concesso;
+  - *classificatore* (nudità, sesso, violenza, armi, odio): interfaccia pronta, si collega con il
+    fornitore scelto. Sopra una soglia la foto non passa; tra due soglie passa ma il fit entra in
+    coda; **per i 16-17 soglie più severe e il fit resta nascosto finché un moderatore non decide**.
+  - Corrispondenza con materiale illegale noto: foto rifiutata e mai salvata, account sospeso
+    subito, caso P0 aperto per i moderatori.
+- **Parole vietate** (insulti, odio, istigazione all'autolesionismo, IT/EN) in nickname, bio,
+  didascalie, brand, capi e nomi delle capsule; riconosce anche "pu77ana", "p.u.t.t.a.n.a",
+  lettere ripetute, due parole attaccate. Chi segnala o fa reclamo può citare l'insulto.
+- **Segnalazioni** (`POST /v1/reports`) su fit, profili e link, 20 al giorno, una aperta per
+  persona e contenuto:
+  - P0 *un minore è in pericolo*: il fit si nasconde subito; l'account si sospende se lo
+    segnalano almeno 2 persone diverse (con una sola chiunque potrebbe far sospendere chiunque);
+  - P1 *nudità, molestie*: il fit si nasconde dopo 3 persone diverse con account di almeno 24 ore;
+  - P2 *spam, stile sbagliato, link, foto rubata, altro*: nessuna azione automatica.
+- **Decisioni con motivazione** (art. 17 DSA): ogni azione ha il testo che la persona legge (cosa,
+  perché, automatica o umana, come fare reclamo). **Scala delle sanzioni**: avviso →
+  pubblicazione sospesa 7 giorni → account chiuso; P0 confermato → chiusura subito.
+- **Reclami** (art. 20 DSA): uno per decisione, entro 6 mesi, anche da account sospeso; lo decide
+  un moderatore **diverso** da chi ha deciso; se accolto annulla tutto (fit di nuovo visibile,
+  sanzione decisa insieme tolta, foto di nuovo ripubblicabili).
+- **Strumenti dello staff** (`/v1/admin/...`, interfaccia web con la seduta 17): coda raggruppata
+  per contenuto e ordinata per priorità e scadenza (P0 1 ora, P1 24 ore, P2 72 ore, "in ritardo"),
+  anteprima con la foto più piccola, decisioni (archivia, nascondi, rimuovi, ripristina) con
+  sanzione automatica o scelta, scheda della persona con lo storico, reclami. Solo chi è nella
+  tabella dello staff **e** ha fatto l'accesso con il secondo fattore; ogni azione nel registro
+  di audit (non modificabile). Archiviare una segnalazione annulla le misure automatiche.
+
+Fatto (app):
+- **Segnala** ("…" su ogni fit altrui e nel menu del profilo): motivo, dettagli facoltativi,
+  conferma con i tempi di revisione; per "un minore è in pericolo" anche "chiama il 112".
+- **Avvisi della moderazione** (Account › Avvisi): ogni decisione con motivo e testo completo,
+  "Fai reclamo", esito del reclamo con la nota del moderatore.
+- Sul proprio fit nascosto: riquadro "Nascosto dalla moderazione" con il link al motivo.
+- **Account sospeso**: la schermata mostra la decisione e permette il reclamo senza entrare
+  nell'app. Pubblicazione sospesa: "Nuovo fit" dice fino a quando.
+
+Provato davvero sul web: segnalazione di un fit dal feed, coda dello staff, un moderatore nasconde
+un fit con avviso automatico, l'autore vede il riquadro, il motivo e fa reclamo.
+
+Verifiche: 311 test API (+16); 209 test app (+9); ruff, mypy, tsc puliti; export Android ok.
+
+Note e decisioni da confermare:
+- Una sola segnalazione P0 nasconde il fit ma non sospende l'account (la specifica diceva
+  sospensione automatica): serve a evitare che chiunque possa far chiudere chiunque.
+- Le foto con corrispondenza di materiale illegale non vengono conservate: restano impronte e
+  caso aperto. Cosa conservare e come lo decide la procedura con il legale.
+- Il modulo web per segnalare senza l'app (art. 16 DSA) arriva con il sito.
+
+Schermate: `docs/screens/seduta-16-moderazione.png`.
+
+Da fare in seduta 17: pannello web dello staff (Next.js): coda di moderazione con foto sfocate,
+decisioni rapide, reclami, persone, stili, registro di audit.

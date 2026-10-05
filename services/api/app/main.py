@@ -14,6 +14,7 @@ from app.middleware import install_middleware
 from app.redis_client import close_redis
 from app.routers import (
     accounts,
+    admin_moderation,
     age,
     config,
     feed,
@@ -21,6 +22,7 @@ from app.routers import (
     media,
     portfolio,
     posts,
+    reports,
     social,
     styles,
     votes,
@@ -71,6 +73,8 @@ def create_app() -> FastAPI:
     app.include_router(feed.router)
     app.include_router(portfolio.router)
     app.include_router(social.router)
+    app.include_router(reports.router)
+    app.include_router(admin_moderation.router)
     if settings.age_provider == "fake" and not settings.is_production:
         # Pagina del fornitore finto: solo sviluppo e test.
         from app.routers import dev_age
