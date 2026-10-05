@@ -959,8 +959,8 @@ Note e decisioni da confermare:
   robot, e segnarli come rotti toglierebbe link buoni.
 - `utm_source` si aggiunge **solo** ai siti verificati dei Business (gli altri link restano come
   li ha scritti l'autore).
-- Verifica dei siti solo con il file (niente record DNS per ora): più semplice per chi usa Shopify
-  e simili? Shopify non permette file in `.well-known`: per loro servirà il record DNS (da
+- Verifica dei siti solo con il file (niente record DNS per ora). Shopify e piattaforme simili di
+  solito non permettono file in quel percorso: per loro servirà la verifica con record DNS (da
   aggiungere se i primi negozi lo chiedono).
 - I clic per singolo capo negli Insight non ci sono ancora (oggi: totale per fit).
 - Rischio residuo documentato: "DNS rebinding" tra il controllo dell'indirizzo e la connessione;
