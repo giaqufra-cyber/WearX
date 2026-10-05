@@ -9,6 +9,8 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
 
 export const FEED_KEY = ["feed"] as const;
+/** Dettaglio di un singolo fit (["post", uid, id]). */
+export const POST_KEY = ["post"] as const;
 
 export function feedKey(uid: string | undefined, style: string | null) {
   return [...FEED_KEY, uid, style ?? "*"] as const;
@@ -45,8 +47,13 @@ export function useFeed(style: string | null) {
 
 type Snapshot = [readonly unknown[], unknown][];
 
-/** Applica una modifica al riepilogo del voto di un post in tutte le pagine di feed in cache. */
+/** Applica una modifica al riepilogo del voto di un post nel feed e nel dettaglio in cache. */
 export function patchVote(client: QueryClient, postId: string, patch: (vote: VoteSummary) => VoteSummary): Snapshot {
+  const details: Snapshot = client.getQueriesData({ queryKey: POST_KEY });
+  for (const [key, data] of details) {
+    const post = data as Post | undefined;
+    if (post?.id === postId) client.setQueryData(key, { ...post, vote: patch(post.vote) });
+  }
   const snapshot = client.getQueriesData({ queryKey: FEED_KEY });
   for (const [key, data] of snapshot) {
     const feed = data as InfiniteData<FeedPage> | undefined;
@@ -59,7 +66,7 @@ export function patchVote(client: QueryClient, postId: string, patch: (vote: Vot
       })),
     });
   }
-  return snapshot;
+  return [...snapshot, ...details];
 }
 
 export const VOTE_ERRORS: Record<string, string> = {
@@ -81,6 +88,7 @@ export function useVote(options: { onError?: (message: string) => void } = {}) {
       }),
     onMutate: async ({ postId, score, styleConfirm }) => {
       await client.cancelQueries({ queryKey: FEED_KEY });
+      await client.cancelQueries({ queryKey: POST_KEY });
       // Subito: il tuo voto è registrato; la media arriva con la risposta del server.
       const snapshot = patchVote(client, postId, (vote) => ({
         ...vote,

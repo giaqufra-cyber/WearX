@@ -184,6 +184,46 @@
         "title": "AuthorRef",
         "type": "object"
       },
+      "CapsuleIn": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "CapsuleIn",
+        "type": "object"
+      },
+      "CapsuleOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "post_count": {
+            "title": "Post Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "post_count"
+        ],
+        "title": "CapsuleOut",
+        "type": "object"
+      },
       "ConfigOut": {
         "properties": {
           "feature_flags": {
@@ -683,6 +723,182 @@
         "title": "OnboardingIn",
         "type": "object"
       },
+      "OrderIn": {
+        "additionalProperties": false,
+        "properties": {
+          "after_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Id"
+          },
+          "post_id": {
+            "format": "uuid",
+            "title": "Post Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "post_id",
+          "after_id"
+        ],
+        "title": "OrderIn",
+        "type": "object"
+      },
+      "PortfolioPage": {
+        "properties": {
+          "cover_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Id"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioTile"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "cover_id"
+        ],
+        "title": "PortfolioPage",
+        "type": "object"
+      },
+      "PortfolioTile": {
+        "properties": {
+          "average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average"
+          },
+          "capsule_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capsule Id"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "media_count": {
+            "title": "Media Count",
+            "type": "integer"
+          },
+          "mine": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mine"
+          },
+          "photo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MediaOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "processing",
+              "active",
+              "style_rejected",
+              "hidden_moderation",
+              "deleted"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "style": {
+            "$ref": "#/components/schemas/StyleRef"
+          },
+          "vote_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vote Count"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "style",
+          "caption",
+          "capsule_id",
+          "media_count",
+          "photo",
+          "mine",
+          "average",
+          "vote_count"
+        ],
+        "title": "PortfolioTile",
+        "type": "object"
+      },
       "PostIn": {
         "additionalProperties": false,
         "properties": {
@@ -741,6 +957,18 @@
                 "type": "null"
               }
             ]
+          },
+          "capsule_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capsule Id"
           },
           "caption": {
             "anyOf": [
@@ -841,6 +1069,18 @@
       "PostPatch": {
         "additionalProperties": false,
         "properties": {
+          "capsule_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capsule Id"
+          },
           "caption": {
             "anyOf": [
               {
@@ -1414,6 +1654,107 @@
         "title": "UploadTarget",
         "type": "object"
       },
+      "UserOut": {
+        "properties": {
+          "account_type": {
+            "enum": [
+              "private",
+              "business"
+            ],
+            "title": "Account Type",
+            "type": "string"
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "can_view_posts": {
+            "title": "Can View Posts",
+            "type": "boolean"
+          },
+          "capsules": {
+            "items": {
+              "$ref": "#/components/schemas/CapsuleOut"
+            },
+            "title": "Capsules",
+            "type": "array"
+          },
+          "is_self": {
+            "title": "Is Self",
+            "type": "boolean"
+          },
+          "nickname": {
+            "title": "Nickname",
+            "type": "string"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/UserStats"
+          },
+          "styles": {
+            "items": {
+              "$ref": "#/components/schemas/StyleRef"
+            },
+            "title": "Styles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "nickname",
+          "bio",
+          "account_type",
+          "is_self",
+          "can_view_posts",
+          "styles",
+          "stats",
+          "capsules"
+        ],
+        "title": "UserOut",
+        "type": "object"
+      },
+      "UserStats": {
+        "properties": {
+          "average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average"
+          },
+          "posts": {
+            "title": "Posts",
+            "type": "integer"
+          },
+          "votes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Votes"
+          }
+        },
+        "required": [
+          "posts",
+          "average",
+          "votes"
+        ],
+        "title": "UserStats",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -1853,6 +2194,191 @@
         "summary": "Update Me",
         "tags": [
           "account"
+        ]
+      }
+    },
+    "/v1/me/capsules": {
+      "get": {
+        "operationId": "list_capsules_v1_me_capsules_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CapsuleOut"
+                  },
+                  "title": "Response List Capsules V1 Me Capsules Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Capsules",
+        "tags": [
+          "portfolio"
+        ]
+      },
+      "post": {
+        "operationId": "create_capsule_v1_me_capsules_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapsuleIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapsuleOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Capsule",
+        "tags": [
+          "portfolio"
+        ]
+      }
+    },
+    "/v1/me/capsules/{capsule_id}": {
+      "delete": {
+        "operationId": "delete_capsule_v1_me_capsules__capsule_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "capsule_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Capsule Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Capsule",
+        "tags": [
+          "portfolio"
+        ]
+      },
+      "patch": {
+        "operationId": "rename_capsule_v1_me_capsules__capsule_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "capsule_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Capsule Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapsuleIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapsuleOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rename Capsule",
+        "tags": [
+          "portfolio"
+        ]
+      }
+    },
+    "/v1/me/portfolio/order": {
+      "put": {
+        "operationId": "reorder_v1_me_portfolio_order_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reorder",
+        "tags": [
+          "portfolio"
         ]
       }
     },
@@ -2491,6 +3017,136 @@
         "summary": "Join Style",
         "tags": [
           "styles"
+        ]
+      }
+    },
+    "/v1/users/{nickname}": {
+      "get": {
+        "operationId": "get_user_v1_users__nickname__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nickname",
+            "required": true,
+            "schema": {
+              "title": "Nickname",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get User",
+        "tags": [
+          "portfolio"
+        ]
+      }
+    },
+    "/v1/users/{nickname}/posts": {
+      "get": {
+        "operationId": "get_user_posts_v1_users__nickname__posts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nickname",
+            "required": true,
+            "schema": {
+              "title": "Nickname",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "capsule",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Capsule"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 60,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get User Posts",
+        "tags": [
+          "portfolio"
         ]
       }
     },

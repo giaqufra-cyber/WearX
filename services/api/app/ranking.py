@@ -57,3 +57,20 @@ def key_between(low: str | None, high: str | None) -> str:
     if low is not None and high is not None and low >= high:
         raise ValueError("low deve essere minore di high")
     return _midpoint(low or "", high)
+
+
+# Spostando sempre nello stesso punto le chiavi si allungano di circa un carattere ogni 5
+# spostamenti. Oltre questa lunghezza si riscrivono tutte le chiavi della persona.
+MAX_KEY_LEN = 40
+
+
+def spread_keys(count: int) -> list[str]:
+    """`count` chiavi corte e ben distanziate, dalla più alta alla più bassa (ordine del
+    portfolio). Iniziano con "a": restano sotto le chiavi dei post nuovi ("b" + istante)."""
+    if count <= 0:
+        return []
+    width = 1
+    while 62**width < (count + 1) * 62:  # almeno 62 "posti liberi" tra due chiavi vicine
+        width += 1
+    step = 62**width // (count + 1)
+    return ["a" + _base62((count - i) * step, width) + "V" for i in range(count)]

@@ -516,3 +516,53 @@ di rete); tsc pulito; export Android ok.
 Schermate: `docs/screens/seduta-13-feed.png`.
 
 Da fare in seduta 14: portfolio (griglia dei tuoi fit, riordino trascinando, copertina, capsule).
+
+### Seduta 14 — 2026-10-05
+
+Fatto (API, `app/portfolio.py` e `app/routers/portfolio.py`, migrazione 0008):
+- **`GET /v1/users/{nickname}`**: profilo con bio, tipo di account, stili, capsule e statistiche
+  (fit, voto medio, voti ricevuti). **`GET /v1/users/{nickname}/posts`**: griglia a pagine con
+  cursore, filtrabile per capsula; ogni fit ha la prima foto, lo stile, la didascalia e il voto.
+- **Chi vede cosa**: il proprio portfolio sempre (anche i fit "fuori stile" o nascosti, con
+  l'etichetta); un account Business o un privato che segui (richiesta accettata) sì; un privato
+  non seguito mostra solo nickname, bio e numero di fit, la griglia risponde "account privato"
+  (i follow arrivano con la seduta 15). Con un blocco la persona "non esiste". Le medie seguono la
+  regola dei voti: un fit altrui mostra la media solo se l'hai votato; la media complessiva di
+  un'altra persona compare solo con almeno 3 fit votati (con un fit solo svelerebbe quel voto).
+- **Ordine e copertina** (`PUT /v1/me/portfolio/order`, indice frazionario): spostare un fit
+  cambia una sola riga. Il primo è la copertina; dal primo riordino resta quella scelta e **i fit
+  nuovi entrano subito sotto la copertina** invece di rubarle il posto; se elimini la copertina,
+  la copertina diventa il fit che ora è primo. Riordini in parallelo della stessa persona passano
+  uno alla volta. Spostando sempre nello stesso punto le chiavi si allungano: oltre 40 caratteri
+  si riscrivono tutte corte (verificato con 250 spostamenti), e chiavi uguali di dati vecchi si
+  sistemano da sole.
+- **Capsule** (`/v1/me/capsules`): crea, rinomina, elimina (i fit restano nel portfolio), massimo
+  12 anche con richieste in parallelo, nomi senza doppioni ignorando le maiuscole ("Estate" =
+  "estate"), massimo 30 caratteri. Un fit va in una capsula con `PATCH /v1/posts/{id}`; capsule
+  altrui → rifiutate. Gli altri vedono solo le capsule con dentro fit che possono vedere.
+
+Fatto (app):
+- **Profilo-portfolio** come nel prototipo: anello col colore d'accento e iniziali, statistiche,
+  @nickname con PRIVATO/BUSINESS, bio, stili (i primi 6 + "+N"), schede delle capsule, griglia a
+  due colonne con posizione "01", badge COPERTINA, stile, titolo, voto grande e numero di voti.
+- **Modifica ordine**: frecce ‹ › su ogni fit (anche con VoiceOver/TalkBack, che annuncia la nuova
+  posizione); lo spostamento si vede subito e torna com'era se il server dice no.
+- **Capsule**: pannello per crearle, rinominarle ed eliminarle (con conferma).
+- **Dettaglio del fit** (`/post/[id]`, tocco su un fit): card completa e, se è tuo, "Capsula"
+  (con "crea e aggiungi"), "Metti in copertina", "Elimina fit" con conferma.
+- Il pannello impostazioni (icona in alto) per ora contiene "Esci"; privacy e sicurezza arrivano
+  con la seduta 20. Pubblicando un fit il portfolio si aggiorna.
+
+Provato davvero sul web con API, worker e archivio foto locali: 6 fit pubblicati con la pipeline
+vera, riordino con le frecce, ordine ritrovato identico dopo aver ricaricato la pagina, scheda
+"Serate", pannello capsule, dettaglio con la capsula.
+
+Verifiche: 283 test API (+20: ordine contro un modello con 60 spostamenti casuali, copertina e
+fit nuovi, ribilanciamento, riordini in parallelo, cursore, privacy, blocchi, medie nascoste,
+fit nascosti e stili 18+, capsule e loro limiti anche in parallelo); 187 test app (+19); ruff,
+mypy, tsc puliti; export Android ok.
+
+Schermate: `docs/screens/seduta-14-portfolio.png`.
+
+Da fare in seduta 15: account privati (richiesta di follow, accetta/rifiuta, blocchi, pagina del
+profilo di un'altra persona dal feed, regole 16-17 / 18+).

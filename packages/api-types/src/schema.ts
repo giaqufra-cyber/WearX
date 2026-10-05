@@ -124,6 +124,59 @@ export interface paths {
         patch: operations["update_me_v1_me_patch"];
         trace?: never;
     };
+    "/v1/me/capsules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Capsules */
+        get: operations["list_capsules_v1_me_capsules_get"];
+        put?: never;
+        /** Create Capsule */
+        post: operations["create_capsule_v1_me_capsules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/capsules/{capsule_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Capsule */
+        delete: operations["delete_capsule_v1_me_capsules__capsule_id__delete"];
+        options?: never;
+        head?: never;
+        /** Rename Capsule */
+        patch: operations["rename_capsule_v1_me_capsules__capsule_id__patch"];
+        trace?: never;
+    };
+    "/v1/me/portfolio/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Reorder */
+        put: operations["reorder_v1_me_portfolio_order_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/styles": {
         parameters: {
             query?: never;
@@ -318,6 +371,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/users/{nickname}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get User */
+        get: operations["get_user_v1_users__nickname__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/users/{nickname}/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get User Posts */
+        get: operations["get_user_posts_v1_users__nickname__posts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/webhooks/age/{provider_name}": {
         parameters: {
             query?: never;
@@ -397,6 +484,23 @@ export interface components {
             account_type: "private" | "business";
             /** Nickname */
             nickname: string;
+        };
+        /** CapsuleIn */
+        CapsuleIn: {
+            /** Name */
+            name: string;
+        };
+        /** CapsuleOut */
+        CapsuleOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Post Count */
+            post_count: number;
         };
         /** ConfigOut */
         ConfigOut: {
@@ -555,6 +659,52 @@ export interface components {
             /** Terms Version */
             terms_version: string;
         };
+        /** OrderIn */
+        OrderIn: {
+            /** After Id */
+            after_id: string | null;
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+        };
+        /** PortfolioPage */
+        PortfolioPage: {
+            /** Cover Id */
+            cover_id: string | null;
+            /** Items */
+            items: components["schemas"]["PortfolioTile"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** PortfolioTile */
+        PortfolioTile: {
+            /** Average */
+            average: number | null;
+            /** Capsule Id */
+            capsule_id: string | null;
+            /** Caption */
+            caption: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Media Count */
+            media_count: number;
+            /** Mine */
+            mine: number | null;
+            photo: components["schemas"]["MediaOut"] | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "processing" | "active" | "style_rejected" | "hidden_moderation" | "deleted";
+            style: components["schemas"]["StyleRef"];
+            /** Vote Count */
+            vote_count: number | null;
+        };
         /** PostIn */
         PostIn: {
             /** Caption */
@@ -569,6 +719,8 @@ export interface components {
         /** PostOut */
         PostOut: {
             author: components["schemas"]["AuthorRef"] | null;
+            /** Capsule Id */
+            capsule_id?: string | null;
             /** Caption */
             caption: string | null;
             /**
@@ -601,6 +753,8 @@ export interface components {
         };
         /** PostPatch */
         PostPatch: {
+            /** Capsule Id */
+            capsule_id?: string | null;
             /** Caption */
             caption?: string | null;
             /** Items */
@@ -788,6 +942,36 @@ export interface components {
             };
             /** Url */
             url: string;
+        };
+        /** UserOut */
+        UserOut: {
+            /**
+             * Account Type
+             * @enum {string}
+             */
+            account_type: "private" | "business";
+            /** Bio */
+            bio: string | null;
+            /** Can View Posts */
+            can_view_posts: boolean;
+            /** Capsules */
+            capsules: components["schemas"]["CapsuleOut"][];
+            /** Is Self */
+            is_self: boolean;
+            /** Nickname */
+            nickname: string;
+            stats: components["schemas"]["UserStats"];
+            /** Styles */
+            styles: components["schemas"]["StyleRef"][];
+        };
+        /** UserStats */
+        UserStats: {
+            /** Average */
+            average: number | null;
+            /** Posts */
+            posts: number;
+            /** Votes */
+            votes: number | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -1043,6 +1227,154 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ProfileOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_capsules_v1_me_capsules_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapsuleOut"][];
+                };
+            };
+        };
+    };
+    create_capsule_v1_me_capsules_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CapsuleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapsuleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_capsule_v1_me_capsules__capsule_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                capsule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rename_capsule_v1_me_capsules__capsule_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                capsule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CapsuleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapsuleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reorder_v1_me_portfolio_order_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -1508,6 +1840,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StyleCard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_user_v1_users__nickname__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nickname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_user_posts_v1_users__nickname__posts_get: {
+        parameters: {
+            query?: {
+                capsule?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                nickname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioPage"];
                 };
             };
             /** @description Validation Error */

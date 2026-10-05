@@ -14,6 +14,7 @@ import { cancelAllUploads, cancelUpload, retryPhoto, useUploadEngine } from "@/f
 import { buildPostRequest, canPublish, CAPTION_MAX, MAX_ITEMS, MAX_PHOTOS } from "@/features/create/form";
 import { ItemCard } from "@/features/create/ItemCard";
 import { PhotoStrip } from "@/features/create/PhotoStrip";
+import { PORTFOLIO_KEY } from "@/features/portfolio/api";
 import { STYLES_KEY, useMyStyles, useStyles } from "@/features/styles/api";
 import { ApiError, apiRequest } from "@/lib/api";
 import { Button } from "@/ui/Button";
@@ -100,6 +101,7 @@ export default function NewPostScreen() {
       });
       draft.reset();
       void queryClient.invalidateQueries({ queryKey: STYLES_KEY });
+      void queryClient.invalidateQueries({ queryKey: PORTFOLIO_KEY });
       toast.show(`Fit pubblicato in ${post.style.name}.`);
       close();
     } catch (caught) {

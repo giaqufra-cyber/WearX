@@ -169,3 +169,78 @@ export function IconChat({ color, size = 18 }: IconProps) {
     </Svg>
   );
 }
+
+export function IconChevronLeft({ color, size = 20 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M15 5l-7 7 7 7" />
+    </Svg>
+  );
+}
+
+export function IconChevronRight({ color, size = 20 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M9 5l7 7-7 7" />
+    </Svg>
+  );
+}
+
+export function IconSliders({ color, size = 22 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M4 7h10M18 7h2M4 17h4M12 17h8" />
+      <Circle cx={16} cy={7} r={2} />
+      <Circle cx={10} cy={17} r={2} />
+    </Svg>
+  );
+}
+
+export function IconChart({ color, size = 22 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M4 20V11M10 20V5M16 20v-7M21 20H3" />
+    </Svg>
+  );
+}
+
+export function IconStar({ color, size = 18 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />
+    </Svg>
+  );
+}
+
+export function IconFolder({ color, size = 18 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" />
+    </Svg>
+  );
+}
+
+export function IconTrash({ color, size = 18 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+    </Svg>
+  );
+}
+
+export function IconPencil({ color, size = 18 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M4 20h4L19 9l-4-4L4 16z" />
+      <Path d="M13.5 6.5l4 4" />
+    </Svg>
+  );
+}

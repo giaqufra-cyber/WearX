@@ -85,8 +85,9 @@ class PostOut(BaseModel):
     items: list[ItemOut]
     published_at: datetime | None
     created_at: datetime
-    # Solo per l'autore: si può ancora cambiare stile?
+    # Solo per l'autore: si può ancora cambiare stile? In quale capsula è?
     restyle_available: bool | None = None
+    capsule_id: uuid.UUID | None = None
     vote: VoteSummary
 
 
@@ -129,7 +130,7 @@ async def posts_out(
             await session.execute(
                 text(
                     f"""select p.id, p.status::text as status, p.caption, p.author_id,
-                               p.restyle_used, p.published_at, p.created_at,
+                               p.restyle_used, p.published_at, p.created_at, p.capsule_id,
                                s.slug, s.name, s.tone,
                                a.nickname::text as nickname,
                                a.account_type::text as account_type, a.hide_prices,
@@ -229,6 +230,7 @@ async def posts_out(
             published_at=row["published_at"],
             created_at=row["created_at"],
             restyle_available=(not row["restyle_used"]) if own else None,
+            capsule_id=row["capsule_id"] if own else None,
             vote=_summary(viewer, row),
         )
     return out

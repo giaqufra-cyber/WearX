@@ -31,6 +31,12 @@ export type AgeStatus = Schemas["AgeStatusOut"];
 export type AgeSession = Schemas["AgeSessionOut"];
 export type AgeSessionRequest = Schemas["AgeSessionIn"];
 export type AgeMethod = Schemas["AgeSessionIn"]["method"];
+export type UserProfile = Schemas["UserOut"];
+export type PortfolioPage = Schemas["PortfolioPage"];
+export type PortfolioTile = Schemas["PortfolioTile"];
+export type PortfolioOrder = Schemas["OrderIn"];
+export type Capsule = Schemas["CapsuleOut"];
+export type CapsuleInput = Schemas["CapsuleIn"];
 
 /** Codici di errore stabili restituiti dall'API (campo `code` di problem+json). */
 export type ApiErrorCode =
@@ -51,6 +57,10 @@ export type ApiErrorCode =
   | "age.session_not_found"
   | "age.underage"
   | "age.verification_required"
+  | "capsule.limit"
+  | "capsule.name_required"
+  | "capsule.name_taken"
+  | "capsule.not_found"
   | "feature.disabled"
   | "feed.cursor_expired"
   | "feed.invalid_cursor"
@@ -70,7 +80,10 @@ export type ApiErrorCode =
   | "post.not_found"
   | "post.not_owner"
   | "post.restyle_used"
+  | "portfolio.bad_position"
+  | "portfolio.invalid_cursor"
   | "profile.exists"
+  | "profile.private"
   | "rate.limited"
   | "request.in_progress"
   | "request.invalid"
@@ -84,6 +97,7 @@ export type ApiErrorCode =
   | "text.invalid_characters"
   | "text.too_long"
   | "text.too_many_lines"
+  | "user.not_found"
   | "vote.not_allowed"
   | "vote.own_post"
   | "webhook.rejected"

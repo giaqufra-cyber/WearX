@@ -22,10 +22,10 @@ from app.errors import ApiError
 from app.feed import on_post_published
 from app.links import normalize_shop_url
 from app.media.keys import variant_key
+from app.portfolio import after_post_deleted, new_post_rank
 from app.post_access import AUTHOR_SHOWN_SQL, POST_VISIBLE_SQL
 from app.post_views import PostOut, posts_out
 from app.profiles import CurrentProfile, Profile
-from app.ranking import key_now
 from app.ratelimit import rate_limit
 from app.redis_client import get_redis
 from app.storage import get_store
@@ -86,6 +86,8 @@ class PostPatch(BaseModel):
     items: list[ItemIn] | None = Field(default=None, max_length=MAX_ITEMS)
     # Cambio di stile: una sola volta per post.
     style: str | None = Field(default=None, min_length=2, max_length=40)
+    # Capsula del portfolio (null = nessuna).
+    capsule_id: uuid.UUID | None = None
 
 
 # ---------- Lettura ----------
@@ -273,6 +275,8 @@ async def _insert_post(session: AsyncSession, profile: Profile, body: PostIn) ->
             )
         by_id = {m["id"]: m for m in claimed}
         post_id = uuid.uuid4()
+        # Sotto la copertina scelta, oppure in cima (con il lock del portfolio della persona).
+        rank = await new_post_rank(session, profile.id)
         await session.execute(
             text(
                 """insert into app.posts
@@ -284,7 +288,7 @@ async def _insert_post(session: AsyncSession, profile: Profile, body: PostIn) ->
                 "uid": profile.id,
                 "style": style_id,
                 "caption": caption,
-                "rank": key_now(),
+                "rank": rank,
             },
         )
         for position, upload_id in enumerate(body.media):
@@ -350,6 +354,18 @@ async def update_post(
                 text("update app.posts set caption = :c where id = :id"),
                 {"c": _caption(body.caption), "id": post_id},
             )
+        if "capsule_id" in body.model_fields_set:
+            if body.capsule_id is not None:
+                owner = await session.scalar(
+                    text("select owner_id from app.capsules where id = :id"),
+                    {"id": body.capsule_id},
+                )
+                if owner != profile.id:
+                    raise ApiError(422, "capsule.not_found", "Capsula non trovata")
+            await session.execute(
+                text("update app.posts set capsule_id = :c where id = :id"),
+                {"c": body.capsule_id, "id": post_id},
+            )
         if body.items is not None:
             media_count = await session.scalar(
                 text("select count(*) from app.post_media where post_id = :id"), {"id": post_id}
@@ -407,11 +423,13 @@ async def delete_post(post_id: uuid.UUID, profile: CurrentProfile, session: Sess
     )
     await session.execute(
         text(
-            """update app.posts set status = 'deleted', deleted_at = now(), caption = null
+            """update app.posts set status = 'deleted', deleted_at = now(), caption = null,
+                      capsule_id = null
                 where id = :id"""
         ),
         {"id": post_id},
     )
+    await after_post_deleted(session, profile.id, post_id)
     # Capi e foto spariscono subito; resta solo la riga del post (per i conteggi storici).
     await session.execute(text("delete from app.post_items where post_id = :id"), {"id": post_id})
     await session.execute(text("delete from app.post_media where post_id = :id"), {"id": post_id})

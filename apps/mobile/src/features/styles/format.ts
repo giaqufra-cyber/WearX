@@ -26,3 +26,10 @@ export function seasonEndLabel(isoDate: string): string {
 export function stylesCountLabel(count: number): string {
   return count === 1 ? "1 stile" : `${count} stili`;
 }
+
+/** 950 · 1,2k · 15,1k · 1,2M (statistiche del profilo). */
+export function compactNumber(count: number): string {
+  if (count < 1000) return String(count);
+  if (count < 1_000_000) return compact(count / 1000, "k");
+  return compact(count / 1_000_000, "M");
+}
