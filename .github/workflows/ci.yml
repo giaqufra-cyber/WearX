@@ -39,9 +39,30 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy app
-      - run: uv run pytest -q
+      - run: uv run pytest -q -rfE --junitxml=pytest-results.xml
         env:
           WEARX_TEST_ADMIN_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      - name: Test falliti come annotazioni
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          try:
+              root = ET.parse("pytest-results.xml").getroot()
+          except (OSError, ET.ParseError) as exc:
+              print(f"::error title=pytest::nessun risultato ({exc})")
+              raise SystemExit(0)
+          shown = 0
+          for case in root.iter("testcase"):
+              for bad in list(case.findall("failure")) + list(case.findall("error")):
+                  if shown >= 10:
+                      raise SystemExit(0)
+                  name = f"{case.get('classname')}::{case.get('name')}"
+                  text = (bad.get("message") or "") + "\n" + (bad.text or "")
+                  body = text.strip()[-1500:].replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+                  print(f"::error title={name}::{body}")
+                  shown += 1
+          PY
       - name: I tipi TypeScript corrispondono all'API
         run: |
           uv run -q python -m app.export_openapi > ../../packages/api-types/openapi.json
