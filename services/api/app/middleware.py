@@ -13,6 +13,27 @@ from app.errors import problem
 
 _REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9-]{8,64}$")
 _VERSION_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
+# Raggiungibili anche da un'app troppo vecchia: la configurazione dice dove aggiornarla.
+_VERSION_EXEMPT = frozenset({"/v1/config"})
+
+
+def _secure(response: Response, request_id: str, path: str = "") -> Response:
+    """Intestazioni di sicurezza su ogni risposta (seduta 22, risultati della scansione)."""
+    headers = response.headers
+    headers["X-Request-Id"] = request_id
+    headers.setdefault("Cache-Control", "private, no-store")
+    headers["X-Content-Type-Options"] = "nosniff"
+    headers["Referrer-Policy"] = "no-referrer"
+    headers["X-Frame-Options"] = "DENY"
+    # L'API risponde JSON: nessuna risorsa da caricare, mai dentro un frame. Le poche pagine HTML
+    # (redirect dei negozi, fornitore d'età finto) impostano la loro politica.
+    if not path.startswith("/docs"):  # Swagger UI (solo fuori produzione) carica script e stili
+        headers.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
+    headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
+    if get_settings().env in ("staging", "production"):
+        headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
+    return response
 
 
 def parse_version(value: str) -> tuple[int, int, int] | None:
@@ -34,7 +55,8 @@ def install_middleware(app: FastAPI) -> None:
 
         # Versione minima: si controlla solo se l'app manda l'header (i webhook non lo mandano).
         app_version = request.headers.get("x-app-version")
-        if app_version is not None and request.url.path.startswith("/v1/"):
+        path = request.url.path
+        if app_version is not None and path.startswith("/v1/") and path not in _VERSION_EXEMPT:
             current = parse_version(app_version)
             minimum = parse_version(get_settings().min_app_version)
             if current is None or (minimum is not None and current < minimum):
@@ -45,12 +67,6 @@ def install_middleware(app: FastAPI) -> None:
                     "Aggiorna WearX per continuare",
                     extra={"min_version": get_settings().min_app_version},
                 )
-                response.headers["X-Request-Id"] = request_id
-                return response
+                return _secure(response, request_id, path)
 
-        response = await call_next(request)
-        response.headers["X-Request-Id"] = request_id
-        response.headers.setdefault("Cache-Control", "private, no-store")
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["Referrer-Policy"] = "no-referrer"
-        return response
+        return _secure(await call_next(request), request_id, path)

@@ -12,6 +12,7 @@ import pytest
 from app.ranking import MAX_KEY_LEN, key_now
 from tests.conftest import ready_upload
 from tests.test_accounts import onboard
+from tests.test_votes import publish
 
 pytestmark = pytest.mark.usefixtures("store")
 
@@ -290,40 +291,48 @@ async def test_medie_degli_altri_solo_dopo_il_voto(client, keys, db_admin):
     uid, h, nick = await _person(client, keys, db_admin, business=True)
     posts = [await _post(client, db_admin, uid, h) for _ in range(3)]
     voters = []
-    for _ in range(2):
+    for _ in range(6):
         vid, vh, _ = await _person(client, keys, db_admin)
         db_admin.execute(
             "update app.profiles set created_at = now() - interval '30 days' where id = %s",
             (vid,),
         )
         voters.append(vh)
+    # Due fit con 5 voti ciascuno (la media si mostra da 5 voti); voters[5] non vota.
     for p in posts[:2]:
-        r = await client.put(f"/v1/posts/{p}/vote", json={"score": 80}, headers=voters[0])
-        assert r.status_code == 200, r.text
+        for vh in voters[:5]:
+            r = await client.put(f"/v1/posts/{p}/vote", json={"score": 80}, headers=vh)
+            assert r.status_code == 200, r.text
+    await publish()
 
-    tiles = {t["id"]: t for t in (await _grid(client, nick, voters[1]))["items"]}
+    tiles = {t["id"]: t for t in (await _grid(client, nick, voters[5]))["items"]}
     assert all(t["average"] is None and t["vote_count"] is None for t in tiles.values())
     tiles = {t["id"]: t for t in (await _grid(client, nick, voters[0]))["items"]}
     assert (tiles[posts[0]]["mine"], tiles[posts[0]]["average"]) == (80, 80.0)
-    assert tiles[posts[0]]["vote_count"] == 1
+    assert tiles[posts[0]]["vote_count"] == 5
     assert tiles[posts[2]]["average"] is None
 
-    # Media complessiva: per gli altri solo con almeno 3 fit votati.
-    stats = (await client.get(f"/v1/users/{nick}", headers=voters[1])).json()["stats"]
-    assert stats == {"posts": 3, "average": None, "votes": 2}
-    await client.put(f"/v1/posts/{posts[2]}/vote", json={"score": 50}, headers=voters[0])
-    stats = (await client.get(f"/v1/users/{nick}", headers=voters[1])).json()["stats"]
-    assert stats == {"posts": 3, "average": 70.0, "votes": 3}
+    # Media complessiva: per gli altri solo con almeno 3 fit con la media.
+    stats = (await client.get(f"/v1/users/{nick}", headers=voters[5])).json()["stats"]
+    assert stats == {"posts": 3, "average": None, "votes": 10}
+    for vh in voters[:5]:
+        await client.put(f"/v1/posts/{posts[2]}/vote", json={"score": 50}, headers=vh)
+    # Prima dell'aggiornamento orario non cambia nulla.
+    stats = (await client.get(f"/v1/users/{nick}", headers=voters[5])).json()["stats"]
+    assert stats == {"posts": 3, "average": None, "votes": 10}
+    await publish()
+    stats = (await client.get(f"/v1/users/{nick}", headers=voters[5])).json()["stats"]
+    assert stats == {"posts": 3, "average": 70.0, "votes": 15}
     own = (await client.get(f"/v1/users/{nick}", headers=h)).json()["stats"]
-    assert own == {"posts": 3, "average": 70.0, "votes": 3}
+    assert own == {"posts": 3, "average": 70.0, "votes": 15}
 
     # Numero di voti nascosto dall'autore: gli altri non lo vedono, lui sì.
     db_admin.execute("update app.profiles set hide_vote_count = true where id = %s", (uid,))
-    stats = (await client.get(f"/v1/users/{nick}", headers=voters[1])).json()["stats"]
+    stats = (await client.get(f"/v1/users/{nick}", headers=voters[5])).json()["stats"]
     assert stats["votes"] is None
     tile = next(t for t in (await _grid(client, nick, voters[0]))["items"] if t["id"] == posts[0])
     assert (tile["average"], tile["vote_count"]) == (80.0, None)
-    assert (await client.get(f"/v1/users/{nick}", headers=h)).json()["stats"]["votes"] == 3
+    assert (await client.get(f"/v1/users/{nick}", headers=h)).json()["stats"]["votes"] == 15
 
 
 async def test_fit_nascosti_e_stili_18_piu(client, keys, db_admin):

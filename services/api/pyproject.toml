@@ -19,6 +19,7 @@ dependencies = [
   "boto3>=1.35",
   "arq>=0.26",
   "pillow>=11",
+  "cbor2>=6.1.5",
 ]
 
 [dependency-groups]
@@ -64,6 +65,7 @@ ignore = ["S101"]  # assert nei test
 "app/routers/notifications.py" = ["S608"]
 "app/routers/privacy.py" = ["S608"]  # filtri WHERE fissi del modulo  # _VISIBLE e nomi di colonna fissi
 "app/routers/admin_console.py" = ["S608"]
+"app/votes.py" = ["S608"]  # FLAG_FACTOR_SQL: frammento costante del modulo
 
 [tool.mypy]
 strict = true

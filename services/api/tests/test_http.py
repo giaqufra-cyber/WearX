@@ -67,14 +67,14 @@ async def test_request_id_is_replaced_when_invalid(client):
 
 
 async def test_old_app_version_gets_426(client):
-    r = await client.get("/v1/config", headers={"X-App-Version": "0.0.9"})
+    r = await client.get("/v1/me", headers={"X-App-Version": "0.0.9"})
     assert r.status_code == 426
     assert r.json()["code"] == "app.update_required"
     assert r.json()["min_version"] == "0.1.0"
 
 
 async def test_malformed_app_version_gets_426(client):
-    r = await client.get("/v1/config", headers={"X-App-Version": "banana"})
+    r = await client.get("/v1/me", headers={"X-App-Version": "banana"})
     assert r.status_code == 426
 
 
@@ -87,3 +87,23 @@ async def test_security_headers(client):
     r = await client.get("/healthz")
     assert r.headers["x-content-type-options"] == "nosniff"
     assert r.headers["cache-control"] == "private, no-store"
+
+
+async def test_config_raggiungibile_anche_da_app_vecchie(client):
+    # Serve alla schermata "Aggiorna WearX" (link allo store).
+    r = await client.get("/v1/config", headers={"X-App-Version": "0.0.1"})
+    assert r.status_code == 200
+    assert "store" in r.json()
+
+
+async def test_intestazioni_di_sicurezza(client):
+    for r in (
+        await client.get("/healthz"),
+        await client.get("/v1/me"),  # 401
+        await client.get("/v1/me", headers={"X-App-Version": "0.0.1"}),  # 426
+    ):
+        assert r.headers["x-content-type-options"] == "nosniff"
+        assert r.headers["x-frame-options"] == "DENY"
+        assert r.headers["content-security-policy"] == "default-src 'none'; frame-ancestors 'none'"
+        assert r.headers["referrer-policy"] == "no-referrer"
+        assert "strict-transport-security" not in r.headers  # solo staging/produzione

@@ -1,0 +1,94 @@
+{
+  "operation": "POST /v1/me/attest/android",
+  "method": "POST",
+  "path_template": "/v1/me/attest/android",
+  "fingerprint": "08d9e78d",
+  "case_id": "WIvfqY",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'X-App-Version: 0.1.0' -H 'Content-Type: application/json' -d '{\"challenge\": \"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\", \"token\": \"00000000000000000000\"}' http://127.0.0.1:8100/v1/me/attest/android",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8100/v1/me/attest/android",
+      "url_template": "http://127.0.0.1:8100/v1/me/attest/android",
+      "headers": {
+        "User-Agent": "schemathesis/4.29.3",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-App-Version": "0.1.0",
+        "X-Schemathesis-TestCaseId": "WIvfqY",
+        "Content-Type": "application/json",
+        "Content-Length": "149"
+      },
+      "response": {
+        "status_code": 503,
+        "headers": {
+          "date": "Mon, 05 Oct 2026 20:24:34 GMT",
+          "content-length": "233",
+          "content-type": "application/problem+json",
+          "x-request-id": "3e27d76a-f8ef-4701-ac7b-dcdf075cd1a7",
+          "cache-control": "private, no-store",
+          "x-content-type-options": "nosniff",
+          "referrer-policy": "no-referrer",
+          "x-frame-options": "DENY",
+          "content-security-policy": "default-src 'none'; frame-ancestors 'none'",
+          "cross-origin-opener-policy": "same-origin",
+          "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()"
+        },
+        "body": "{\"type\":\"https://wearx.app/errors/attest/unavailable\",\"title\":\"Verifica del dispositivo non disponibile\",\"status\":503,\"code\":\"attest.unavailable\",\"instance\":\"/v1/me/attest/android\",\"request_id\":\"3e27d76a-f8ef-4701-ac7b-dcdf075cd1a7\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "not_a_server_error",
+          "status": "failure",
+          "message": "Server error"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.0013476720000653586,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'challenge' value: Near-boundary length string",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/v1/me/attest/android",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]",
+        "X-App-Version": "0.1.0"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "challenge": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "token": "[Filtered]"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

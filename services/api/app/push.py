@@ -303,14 +303,17 @@ async def check_receipts(session: AsyncSession, sender: PushSender) -> int:
 
 
 async def vote_milestones(session: AsyncSession, limit: int = 1000) -> int:
-    """Fit che hanno superato un traguardo di voti: una notifica per fit (si aggiorna salendo)."""
+    """Fit che hanno superato un traguardo di voti: una notifica per fit (si aggiorna salendo).
+
+    Conta il numero PUBBLICATO (aggiornato ogni ora), non quello in tempo reale."""
     rows = (
         (
             await session.execute(
                 text(
-                    """select s.post_id, s.vote_count, p.author_id, p.status::text as status
+                    """select s.post_id, s.shown_count as vote_count, p.author_id,
+                              p.status::text as status
                          from app.post_stats s join app.posts p on p.id = s.post_id
-                        where s.vote_count >= s.vote_milestone_next
+                        where s.shown_count >= s.vote_milestone_next
                         limit :limit
                         for update of s skip locked"""
                 ),

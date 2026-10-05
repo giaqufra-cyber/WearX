@@ -1,5 +1,5 @@
 /** Testi del feed. */
-import type { Post } from "@wearx/api-types";
+import type { Post, VoteSummary } from "@wearx/api-types";
 
 import { formatPrice } from "@/features/create/form";
 
@@ -20,6 +20,20 @@ export function matchLabel(match: number | null | undefined): string | null {
 export function totalPrice(items: Post["items"]): string | null {
   const prices = items.filter((i) => i.price_cents !== null && i.currency === "EUR").map((i) => i.price_cents!);
   return prices.length ? formatPrice(prices.reduce((a, b) => a + b, 0)) : null;
+}
+
+/**
+ * Media e numero dei voti si aggiornano una volta all'ora (e la media da 5 voti): così nessuno
+ * ricava il voto di una persona guardando come cambia la media.
+ */
+export function statsNote(vote: Pick<VoteSummary, "average_note" | "stats_updated_at">): string {
+  const at = vote.stats_updated_at
+    ? new Date(vote.stats_updated_at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+    : null;
+  const when = at ? `aggiornati alle ${at}` : "si aggiornano ogni ora";
+  if (vote.average_note === "few_votes") return `La media compare da 5 voti · ${when}`;
+  if (vote.average_note === "next_update") return `Media in aggiornamento · ${when}`;
+  return at ? `Voti aggiornati ogni ora · ultimo alle ${at}` : "Voti aggiornati ogni ora";
 }
 
 export function votesLabel(count: number): string {

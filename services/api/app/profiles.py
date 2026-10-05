@@ -30,6 +30,9 @@ class Profile:
     created_at: datetime
     # L'accesso usato per questa richiesta è stato tolto dalla persona (Dispositivi collegati).
     session_revoked: bool = False
+    # Accesso di questa richiesta e se il suo dispositivo è verificato (attestazione, seduta 22).
+    session_id: str | None = None
+    session_attested: bool = False
 
     @property
     def is_adult(self) -> bool:
@@ -43,7 +46,12 @@ _PROFILE_SQL = text(
            status::text as status, created_at,
            exists (select 1 from app.devices d
                     where d.session_id = cast(:sid as text) and d.revoked_at is not null)
-             as session_revoked
+             as session_revoked,
+           cast(:sid as text) as session_id,
+           exists (select 1 from app.devices d
+                    where d.session_id = cast(:sid as text) and d.user_id = profiles.id
+                      and d.attested_at is not null and d.revoked_at is null)
+             as session_attested
       from app.profiles where id = :id
     """
 )

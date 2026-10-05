@@ -69,7 +69,8 @@ def _lit(value: object) -> str:
 
 def upgrade() -> None:
     rows = ",\n".join("(" + ", ".join(_lit(v) for v in row) + ")" for row in STYLES)
-    op.execute(
+    # SQL composto solo dai dati costanti di questo file (revisione Semgrep, seduta 22).
+    op.execute(  # nosemgrep
         f"""
         insert into app.styles
           (slug, name, tagline, tone, min_age_band, active_from, active_until, sort_order)
@@ -81,4 +82,5 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     slugs = ", ".join(_lit(s[0]) for s in STYLES)
-    op.execute(f"delete from app.styles where slug in ({slugs});")
+    # SQL composto solo dai dati costanti di questo file (revisione Semgrep, seduta 22).
+    op.execute(f"delete from app.styles where slug in ({slugs});")  # nosemgrep

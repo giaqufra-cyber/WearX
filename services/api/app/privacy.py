@@ -114,9 +114,9 @@ async def collect(session: AsyncSession, user_id: uuid.UUID) -> dict[str, Any]:
         session,
         """select p.id, p.caption as didascalia, s.name as stile, p.status::text as stato,
                   p.created_at as creato_il, p.published_at as pubblicato_il,
-                  st.vote_count as voti_ricevuti,
-                  case when st.vote_wcount > 0
-                       then round((st.vote_wsum / st.vote_wcount)::numeric, 1) end as media,
+                  st.shown_count as voti_ricevuti,
+                  case when st.shown_wcount > 0
+                       then round((st.shown_wsum / st.shown_wcount)::numeric, 1) end as media,
                   c.name as capsula
              from app.posts p
              join app.styles s on s.id = p.style_id

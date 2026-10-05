@@ -82,6 +82,25 @@ class Settings(BaseSettings):
     # Senza chiave valgono solo i domini bloccati dallo staff.
     safe_browsing_key: SecretStr | None = None
 
+    # Attestazione del dispositivo (seduta 22): App Attest su iOS, Play Integrity su Android.
+    # "off": ignorata; "soft": i voti da dispositivi non verificati pesano la metà;
+    # "required": senza dispositivo verificato non si vota. In produzione almeno "soft".
+    attestation_mode: Literal["off", "soft", "required"] = "off"
+    # Identità dell'app: Team ID Apple + bundle id; nome del pacchetto Android.
+    apple_team_id: str | None = None
+    ios_bundle_id: str = "app.wearx.mobile"
+    android_package: str = "app.wearx.mobile"
+    # Chiavi App Attest dell'ambiente di sviluppo (build di sviluppo): mai in produzione.
+    app_attest_allow_development: bool = True
+    # Play Integrity: numero del progetto Google Cloud (pubblico, va anche nell'app) e account
+    # di servizio (JSON) che può decifrare i verdetti. L'account di servizio è SEGRETO.
+    play_integrity_project_number: str | None = None
+    google_service_account_json: SecretStr | None = None
+
+    # Pagine dell'app negli store (schermata "Aggiorna l'app").
+    ios_store_url: str | None = None
+    android_store_url: str | None = None
+
     # Versione dei termini che l'app mostra in registrazione.
     terms_version: str = "2026-10"
 
@@ -135,6 +154,10 @@ def get_settings() -> Settings:
         raise RuntimeError("WEARX_SUPABASE_SECRET_KEY non impostato in produzione")
     if settings.is_production and settings.push_provider != "expo":
         raise RuntimeError("WEARX_PUSH_PROVIDER deve essere 'expo' in produzione")
+    if settings.is_production and settings.attestation_mode == "off":
+        raise RuntimeError("WEARX_ATTESTATION_MODE: in produzione almeno 'soft'")
+    if settings.is_production and settings.app_attest_allow_development:
+        raise RuntimeError("WEARX_APP_ATTEST_ALLOW_DEVELOPMENT va spento in produzione")
     if settings.env in ("staging", "production") and not settings.staff_require_mfa:
         raise RuntimeError("WEARX_STAFF_REQUIRE_MFA non può essere spento in staging/produzione")
     return settings

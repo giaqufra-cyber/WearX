@@ -74,6 +74,7 @@ export const VOTE_ERRORS: Record<string, string> = {
   "post.not_found": "Questo fit non è più disponibile.",
   "vote.not_allowed": "Questo fit non si può votare.",
   "rate.limited": "Hai votato tantissimo in poco tempo: riprova tra un po'.",
+  "device.not_verified": "Per votare serve l'app ufficiale su un telefono verificato. Riapri WearX e riprova.",
 };
 
 export function useVote(options: { onError?: (message: string) => void } = {}) {

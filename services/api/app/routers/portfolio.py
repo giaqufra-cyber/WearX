@@ -148,10 +148,10 @@ async def get_user(nickname: str, viewer: CurrentProfile, session: Session) -> U
             await session.execute(
                 text(
                     f"""select count(*) as posts,
-                               coalesce(sum(st.vote_count), 0) as votes,
-                               coalesce(sum(st.vote_wsum), 0) as wsum,
-                               coalesce(sum(st.vote_wcount), 0) as wcount,
-                               count(*) filter (where st.vote_count > 0) as voted_posts
+                               coalesce(sum(st.shown_count), 0) as votes,
+                               coalesce(sum(st.shown_wsum), 0) as wsum,
+                               coalesce(sum(st.shown_wcount), 0) as wcount,
+                               count(*) filter (where st.shown_wcount > 0) as voted_posts
                           from app.posts p
                           join app.profiles a on a.id = p.author_id
                           join app.styles s on s.id = p.style_id
@@ -316,9 +316,9 @@ async def get_user_posts(
                 text(
                     f"""select p.id, p.status::text as status, p.caption, p.capsule_id,
                                p.portfolio_rank, s.slug, s.name, s.tone, a.hide_vote_count,
-                               coalesce(st.vote_count, 0) as vote_count,
-                               coalesce(st.vote_wsum, 0) as vote_wsum,
-                               coalesce(st.vote_wcount, 0) as vote_wcount,
+                               coalesce(st.shown_count, 0) as vote_count,
+                               coalesce(st.shown_wsum, 0) as vote_wsum,
+                               coalesce(st.shown_wcount, 0) as vote_wcount,
                                v.score as mine,
                                m.width, m.height, m.blurhash, m.upload_id, m.variants,
                                (select count(*) from app.post_media mm

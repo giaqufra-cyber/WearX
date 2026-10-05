@@ -240,7 +240,7 @@ async def test_traguardi_di_voti(client, keys, db_admin):
     hidden = await _post(client, db_admin, author_id, author)
     db_admin.execute("update app.posts set status = 'hidden_moderation' where id = %s", (hidden,))
     db_admin.execute(
-        "update app.post_stats set vote_count = 12 where post_id = any(%s)",
+        "update app.post_stats set shown_count = 12 where post_id = any(%s)",
         ([uuid.UUID(post), uuid.UUID(hidden)],),
     )
     async with session_scope() as session:
@@ -251,7 +251,7 @@ async def test_traguardi_di_voti(client, keys, db_admin):
     assert item["url"] == f"/post/{post}"
     assert item["post"]["thumb"]["variants"]
 
-    db_admin.execute("update app.post_stats set vote_count = 61 where post_id = %s", (post,))
+    db_admin.execute("update app.post_stats set shown_count = 61 where post_id = %s", (post,))
     async with session_scope() as session:
         await vote_milestones(session)
         await vote_milestones(session)  # ripetuto: nulla di nuovo

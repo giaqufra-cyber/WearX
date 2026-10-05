@@ -19,6 +19,7 @@ from app.media.jobs import cleanup_uploads, process_upload
 from app.privacy import build_export, expire_exports, purge_deleted_accounts
 from app.push import check_receipts, get_sender, send_pending, vote_milestones
 from app.storage import get_store
+from app.votes import detect_vote_abuse, publish_stats
 
 
 async def refresh_feeds(ctx: dict[str, Any]) -> int:
@@ -43,6 +44,14 @@ async def milestones(ctx: dict[str, Any]) -> int:
     """Ogni 10 minuti: fit che hanno raggiunto un traguardo di voti."""
     async with session_scope() as session:
         return await vote_milestones(session)
+
+
+async def votes_hourly(ctx: dict[str, Any]) -> tuple[int, int]:
+    """Ogni ora: prima i voti sospetti (neutralizzati), poi media e numero pubblicati."""
+    async with session_scope() as session:
+        flagged = await detect_vote_abuse(session)
+        published = await publish_stats(session)
+        return flagged, published
 
 
 async def event_partitions(ctx: dict[str, Any]) -> tuple[int, int]:
@@ -92,6 +101,7 @@ class WorkerSettings:
         cron(refresh_feeds, minute=set(range(0, 60, 5))),
         cron(send_pushes, second=30),
         cron(milestones, minute=set(range(2, 60, 10))),
+        cron(votes_hourly, minute={5}),
         cron(push_receipts, minute={7, 22, 37, 52}),
         cron(event_partitions, hour={3}, minute={17}),
         cron(insights_nightly, hour={3}, minute={40}),

@@ -1,7 +1,7 @@
 """GET /v1/config: impostazioni pubbliche che l'app legge all'avvio."""
 
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Response
 from pydantic import BaseModel, Field
@@ -31,8 +31,23 @@ class LegalLinks(BaseModel):
     feed_explainer: str
 
 
+class AttestationConfig(BaseModel):
+    # "off": l'app non verifica il dispositivo; "soft"/"required": verifica all'accesso.
+    mode: Literal["off", "soft", "required"]
+    # Play Integrity: numero del progetto Google Cloud (pubblico).
+    android_project_number: str | None
+
+
+class StoreLinks(BaseModel):
+    ios: str | None
+    android: str | None
+
+
 class ConfigOut(BaseModel):
     min_app_version: str
+    # Dove aggiornare l'app (schermata "Aggiorna WearX" quando la versione è troppo vecchia).
+    store: StoreLinks
+    attestation: AttestationConfig
     # Versione dei termini da inviare alla creazione del profilo.
     terms_version: str
     feature_flags: dict[str, bool]
@@ -62,6 +77,11 @@ async def get_config(
     response.headers["Cache-Control"] = "public, max-age=300"
     return ConfigOut(
         min_app_version=settings.min_app_version,
+        store=StoreLinks(ios=settings.ios_store_url, android=settings.android_store_url),
+        attestation=AttestationConfig(
+            mode=settings.attestation_mode,
+            android_project_number=settings.play_integrity_project_number,
+        ),
         terms_version=settings.terms_version,
         feature_flags=settings.feature_flags,
         styles=styles,

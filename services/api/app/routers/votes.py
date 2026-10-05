@@ -15,13 +15,22 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.db import get_session
 from app.errors import ApiError
 from app.post_access import POST_VISIBLE_SQL
 from app.post_views import VoteSummary, post_out
 from app.profiles import CurrentProfile, Profile
 from app.ratelimit import rate_limit
-from app.votes import CONFIRM_SAMPLE, bucket, style_rejected, vote_weight, voter_key
+from app.votes import (
+    CONFIRM_SAMPLE,
+    FLAG_FACTOR_SQL,
+    bucket,
+    device_weight,
+    style_rejected,
+    vote_weight,
+    voter_key,
+)
 
 router = APIRouter(prefix="/v1/posts", tags=["votes"])
 
@@ -64,14 +73,30 @@ async def _votable_post(session: AsyncSession, profile: Profile, post_id: uuid.U
 @router.put(
     "/{post_id}/vote",
     response_model=VoteSummary,
-    dependencies=[Depends(rate_limit("vote", 300, 3600))],
+    dependencies=[
+        Depends(rate_limit("vote", 300, 3600)),
+        # Raffica: più di un voto ogni secondo e mezzo per un minuto non è una persona.
+        Depends(rate_limit("vote_burst", 40, 60)),
+    ],
 )
 async def vote(
     post_id: uuid.UUID, body: VoteIn, profile: CurrentProfile, session: Session
 ) -> VoteSummary:
+    if get_settings().attestation_mode == "required" and not profile.session_attested:
+        raise ApiError(
+            403, "device.not_verified", "Serve l'app ufficiale su un dispositivo verificato"
+        )
     post = await _votable_post(session, profile, post_id)
     key = voter_key(profile.id)
-    weight = vote_weight(profile.created_at)
+    base_weight = vote_weight(profile.created_at) * device_weight(profile.session_attested)
+    flag_factor = float(
+        await session.scalar(
+            text("select " + FLAG_FACTOR_SQL.format(key=":k", created="now()", author=":author")),
+            {"k": key, "author": post["author_id"]},
+        )
+        or 0.0
+    )
+    weight = base_weight * flag_factor
     new_bucket = bucket(body.score)
     try:
         # Il lock sulle statistiche mette in fila i voti dello stesso post.
@@ -106,19 +131,30 @@ async def vote(
             confirm = body.style_confirm if sampling and post["status"] == "active" else None
             await session.execute(
                 text(
-                    """insert into app.votes (post_id, voter_key, score, style_confirm, weight)
-                       values (:p, :k, :s, :c, cast(:w as real))"""
+                    """insert into app.votes
+                         (post_id, voter_key, score, style_confirm, weight, base_weight)
+                       values (:p, :k, :s, :c, cast(:w as real), cast(:bw as real))"""
                 ),
-                {"p": post_id, "k": key, "s": body.score, "c": confirm, "w": weight},
+                {
+                    "p": post_id,
+                    "k": key,
+                    "s": body.score,
+                    "c": confirm,
+                    "w": weight,
+                    "bw": base_weight,
+                },
             )
+            # I voti neutralizzati (peso 0) non entrano né nel numero né nell'istogramma.
+            counted = 1 if weight > 0 else 0
             await session.execute(
                 text(
                     """update app.post_stats set
-                         vote_count = vote_count + 1,
-                         vote_sum = vote_sum + :s,
+                         vote_count = vote_count + cast(:n as integer),
+                         vote_sum = vote_sum + cast(:s as integer) * cast(:n as integer),
                          vote_wsum = vote_wsum + :s * cast(:w as double precision),
                          vote_wcount = vote_wcount + cast(:w as double precision),
-                         hist[:b] = hist[:b] + 1,
+                         hist[:b] = hist[:b] + cast(:n as integer),
+                         unpublished_writes = unpublished_writes + 1,
                          confirm_yes = confirm_yes
                            + (case when cast(:c as boolean) is true then 1 else 0 end),
                          confirm_no = confirm_no
@@ -126,7 +162,14 @@ async def vote(
                          updated_at = now()
                        where post_id = :p"""
                 ),
-                {"p": post_id, "s": body.score, "w": weight, "b": new_bucket, "c": confirm},
+                {
+                    "p": post_id,
+                    "s": body.score,
+                    "w": weight,
+                    "b": new_bucket,
+                    "c": confirm,
+                    "n": counted,
+                },
             )
         elif previous["score"] != body.score:
             # Voto cambiato: si sposta la differenza, il conteggio resta uguale.
@@ -143,14 +186,15 @@ async def vote(
             # due assegnazioni allo stesso elemento nella stessa istruzione).
             hist = (
                 ""
-                if old_b == new_bucket
+                if old_b == new_bucket or old_weight <= 0
                 else ", hist[:old_b] = hist[:old_b] - 1, hist[:new_b] = hist[:new_b] + 1"
             )
             await session.execute(
                 text(
                     f"""update app.post_stats set
-                         vote_sum = vote_sum + :delta,
+                         vote_sum = vote_sum + cast(:delta as integer) * cast(:n as integer),
                          vote_wsum = vote_wsum + :delta * cast(:w as double precision),
+                         unpublished_writes = unpublished_writes + 1,
                          updated_at = now(){hist}
                        where post_id = :p"""
                 ),
@@ -158,6 +202,7 @@ async def vote(
                     "p": post_id,
                     "delta": body.score - previous["score"],
                     "w": old_weight,
+                    "n": 1 if old_weight > 0 else 0,
                     "old_b": old_b,
                     "new_b": new_bucket,
                 },

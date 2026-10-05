@@ -9,6 +9,9 @@ export type { components, paths };
 export type Schemas = components["schemas"];
 
 export type AppConfig = Schemas["ConfigOut"];
+export type AttestationConfig = Schemas["AttestationConfig"];
+export type AttestStatus = Schemas["AttestStatus"];
+export type VoteFlag = Schemas["VoteFlagOut"];
 export type Style = Schemas["StyleOut"];
 export type Profile = Schemas["ProfileOut"];
 export type ProfileUpdate = Schemas["ProfileUpdateIn"];
@@ -114,6 +117,10 @@ export type ApiErrorCode =
   | "appeal.not_found"
   | "appeal.same_moderator"
   | "appeal.text_required"
+  | "attest.failed"
+  | "attest.no_session"
+  | "attest.unavailable"
+  | "attest.unknown_key"
   | "auth.anonymous_not_allowed"
   | "auth.invalid_token"
   | "auth.required"
@@ -132,6 +139,7 @@ export type ApiErrorCode =
   | "deletion.suspended"
   | "device.current"
   | "device.not_found"
+  | "device.not_verified"
   | "export.too_soon"
   | "feature.disabled"
   | "feed.cursor_expired"
@@ -196,5 +204,6 @@ export type ApiErrorCode =
   | "user.not_restricted"
   | "vote.not_allowed"
   | "vote.own_post"
+  | "vote_flag.not_found"
   | "webhook.rejected"
   | "webhook.unknown_provider";

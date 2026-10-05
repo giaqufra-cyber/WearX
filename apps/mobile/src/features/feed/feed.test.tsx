@@ -230,22 +230,36 @@ describe("Feed", () => {
     expect(request).toHaveBeenCalledWith("PUT", "/v1/posts/p1/vote", { token: "tok", body: { score: 72, style_confirm: true } });
     // Prima della risposta: il voto è già registrato, la media è in arrivo.
     expect(screen.getByText("MEDIA COMMUNITY")).toBeOnTheScreen();
-    expect(screen.getByLabelText("Media in arrivo")).toHaveTextContent("…");
+    expect(screen.getByLabelText("Media non ancora disponibile")).toHaveTextContent("…");
 
-    await act(async () => resolve(vote({ mine: 72, my_style_confirm: true, average: 88.2, vote_count: 41 })));
+    await act(async () =>
+      resolve(
+        vote({
+          mine: 72,
+          my_style_confirm: true,
+          average: 88.2,
+          vote_count: 41,
+          stats_updated_at: "2026-10-05T19:05:00Z",
+        }),
+      ),
+    );
     expect(await screen.findByLabelText("Media 88.2")).toHaveTextContent("88");
     expect(screen.getByText(/41 voti/)).toBeOnTheScreen();
+    // Media e numero sono quelli pubblicati ogni ora (l'orario dipende dal fuso del telefono).
+    expect(screen.getByText(/^Voti aggiornati ogni ora · ultimo alle \d\d:05$/)).toBeOnTheScreen();
   });
 
   test("senza domanda sullo stile non si manda la conferma", async () => {
     serve(page([post("p1")]));
-    request.mockResolvedValue(vote({ mine: 70, average: 70, vote_count: 1 }));
+    request.mockResolvedValue(vote({ mine: 70, average: null, vote_count: 1, average_note: "few_votes" }));
     const user = userEvent.setup();
     await render(<FeedScreen />, { wrapper: Providers });
     expect(screen.queryByRole("radio", { name: "Sì" })).toBeNull();
     await user.press(await screen.findByRole("button", { name: "Vota" }));
     expect(request).toHaveBeenCalledWith("PUT", "/v1/posts/p1/vote", { token: "tok", body: { score: 70 } });
     expect(await screen.findByText(/1 voto/)).toBeOnTheScreen();
+    expect(screen.getByText("La media compare da 5 voti · si aggiornano ogni ora")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Media non ancora disponibile")).toHaveTextContent("—");
   });
 
   test("voto rifiutato: si torna com'era, con il messaggio", async () => {

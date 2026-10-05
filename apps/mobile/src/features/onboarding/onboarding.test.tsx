@@ -78,6 +78,8 @@ const style = (slug: string, name: string, min_age_band = "16_plus") => ({
 
 const config: AppConfig = {
   min_app_version: "0.1.0",
+  store: { ios: null, android: null },
+  attestation: { mode: "off", android_project_number: null },
   terms_version: "2026-10",
   feature_flags: { business_accounts: false },
   styles: [style("old-money", "Old Money"), style("jappo", "Jappo"), style("beach-party", "Beach Party", "18_plus")],

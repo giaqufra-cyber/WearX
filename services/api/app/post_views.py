@@ -17,7 +17,14 @@ from app.links import go_url
 from app.post_access import AUTHOR_SHOWN_SQL, POST_VISIBLE_SQL
 from app.profiles import Profile
 from app.routers.media import MediaUrls, media_urls
-from app.votes import CONFIRM_SAMPLE, style_match, voter_key
+from app.votes import (
+    CONFIRM_SAMPLE,
+    AverageNote,
+    average_note,
+    shown_average,
+    style_match,
+    voter_key,
+)
 
 
 class StyleRef(BaseModel):
@@ -71,8 +78,13 @@ class VoteSummary(BaseModel):
     my_style_confirm: bool | None
     # Media e numero si vedono solo dopo aver votato (o se il post è tuo): nessuno si fa
     # influenzare dal voto degli altri. vote_count è null anche se l'autore lo nasconde.
+    # Sono i valori PUBBLICATI (aggiornati ogni ora, la media da 5 voti): seduta 22.
     average: float | None
     vote_count: int | None
+    # Perché la media manca (se manca): "few_votes" (meno di 5) o "next_update" (in arrivo).
+    average_note: AverageNote | None = None
+    # Ultimo aggiornamento dei valori pubblicati.
+    stats_updated_at: datetime | None = None
     # Quota di conferme dello stile (0-1), quando le risposte sono abbastanza.
     style_match: float | None
     # Mostrare la domanda "È davvero <stile>?" insieme al voto.
@@ -104,19 +116,20 @@ def _as_float(value: Decimal | None) -> float | None:
 def _summary(viewer: Profile, row: Any) -> VoteSummary:
     own = row["author_id"] == viewer.id
     reveal = own or row["mine"] is not None
-    average = (
-        round(row["vote_wsum"] / row["vote_wcount"], 1)
-        if reveal and row["vote_wcount"] > 0
-        else None
-    )
+    average = shown_average(row["shown_wsum"], row["shown_wcount"]) if reveal else None
     show_count = reveal and (own or not row["hide_vote_count"])
+    # La domanda sullo stile va ai primi votanti: qui contano i valori in tempo reale.
     sampling = row["confirm_yes"] + row["confirm_no"] < CONFIRM_SAMPLE
     return VoteSummary(
         mine=row["mine"],
         my_style_confirm=row["my_confirm"],
         average=average,
-        vote_count=row["vote_count"] if show_count else None,
-        style_match=style_match(row["confirm_yes"], row["confirm_no"]) if reveal else None,
+        vote_count=row["shown_count"] if show_count else None,
+        average_note=average_note(row["shown_count"], average) if reveal else None,
+        stats_updated_at=row["shown_at"] if reveal else None,
+        style_match=(
+            style_match(row["shown_confirm_yes"], row["shown_confirm_no"]) if reveal else None
+        ),
         ask_style_confirm=not own
         and row["mine"] is None
         and row["status"] == "active"
@@ -142,9 +155,12 @@ async def posts_out(
                                a.account_type::text as account_type, a.hide_prices,
                                a.hide_vote_count,
                                {AUTHOR_SHOWN_SQL} as author_shown,
-                               coalesce(st.vote_count, 0) as vote_count,
-                               coalesce(st.vote_wsum, 0) as vote_wsum,
-                               coalesce(st.vote_wcount, 0) as vote_wcount,
+                               coalesce(st.shown_count, 0) as shown_count,
+                               coalesce(st.shown_wsum, 0) as shown_wsum,
+                               coalesce(st.shown_wcount, 0) as shown_wcount,
+                               coalesce(st.shown_confirm_yes, 0) as shown_confirm_yes,
+                               coalesce(st.shown_confirm_no, 0) as shown_confirm_no,
+                               st.shown_at,
                                coalesce(st.confirm_yes, 0) as confirm_yes,
                                coalesce(st.confirm_no, 0) as confirm_no,
                                v.score as mine, v.style_confirm as my_confirm

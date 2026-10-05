@@ -24,7 +24,8 @@ assert len(FROM) == len(TO)
 
 
 def upgrade() -> None:
-    op.execute(
+    # SQL composto solo dai dati costanti di questo file (revisione Semgrep, seduta 22).
+    op.execute(  # nosemgrep
         f"""
         create function app.fold(t text) returns text
           language sql immutable parallel safe strict

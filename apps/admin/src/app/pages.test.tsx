@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import AppealsPage from "@/app/appeals/page";
 import DomainsPage from "@/app/domains/page";
+import VotesPage from "@/app/votes/page";
 import StaffPage from "@/app/staff/page";
 import StylesPage from "@/app/styles/page";
 
@@ -161,5 +162,49 @@ describe("Le scritture mandano solo i campi che l'API accetta", () => {
       method: "DELETE",
       body: undefined,
     });
+  });
+
+  test("voti sospetti: pseudonimo, spiegazione, ripristino con conferma", async () => {
+    serve({
+      "GET http://localhost:8000/v1/admin/vote-flags": [
+        {
+          id: 7,
+          rule: "author_burst",
+          voter: "a1b2c3d4",
+          author: "giulia.rossi",
+          votes_affected: 9,
+          detail: { votes: 9, scores: [100, 100], hours: 24 },
+          detected_at: "2026-10-05T19:05:00Z",
+          expires_at: "2026-11-04T19:05:00Z",
+          lifted_at: null,
+          active: true,
+        },
+        {
+          id: 6,
+          rule: "same_score",
+          voter: "ffee0011",
+          author: null,
+          votes_affected: 41,
+          detail: { votes: 41, scores: [69, 71], days: 7 },
+          detected_at: "2026-10-04T19:05:00Z",
+          expires_at: "2026-11-03T19:05:00Z",
+          lifted_at: "2026-10-05T08:00:00Z",
+          active: false,
+        },
+      ],
+      "POST http://localhost:8000/v1/admin/vote-flags/7/lift": null,
+    });
+    render(<VotesPage />, { wrapper });
+    expect(await screen.findByText("Spinta mirata")).toBeTruthy();
+    expect(screen.getByText("9 voti in 24 ore ai fit di @giulia.rossi, tutti 100")).toBeTruthy();
+    expect(screen.getByText("41 voti in 7 giorni, sempre tra 69 e 71")).toBeTruthy();
+    expect(screen.getByText("#a1b2c3d4")).toBeTruthy();
+    expect(screen.getByText("Ripristinato")).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Ripristina i voti" })).toHaveLength(1);
+    await userEvent.click(screen.getByRole("button", { name: "Ripristina i voti" }));
+    expect(writes()).toHaveLength(0);
+    await userEvent.click(screen.getByRole("button", { name: "Conferma ripristino" }));
+    await waitFor(() => expect(writes()).toHaveLength(1));
+    expect(writes()[0]!.url).toBe("http://localhost:8000/v1/admin/vote-flags/7/lift");
   });
 });

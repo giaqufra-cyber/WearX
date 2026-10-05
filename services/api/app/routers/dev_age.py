@@ -64,7 +64,15 @@ async def fake_page(ref: str, method: str = "", return_url: str = "") -> HTMLRes
         for key, (label, _, _) in CHOICES.items()
     )
     return HTMLResponse(
-        PAGE.format(method=html.escape(method), return_url=html.escape(return_url), buttons=buttons)
+        PAGE.format(
+            method=html.escape(method), return_url=html.escape(return_url), buttons=buttons
+        ),
+        headers={
+            "content-security-policy": (
+                "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; "
+                "frame-ancestors 'none'"
+            )
+        },
     )
 
 

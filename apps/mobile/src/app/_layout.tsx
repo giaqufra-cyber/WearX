@@ -22,6 +22,10 @@ import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "@/features/auth/AuthProvider";
 import { AppBridges } from "@/features/notifications/AppBridges";
 import type { AppRoute } from "@/features/auth/routing";
+import { useAppConfig } from "@/features/styles/useAppConfig";
+import { UpdateRequired } from "@/features/update/UpdateRequired";
+import { APP_VERSION } from "@/lib/api";
+import { isOlder, markUpdateRequired, useUpdateGate } from "@/lib/updateGate";
 import { ToastProvider } from "@/ui/Toast";
 
 void SplashScreen.preventAutoHideAsync();
@@ -88,11 +92,18 @@ function RootNavigator() {
   const { route } = useAuth();
   const [shown, setShown] = useState<ShownRoute | null>(null);
   if (route !== "loading" && route !== shown) setShown(route);
+  const updateRequired = useUpdateGate((s) => s.required);
+  const minimum = useAppConfig().data?.min_app_version;
 
   useEffect(() => {
-    if (shown) void SplashScreen.hideAsync();
-  }, [shown]);
+    if (minimum && isOlder(APP_VERSION, minimum)) markUpdateRequired();
+  }, [minimum]);
 
+  useEffect(() => {
+    if (shown || updateRequired) void SplashScreen.hideAsync();
+  }, [shown, updateRequired]);
+
+  if (updateRequired) return <UpdateRequired />;
   if (!shown) return null;
 
   return (

@@ -17,6 +17,7 @@ from app.routers import (
     admin_console,
     admin_moderation,
     age,
+    attest,
     business,
     config,
     events,
@@ -89,6 +90,7 @@ def create_app() -> FastAPI:
     app.include_router(insights.router)
     app.include_router(privacy.router)
     app.include_router(business.router)
+    app.include_router(attest.router)
     app.include_router(go.router)
     app.include_router(admin_moderation.router)
     app.include_router(admin_console.router)

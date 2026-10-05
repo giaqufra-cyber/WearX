@@ -316,6 +316,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/vote-flags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vote Flags */
+        get: operations["vote_flags_v1_admin_vote_flags_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/vote-flags/{flag_id}/lift": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Lift Vote Flag
+         * @description Falso positivo: i voti tornano a contare (ricalcolate le statistiche dei fit).
+         */
+        post: operations["lift_vote_flag_v1_admin_vote_flags__flag_id__lift_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/age-verification": {
         parameters: {
             query?: never;
@@ -451,6 +488,97 @@ export interface paths {
         head?: never;
         /** Update Me */
         patch: operations["update_me_v1_me_patch"];
+        trace?: never;
+    };
+    "/v1/me/attest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Attest Status */
+        get: operations["attest_status_v1_me_attest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/attest/android": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Android Attest */
+        post: operations["android_attest_v1_me_attest_android_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/attest/challenge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Challenge */
+        post: operations["challenge_v1_me_attest_challenge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/attest/ios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ios Attest
+         * @description Prima volta su questo iPhone: attestazione della chiave App Attest.
+         */
+        post: operations["ios_attest_v1_me_attest_ios_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/attest/ios/assert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ios Assert
+         * @description Nuovo accesso su un iPhone già attestato: firma della sfida con la stessa chiave.
+         */
+        post: operations["ios_assert_v1_me_attest_ios_assert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/me/blocks": {
@@ -1382,6 +1510,13 @@ export interface components {
             /** Verified */
             verified: boolean;
         };
+        /** AndroidIn */
+        AndroidIn: {
+            /** Challenge */
+            challenge: string;
+            /** Token */
+            token: string;
+        };
         /** AppealDecisionIn */
         AppealDecisionIn: {
             /**
@@ -1431,6 +1566,26 @@ export interface components {
              * @enum {string}
              */
             status: "open" | "upheld" | "reversed";
+        };
+        /** AttestStatus */
+        AttestStatus: {
+            /** Attested */
+            attested: boolean;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "off" | "soft" | "required";
+        };
+        /** AttestationConfig */
+        AttestationConfig: {
+            /** Android Project Number */
+            android_project_number: string | null;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "off" | "soft" | "required";
         };
         /** AuditPage */
         AuditPage: {
@@ -1507,8 +1662,16 @@ export interface components {
             /** Post Count */
             post_count: number;
         };
+        /** ChallengeOut */
+        ChallengeOut: {
+            /** Challenge */
+            challenge: string;
+            /** Expires In */
+            expires_in: number;
+        };
         /** ConfigOut */
         ConfigOut: {
+            attestation: components["schemas"]["AttestationConfig"];
             /** Feature Flags */
             feature_flags: {
                 [key: string]: boolean;
@@ -1516,6 +1679,7 @@ export interface components {
             legal: components["schemas"]["LegalLinks"];
             /** Min App Version */
             min_app_version: string;
+            store: components["schemas"]["StoreLinks"];
             /** Styles */
             styles: components["schemas"]["StyleOut"][];
             /** Terms Version */
@@ -1747,6 +1911,24 @@ export interface components {
             totals: components["schemas"]["InsightTotals"];
             /** Updated At */
             updated_at: string | null;
+        };
+        /** IosAssertIn */
+        IosAssertIn: {
+            /** Assertion */
+            assertion: string;
+            /** Challenge */
+            challenge: string;
+            /** Key Id */
+            key_id: string;
+        };
+        /** IosAttestIn */
+        IosAttestIn: {
+            /** Attestation */
+            attestation: string;
+            /** Challenge */
+            challenge: string;
+            /** Key Id */
+            key_id: string;
         };
         /** ItemIn */
         ItemIn: {
@@ -2486,6 +2668,13 @@ export interface components {
             /** Votes Today */
             votes_today: number;
         };
+        /** StoreLinks */
+        StoreLinks: {
+            /** Android */
+            android: string | null;
+            /** Ios */
+            ios: string | null;
+        };
         /** StyleCard */
         StyleCard: {
             /** Active Until */
@@ -2760,6 +2949,40 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** VoteFlagOut */
+        VoteFlagOut: {
+            /** Active */
+            active: boolean;
+            /** Author */
+            author: string | null;
+            /** Detail */
+            detail: {
+                [key: string]: unknown;
+            };
+            /**
+             * Detected At
+             * Format: date-time
+             */
+            detected_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Id */
+            id: number;
+            /** Lifted At */
+            lifted_at: string | null;
+            /**
+             * Rule
+             * @enum {string}
+             */
+            rule: "same_score" | "author_burst";
+            /** Voter */
+            voter: string;
+            /** Votes Affected */
+            votes_affected: number;
+        };
         /** VoteIn */
         VoteIn: {
             /** Score */
@@ -2773,10 +2996,14 @@ export interface components {
             ask_style_confirm: boolean;
             /** Average */
             average: number | null;
+            /** Average Note */
+            average_note?: ("few_votes" | "next_update") | null;
             /** Mine */
             mine: number | null;
             /** My Style Confirm */
             my_style_confirm: boolean | null;
+            /** Stats Updated At */
+            stats_updated_at?: string | null;
             /** Style Match */
             style_match: number | null;
             /** Vote Count */
@@ -3398,6 +3625,55 @@ export interface operations {
             };
         };
     };
+    vote_flags_v1_admin_vote_flags_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoteFlagOut"][];
+                };
+            };
+        };
+    };
+    lift_vote_flag_v1_admin_vote_flags__flag_id__lift_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                flag_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     age_status_v1_age_verification_get: {
         parameters: {
             query?: never;
@@ -3641,6 +3917,139 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ProfileOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    attest_status_v1_me_attest_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttestStatus"];
+                };
+            };
+        };
+    };
+    android_attest_v1_me_attest_android_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AndroidIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    challenge_v1_me_attest_challenge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeOut"];
+                };
+            };
+        };
+    };
+    ios_attest_v1_me_attest_ios_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IosAttestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ios_assert_v1_me_attest_ios_assert_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IosAssertIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

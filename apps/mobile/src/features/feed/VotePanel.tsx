@@ -3,7 +3,7 @@ import { colors, fonts, radii, spacing, voteMood } from "@wearx/design-tokens";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { votesLabel } from "@/features/feed/format";
+import { statsNote, votesLabel } from "@/features/feed/format";
 import { VoteSlider } from "@/features/feed/VoteSlider";
 import { Button } from "@/ui/Button";
 
@@ -38,7 +38,10 @@ export function VotePanel({ post, onVote, busy }: Props) {
               ) : null}
             </Text>
           </View>
-          <Text style={styles.score} aria-label={average === null ? "Media in arrivo" : `Media ${average}`}>
+          <Text
+            style={styles.score}
+            aria-label={average === null ? "Media non ancora disponibile" : `Media ${average}`}
+          >
             {average === null ? (busy ? "…" : "—") : Math.round(average)}
           </Text>
         </View>
@@ -46,6 +49,7 @@ export function VotePanel({ post, onVote, busy }: Props) {
           {average !== null ? <View style={[styles.barFill, { width: `${average}%` }]} /> : null}
           {vote.mine !== null ? <View style={[styles.marker, { left: `${vote.mine}%` }]} /> : null}
         </View>
+        <Text style={styles.note}>{statsNote(vote)}</Text>
       </View>
     );
   }
@@ -134,6 +138,7 @@ const styles = StyleSheet.create({
   choiceOn: { backgroundColor: colors.inverse, borderColor: colors.inverse },
   choiceText: { fontFamily: fonts.uiBold, fontSize: 13, color: colors.text },
   choiceTextOn: { color: colors.onInverse },
+  note: { fontFamily: fonts.ui, fontSize: 12, color: colors.textMuted, marginTop: spacing[2] },
   bar: { height: 6, borderRadius: 3, backgroundColor: "#26262A", marginTop: 14 },
   barFill: { position: "absolute", left: 0, top: 0, bottom: 0, borderRadius: 3, backgroundColor: colors.accent },
   marker: { position: "absolute", top: -5, width: 2, height: 16, marginLeft: -1, backgroundColor: colors.inverse },

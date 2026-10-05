@@ -436,7 +436,9 @@ async def update_post(
             # Nuovo stile, nuova verifica: le conferme ripartono da zero.
             await session.execute(
                 text(
-                    """update app.post_stats set confirm_yes = 0, confirm_no = 0
+                    """update app.post_stats
+                          set confirm_yes = 0, confirm_no = 0,
+                              shown_confirm_yes = 0, shown_confirm_no = 0
                         where post_id = :id"""
                 ),
                 {"id": post_id},

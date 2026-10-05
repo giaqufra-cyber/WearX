@@ -29,6 +29,7 @@ from app.people import profile_id_by_nickname
 from app.post_views import ItemOut, LinkOut, MediaOut
 from app.routers.media import media_urls
 from app.staff import CurrentAdmin, CurrentStaff, audit
+from app.votes import lift_flag
 
 router = APIRouter(prefix="/v1/admin", tags=["admin"])
 
@@ -650,5 +651,56 @@ async def add_blocked_domain(
 async def remove_blocked_domain(domain: str, staff: CurrentStaff, session: Session) -> Response:
     await unblock_domain(session, domain.lower())
     await audit(session, staff, "admin.unblock_domain", f"domain:{domain.lower()}", {})
+    await session.commit()
+    return Response(status_code=204)
+
+
+# ---------- Voti sospetti (seduta 22) ----------
+
+
+class VoteFlagOut(BaseModel):
+    id: int
+    rule: Literal["same_score", "author_burst"]
+    # Pseudonimo corto del votante (prime cifre dell'impronta): mai l'account.
+    voter: str
+    # Solo per "author_burst": l'autore i cui fit ricevevano i voti.
+    author: str | None
+    votes_affected: int
+    detail: dict[str, Any]
+    detected_at: datetime
+    expires_at: datetime
+    lifted_at: datetime | None
+    active: bool
+
+
+@router.get("/vote-flags", response_model=list[VoteFlagOut])
+async def vote_flags(staff: CurrentStaff, session: Session) -> list[VoteFlagOut]:
+    rows = (
+        (
+            await session.execute(
+                text(
+                    """select f.id, f.rule, encode(substring(f.voter_key from 1 for 4), 'hex')
+                                as voter,
+                              a.nickname::text as author, f.votes_affected, f.detail,
+                              f.detected_at, f.expires_at, f.lifted_at,
+                              f.lifted_at is null and f.expires_at > now() as active
+                         from app.vote_flags f
+                         left join app.profiles a on a.id = f.author_id
+                        order by f.detected_at desc limit 200"""
+                )
+            )
+        )
+        .mappings()
+        .all()
+    )
+    return [VoteFlagOut(**r) for r in rows]
+
+
+@router.post("/vote-flags/{flag_id}/lift", status_code=204)
+async def lift_vote_flag(flag_id: int, staff: CurrentStaff, session: Session) -> Response:
+    """Falso positivo: i voti tornano a contare (ricalcolate le statistiche dei fit)."""
+    if not await lift_flag(session, flag_id, staff.id):
+        raise ApiError(404, "vote_flag.not_found", "Segnalazione non trovata o già annullata")
+    await audit(session, staff, "admin.lift_vote_flag", f"vote_flag:{flag_id}", {})
     await session.commit()
     return Response(status_code=204)

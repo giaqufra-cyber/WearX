@@ -8,7 +8,8 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.votes import bucket, style_match, vote_weight, voter_key
+from app.db import session_scope
+from app.votes import bucket, publish_stats, style_match, vote_weight, voter_key
 from tests.conftest import ready_upload
 from tests.test_accounts import onboard
 
@@ -47,6 +48,16 @@ def _stats(db_admin, post_id):
     ).fetchone()
 
 
+async def publish():
+    """Il lavoro orario che pubblica media e numero dei voti."""
+    async with session_scope() as session:
+        await publish_stats(session)
+
+
+async def _seen(client, post_id, headers):
+    return (await client.get(f"/v1/posts/{post_id}", headers=headers)).json()["vote"]
+
+
 # ---------- Regole pure ----------
 
 
@@ -82,26 +93,35 @@ async def test_voto_e_riepilogo(client, keys, db_admin):
         "my_style_confirm": None,
         "average": None,
         "vote_count": None,
+        "average_note": None,
+        "stats_updated_at": None,
         "style_match": None,
         "ask_style_confirm": True,
     }
 
     r = await _vote(client, post_id, voter, 80, confirm=True)
     assert r.status_code == 200, r.text
+    # Numero e media arrivano con l'aggiornamento orario, la media da 5 voti.
     assert r.json() == {
         "mine": 80,
         "my_style_confirm": True,
-        "average": 80.0,
-        "vote_count": 1,
+        "average": None,
+        "vote_count": 0,
+        "average_note": "few_votes",
+        "stats_updated_at": None,
         "style_match": None,
         "ask_style_confirm": False,
     }
-    # Chi non ha votato non vede la media (nessuna influenza).
-    seen = (await client.get(f"/v1/posts/{post_id}", headers=other)).json()["vote"]
-    assert (seen["average"], seen["vote_count"]) == (None, None)
-    # L'autore la vede sempre, ma non può votarsi.
-    own = (await client.get(f"/v1/posts/{post_id}", headers=author)).json()["vote"]
-    assert (own["average"], own["vote_count"], own["ask_style_confirm"]) == (80.0, 1, False)
+    await publish()
+    mine = await _seen(client, post_id, voter)
+    assert (mine["vote_count"], mine["average"], mine["average_note"]) == (1, None, "few_votes")
+    assert mine["stats_updated_at"] is not None
+    # Chi non ha votato non vede né media né numero (nessuna influenza).
+    seen = await _seen(client, post_id, other)
+    assert (seen["average"], seen["vote_count"], seen["average_note"]) == (None, None, None)
+    # L'autore li vede sempre, ma non può votarsi.
+    own = await _seen(client, post_id, author)
+    assert (own["average"], own["vote_count"], own["ask_style_confirm"]) == (None, 1, False)
     r = await _vote(client, post_id, author, 100)
     assert (r.status_code, r.json()["code"]) == (403, "vote.own_post")
 
@@ -167,9 +187,10 @@ async def test_account_nuovi_pesano_meta(client, keys, db_admin):
     _, old = await _person(client, keys, db_admin)
     post_id = await _post(client, db_admin, author_id, author)
     await _vote(client, post_id, fresh, 100)
-    r = await _vote(client, post_id, old, 40)
+    await _vote(client, post_id, old, 40)
+    *_, wsum, wcount = _stats(db_admin, post_id)
     # (100 x 0,5 + 40 x 1) / 1,5 = 60
-    assert (r.json()["average"], r.json()["vote_count"]) == (60.0, 2)
+    assert (wsum / wcount, wcount) == (60.0, 1.5)
 
 
 async def test_numero_di_voti_nascosto_dall_autore(client, keys, db_admin):
@@ -177,9 +198,11 @@ async def test_numero_di_voti_nascosto_dall_autore(client, keys, db_admin):
     _, voter = await _person(client, keys, db_admin)
     db_admin.execute("update app.profiles set hide_vote_count = true where id = %s", (author_id,))
     post_id = await _post(client, db_admin, author_id, author)
-    r = await _vote(client, post_id, voter, 70)
-    assert (r.json()["average"], r.json()["vote_count"]) == (70.0, None)
-    own = (await client.get(f"/v1/posts/{post_id}", headers=author)).json()["vote"]
+    await _vote(client, post_id, voter, 70)
+    await publish()
+    seen = await _seen(client, post_id, voter)
+    assert (seen["vote_count"], seen["average_note"]) == (None, "few_votes")
+    own = await _seen(client, post_id, author)
     assert own["vote_count"] == 1
 
 
@@ -233,7 +256,9 @@ async def test_sotto_il_70_per_cento_il_post_esce_dallo_stile(client, keys, db_a
     assert seen["status"] == "style_rejected"
     assert seen["vote"]["ask_style_confirm"] is False
     r = await _vote(client, post_id, late, 70, confirm=True)
-    assert (r.status_code, r.json()["style_match"]) == (200, 0.6)
+    assert r.status_code == 200
+    await publish()
+    assert (await _seen(client, post_id, late))["style_match"] == 0.6
 
     # L'autore cambia stile: torna attivo e la verifica riparte da zero.
     r = await client.patch(f"/v1/posts/{post_id}", json={"style": "elegant"}, headers=author)
@@ -249,8 +274,9 @@ async def test_con_il_70_per_cento_resta(client, keys, db_admin):
     post_id = await _post(client, db_admin, author_id, author)
     for i in range(10):
         _, headers = await _person(client, keys, db_admin)
-        r = await _vote(client, post_id, headers, 75, confirm=i < 7)
-    assert r.json()["style_match"] == 0.7
+        await _vote(client, post_id, headers, 75, confirm=i < 7)
+    await publish()
+    assert (await _seen(client, post_id, headers))["style_match"] == 0.7
     status = db_admin.execute("select status::text from app.posts where id = %s", (post_id,))
     assert status.fetchone() == ("active",)
 

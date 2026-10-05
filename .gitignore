@@ -34,3 +34,6 @@ GoogleService-Info.plist
 
 # Redis locale
 dump.rdb
+.semgrep-cache/
+services/api/scan-token.txt
+services/api/scan-post.txt

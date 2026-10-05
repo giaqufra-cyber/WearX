@@ -8,6 +8,7 @@
 import Constants from "expo-constants";
 
 import { env } from "@/lib/env";
+import { markUpdateRequired } from "@/lib/updateGate";
 
 export const API_URL = env.apiUrl;
 export const APP_VERSION = Constants.expoConfig?.version ?? "0.0.0";
@@ -68,7 +69,9 @@ export async function apiRequest<T>(method: Method, path: string, options: Reque
     signal: options.signal,
   });
   if (!response.ok) {
-    throw await parseError(response);
+    const error = await parseError(response);
+    if (error.code === "app.update_required") markUpdateRequired();
+    throw error;
   }
   if (response.status === 204) {
     return undefined as T;

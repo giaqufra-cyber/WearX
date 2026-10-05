@@ -119,7 +119,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci
 
   security:
-    name: Sicurezza (segreti e dipendenze)
+    name: Sicurezza (segreti, dipendenze, Semgrep)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -132,3 +132,52 @@ jobs:
       - name: Vulnerabilità nelle dipendenze Python
         working-directory: services/api
         run: uv export --frozen --no-dev --format requirements-txt > /tmp/req.txt && uvx pip-audit -r /tmp/req.txt
+      - name: Analisi statica (Semgrep, regole fissate + regole di progetto)
+        run: uv tool install semgrep==1.179.0 && bash scripts/semgrep.sh
+
+  zap:
+    name: Scansione ZAP dell'API
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - name: API di scansione (database di prova, due persone, un fit)
+        working-directory: services/api
+        env:
+          WEARX_TEST_ADMIN_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: |
+          uv sync --frozen
+          nohup uv run python -m tests.scan_target 8000 > scan.log 2>&1 &
+          for i in $(seq 1 60); do
+            if [ -f scan-token.txt ] && curl -sf http://127.0.0.1:8000/healthz > /dev/null; then break; fi
+            sleep 2
+          done
+          cat scan.log
+          curl -sf http://127.0.0.1:8000/healthz
+      - name: ZAP (scansione attiva dall'OpenAPI, con accesso)
+        run: |
+          mkdir -p zap && chmod 777 zap
+          docker run --rm --network host -v "$PWD/zap:/zap/wrk:rw" \
+            -e ZAP_AUTH_HEADER_VALUE="Bearer $(cat services/api/scan-token.txt)" \
+            -e ZAP_AUTH_HEADER_SITE="127.0.0.1" \
+            ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
+            -t http://127.0.0.1:8000/openapi.json -f openapi -I -J zap.json -r zap.html \
+            -z "-config scanner.maxScanDurationInMins=12 -config scanner.maxRuleDurationInMins=2"
+      - name: Risultati come annotazioni
+        if: always()
+        run: python3 .zap/report.py zap/zap.json
+

@@ -1,0 +1,79 @@
+# Regole di progetto (seduta 22): invarianti di sicurezza di WearX che non devono mai rompersi.
+rules:
+  - id: wearx-no-secret-keys-in-clients
+    message: >-
+      Chiave segreta di Supabase (sb_secret_...) o chiave JWT (le vecchie chiavi anon/service_role)
+      nel codice dell'app o del pannello: le chiavi segrete stanno SOLO nel secret manager del
+      server; nell'app va solo la chiave publishable (sb_publishable_...).
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include: ["apps/**"]
+      exclude: ["**/*.test.*"]
+    pattern-regex: (sb_secret_[A-Za-z0-9_-]{8,}|eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,})
+
+  - id: wearx-no-public-env-secrets
+    message: >-
+      Variabile EXPO_PUBLIC_/NEXT_PUBLIC_ che sembra un segreto: tutto ciò che è PUBLIC finisce
+      dentro l'app e chiunque può leggerlo.
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include: ["apps/**"]
+    pattern-regex: (EXPO|NEXT)_PUBLIC_[A-Z0-9_]*(SECRET|SERVICE_ROLE|PRIVATE|PASSWORD)
+
+  - id: wearx-httpx-no-tls-off
+    message: Verifica TLS spenta in una richiesta HTTP del server.
+    severity: ERROR
+    languages: [python]
+    paths:
+      include: ["services/api/app/**"]
+    pattern-either:
+      - pattern: httpx.AsyncClient(..., verify=False, ...)
+      - pattern: httpx.Client(..., verify=False, ...)
+      - pattern: httpx.$METHOD(..., verify=False, ...)
+
+  - id: wearx-httpx-no-auto-redirects
+    message: >-
+      Redirect automatici nelle richieste verso indirizzi scelti dagli utenti: si seguono a mano
+      controllando ogni passaggio (link_check.visit), altrimenti un redirect porta nella rete
+      interna (SSRF).
+    severity: ERROR
+    languages: [python]
+    paths:
+      include: ["services/api/app/**"]
+    pattern: httpx.AsyncClient(..., follow_redirects=True, ...)
+
+  - id: wearx-jwt-always-verified
+    message: Token JWT decodificato senza verificare firma o scadenza.
+    severity: ERROR
+    languages: [python]
+    paths:
+      include: ["services/api/app/**"]
+    pattern-either:
+      - pattern: 'jwt.decode(..., options={..., "verify_signature": False, ...}, ...)'
+      - pattern: 'jwt.decode(..., options={..., "verify_exp": False, ...}, ...)'
+      - pattern: 'jwt.decode(..., algorithms=["none"], ...)'
+
+  - id: wearx-no-raw-html-in-react
+    message: "HTML grezzo nella pagina (dangerouslySetInnerHTML): rischio di XSS nel pannello staff."
+    severity: ERROR
+    languages: [typescript]
+    paths:
+      include: ["apps/**"]
+    pattern: <$EL dangerouslySetInnerHTML={...} />
+
+  - id: wearx-no-crypto-random-from-random-module
+    message: Per codici e token si usa `secrets`, non `random` (prevedibile).
+    severity: ERROR
+    languages: [python]
+    paths:
+      include: ["services/api/app/**"]
+    patterns:
+      - pattern: random.$F(...)
+      - pattern-inside: |
+          def $FUNC(...):
+            ...
+      - metavariable-regex:
+          metavariable: $FUNC
+          regex: .*(token|secret|code|password|challenge|nonce|key).*

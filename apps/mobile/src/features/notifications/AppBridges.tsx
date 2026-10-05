@@ -3,7 +3,8 @@
  * - push: rinnova il token se il permesso c'è già, apre la schermata giusta al tocco di un push,
  *   aggiorna lista e campanella quando ne arriva uno con l'app aperta, tiene il numero sull'icona;
  * - eventi d'uso: li spedisce a gruppi, e subito quando l'app va in background;
- * - dispositivi collegati: segnala che questo dispositivo è attivo.
+ * - dispositivi collegati: segnala che questo dispositivo è attivo;
+ * - verifica del dispositivo (App Attest / Play Integrity): una volta per accesso.
  */
 import { useQueryClient } from "@tanstack/react-query";
 import * as Notifications from "expo-notifications";
@@ -15,7 +16,11 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { useUnreadCount } from "@/features/notifications/api";
 import { NOTIFICATIONS_KEY } from "@/features/notifications/keys";
 import { enablePush, safeRoute, setForegroundHandler } from "@/features/notifications/push";
+import type { AppConfig } from "@wearx/api-types";
+
+import { verifyDevice } from "@/features/device/attest";
 import { pingDevice } from "@/features/privacy/api";
+import { apiGet } from "@/lib/api";
 import { configureEvents, FLUSH_EVERY_MS, flushEvents, resetEvents } from "@/lib/events";
 
 export function AppBridges() {
@@ -58,6 +63,16 @@ export function AppBridges() {
     });
     return () => sub.remove();
   }, [uid]);
+
+  // Verifica del dispositivo: in silenzio; se non riesce l'app funziona comunque.
+  useEffect(() => {
+    const current = tokenRef.current;
+    if (Platform.OS === "web" || !current) return;
+    void client
+      .fetchQuery({ queryKey: ["config"], queryFn: () => apiGet<AppConfig>("/v1/config"), staleTime: 5 * 60_000 })
+      .then((config) => verifyDevice(current, config.attestation))
+      .catch(() => undefined);
+  }, [uid, client]);
 
   // Push: solo telefoni veri. Il permesso NON si chiede qui.
   useEffect(() => {
