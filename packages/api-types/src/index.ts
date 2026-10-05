@@ -66,6 +66,10 @@ export type DataExport = Schemas["ExportOut"];
 export type DeletionRequest = Schemas["DeletionIn"];
 export type DeletionScheduled = Schemas["DeletionOut"];
 export type DeletionStatus = Schemas["DeletionStatus"];
+export type ShopLink = Schemas["LinkOut"];
+export type ShopDomain = Schemas["ShopDomainOut"];
+export type BlockedDomain = Schemas["BlockedDomainOut"];
+export type BlockedDomainCreate = Schemas["BlockedDomainIn"];
 
 // Pannello dello staff (/v1/admin)
 export type StaffMe = Schemas["StaffMe"];
@@ -117,6 +121,7 @@ export type ApiErrorCode =
   | "auth.token_expired"
   | "auth.unavailable"
   | "block.self"
+  | "business.required"
   | "capsule.limit"
   | "capsule.name_required"
   | "capsule.name_taken"
@@ -169,6 +174,10 @@ export type ApiErrorCode =
   | "request.invalid"
   | "resource.not_found"
   | "server.error"
+  | "shop.limit"
+  | "shop.not_found"
+  | "shop.taken"
+  | "shop.verify_failed"
   | "staff.admin_required"
   | "staff.last_admin"
   | "staff.mfa_required"

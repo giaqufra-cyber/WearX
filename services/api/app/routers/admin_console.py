@@ -22,6 +22,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.errors import ApiError
+from app.link_check import block_domain, unblock_domain
+from app.links import normalize_shop_url
 from app.moderation import actions
 from app.people import profile_id_by_nickname
 from app.post_views import ItemOut, LinkOut, MediaOut
@@ -590,3 +592,63 @@ async def audit_log(
         items=[AuditRow(**r) for r in page],
         next_cursor=page[-1]["id"] if len(rows) > limit else None,
     )
+
+
+# ---------- Domini bloccati (moderatori e admin) ----------
+
+
+class BlockedDomainIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    domain: str = Field(min_length=3, max_length=255)
+    reason: str = Field(min_length=3, max_length=200)
+
+
+class BlockedDomainOut(BaseModel):
+    domain: str
+    reason: str
+    created_at: datetime
+    links: int
+
+
+@router.get("/blocked-domains", response_model=list[BlockedDomainOut])
+async def blocked_domains(staff: CurrentStaff, session: Session) -> list[BlockedDomainOut]:
+    rows = (
+        (
+            await session.execute(
+                text(
+                    """select b.domain, b.reason, b.created_at,
+                              (select count(*) from app.links l
+                                where l.domain = b.domain or l.domain like '%.' || b.domain)
+                                as links
+                         from app.blocked_domains b order by b.created_at desc limit 500"""
+                )
+            )
+        )
+        .mappings()
+        .all()
+    )
+    return [BlockedDomainOut(**r) for r in rows]
+
+
+@router.post("/blocked-domains", response_model=BlockedDomainOut, status_code=201)
+async def add_blocked_domain(
+    body: BlockedDomainIn, staff: CurrentStaff, session: Session
+) -> BlockedDomainOut:
+    value = body.domain.strip()
+    _, domain = normalize_shop_url(value if "://" in value else f"https://{value}")
+    reason = " ".join(body.reason.split())
+    count = await block_domain(session, domain, reason, staff.id)
+    await audit(session, staff, "admin.block_domain", f"domain:{domain}", {"reason": reason})
+    await session.commit()
+    created = await session.scalar(
+        text("select created_at from app.blocked_domains where domain = :d"), {"d": domain}
+    )
+    return BlockedDomainOut(domain=domain, reason=reason, created_at=created, links=count)
+
+
+@router.delete("/blocked-domains/{domain}", status_code=204)
+async def remove_blocked_domain(domain: str, staff: CurrentStaff, session: Session) -> Response:
+    await unblock_domain(session, domain.lower())
+    await audit(session, staff, "admin.unblock_domain", f"domain:{domain.lower()}", {})
+    await session.commit()
+    return Response(status_code=204)

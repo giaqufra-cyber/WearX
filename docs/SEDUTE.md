@@ -62,6 +62,10 @@ Promemoria fissi: senza questi punti l'app funziona solo per il fondatore.
       la cancellazione definitiva aspetta); con l'SMTP, modello "Reset Password" con
       `{{ .Token }}` (codice a 6 cifre); in Redirect URLs resta `wearx://**` (serve al link di
       recupero quando non c'è il codice).
+- [ ] **Link ai negozi** (seduta 21): chiave di Google Safe Browsing (gratuita, progetto Google
+      Cloud) in `WEARX_SAFE_BROWSING_KEY`, solo sul server: senza, contano solo i domini bloccati
+      dallo staff. Il worker che visita i link gira in una rete senza accesso ai servizi interni
+      (seduta 23: difesa in più contro il "DNS rebinding", oltre al controllo degli indirizzi).
 
 ## Registro
 
@@ -915,3 +919,54 @@ Schermate: `docs/screens/seduta-20-privacy.png`.
 
 Da fare in seduta 21: account Business e link ai negozi (controllo dei link, redirect, click).
 
+### Seduta 21 — 2026-10-05
+
+Fatto (API, migrazione 0015):
+- **Controllo dei link ai negozi** (worker, ogni 2 minuti): per ogni link, domini bloccati dallo
+  staff (anche i sottodomini), Google Safe Browsing (se c'è la chiave) e visita sicura: solo
+  https, solo indirizzi pubblici (mai la rete interna), al massimo 5 redirect controllati uno per
+  uno. Esiti: **sicuro**; **non più disponibile** (pagina 404/410 o sito inesistente, oppure 3
+  errori di fila); **bloccato** (sito pericoloso o dominio bloccato). Ricontrolli: sicuri ogni 7
+  giorni, non disponibili ogni giorno.
+- **Redirect con conteggio dei clic**: i capi nell'app aprono `/r/<codice firmato>`; si contano i
+  clic sul link e sul fit (senza salvare chi ha cliccato), poi si va al negozio. Un link bloccato
+  mostra una pagina "Abbiamo fermato questo link" e non prosegue. Codici falsificati o di capi
+  modificati: "link non più disponibile".
+- **Account Business**: fino a 5 siti del negozio, **verificati** pubblicando un file con un codice
+  su `https://<sito>/.well-known/wearx-verify.txt`; un sito verificato appartiene a un solo
+  account. I capi che puntano a un sito verificato dell'autore mostrano il **segno di negozio
+  verificato** e il clic arriva al negozio con `utm_source=wearx` (il negozio vede quante visite
+  porta WearX). Tornando a privato i siti verificati si tolgono.
+- Pannello staff: pagina **Domini bloccati** (blocca/sblocca, con quanti link colpisce; tutto nel
+  log di audit). Bloccare ferma subito tutti i link verso quel sito; sbloccare li ricontrolla.
+
+Fatto (app):
+- Capi: segno di negozio verificato, "Link non più disponibile" e "Link rimosso per sicurezza"
+  (senza freccia né link apribile).
+- Impostazioni → Account (solo maggiorenni): **Tipo di account** (Privato/Business con conferma)
+  e **I tuoi negozi** (aggiungi, istruzioni per la verifica, Verifica, motivo se non riesce,
+  rimuovi). I siti verificati compaiono sul profilo.
+
+Provato davvero (web, 390×844 e pannello staff): fit di un Business con capo verificato, link non
+disponibile e link bloccato; clic → redirect → contatore a 1; pagina del link bloccato; verifica
+di un sito non raggiungibile con il motivo spiegato; blocco e sblocco di un dominio dal pannello.
+
+Verifiche: 350 test API (+4); 244 test app (+5); 11 test del pannello (+1); ruff, mypy, tsc
+puliti; build del pannello ok.
+
+Note e decisioni da confermare:
+- Risposte 401/403/429 dei negozi contano come "sito raggiungibile": molti e-commerce respingono i
+  robot, e segnarli come rotti toglierebbe link buoni.
+- `utm_source` si aggiunge **solo** ai siti verificati dei Business (gli altri link restano come
+  li ha scritti l'autore).
+- Verifica dei siti solo con il file (niente record DNS per ora): più semplice per chi usa Shopify
+  e simili? Shopify non permette file in `.well-known`: per loro servirà il record DNS (da
+  aggiungere se i primi negozi lo chiedono).
+- I clic per singolo capo negli Insight non ci sono ancora (oggi: totale per fit).
+- Rischio residuo documentato: "DNS rebinding" tra il controllo dell'indirizzo e la connessione;
+  si chiude isolando la rete del worker (seduta 23).
+
+Schermate: `docs/screens/seduta-21-business.png`, `docs/screens/seduta-21-admin-domini.png`.
+
+Da fare in seduta 22: hardening (attestazione del dispositivo, anti-abuso dei voti, media e numero
+dei voti sul proprio fit aggiornati ogni ora, Semgrep, scansione ZAP).

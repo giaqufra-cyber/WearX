@@ -13,6 +13,7 @@ from app.config import get_settings
 from app.db import session_scope
 from app.feed import refresh_all
 from app.insights import ROME, aggregate_recent
+from app.link_check import check_due_links
 from app.logging_setup import configure_logging
 from app.media.jobs import cleanup_uploads, process_upload
 from app.privacy import build_export, expire_exports, purge_deleted_accounts
@@ -73,6 +74,12 @@ async def privacy_nightly(ctx: dict[str, Any]) -> tuple[int, int]:
         return expired, purged
 
 
+async def check_links(ctx: dict[str, Any]) -> int:
+    """Ogni 2 minuti: link ai negozi nuovi o da ricontrollare."""
+    async with session_scope() as session:
+        return await check_due_links(session)
+
+
 async def startup(ctx: dict[str, Any]) -> None:
     settings = get_settings()
     configure_logging(json_logs=settings.env not in ("local", "test"))
@@ -89,6 +96,7 @@ class WorkerSettings:
         cron(event_partitions, hour={3}, minute={17}),
         cron(insights_nightly, hour={3}, minute={40}),
         cron(privacy_nightly, hour={4}, minute={10}),
+        cron(check_links, minute=set(range(1, 60, 2))),
     ]
     # Gli orari dei lavori sono in ora italiana (anche quando il server è in UTC).
     timezone = ROME

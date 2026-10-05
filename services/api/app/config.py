@@ -78,6 +78,10 @@ class Settings(BaseSettings):
     push_provider: Literal["expo", "log"] = "log"
     expo_access_token: SecretStr | None = None
 
+    # Google Safe Browsing (liste di siti di phishing e malware) per i link ai negozi.
+    # Senza chiave valgono solo i domini bloccati dallo staff.
+    safe_browsing_key: SecretStr | None = None
+
     # Versione dei termini che l'app mostra in registrazione.
     terms_version: str = "2026-10"
 
@@ -85,7 +89,7 @@ class Settings(BaseSettings):
     feature_flags: dict[str, bool] = Field(
         default_factory=lambda: {
             "insights": True,
-            "business_accounts": False,
+            "business_accounts": True,
             "capsules": False,
             "spid_cie": False,
         }

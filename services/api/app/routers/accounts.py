@@ -286,6 +286,11 @@ async def update_me(body: ProfileUpdateIn, profile: CurrentProfile, session: Ses
             text(f"update app.profiles set {assignments} where id = :id"),  # noqa: S608
             {**changes, "id": profile.id},
         )
+        if changes.get("account_type") == "private":
+            # Tornando privato, i siti verificati non valgono più.
+            await session.execute(
+                text("delete from app.business_domains where user_id = :id"), {"id": profile.id}
+            )
         if changes.get("account_type") == "business":
             # Un profilo Business è pubblico: le richieste in attesa diventano follow.
             await session.execute(

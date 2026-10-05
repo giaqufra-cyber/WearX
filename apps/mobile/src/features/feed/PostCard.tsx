@@ -11,7 +11,7 @@ import { initials, matchLabel, totalPrice } from "@/features/feed/format";
 import { VotePanel } from "@/features/feed/VotePanel";
 import { ReportSheet } from "@/features/moderation/ReportSheet";
 import { IconButton } from "@/ui/IconButton";
-import { IconArrowUpRight, IconMore, IconShield } from "@/ui/icons";
+import { IconArrowUpRight, IconCheck, IconMore, IconShield } from "@/ui/icons";
 import { track } from "@/lib/events";
 
 type Props = {
@@ -90,25 +90,36 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting }: 
             {total ? <Text style={styles.itemsKicker}>TOTALE {total}</Text> : null}
           </View>
           {post.items.map((item) => {
-            const url = item.link?.url;
+            const link = item.link;
+            // Si apre passando dal redirect firmato (controlla il link al momento del clic).
+            const target = link && link.status !== "broken" ? (link.go_url ?? link.url) : null;
             return (
               <View key={item.position} style={styles.item}>
                 <View style={styles.itemText}>
-                  <Text style={styles.brand} numberOfLines={1}>
-                    {item.brand}
-                  </Text>
+                  <View style={styles.brandRow}>
+                    <Text style={styles.brand} numberOfLines={1}>
+                      {item.brand}
+                    </Text>
+                    {link?.verified ? (
+                      <View style={styles.verified} accessible aria-label="Negozio verificato">
+                        <IconCheck color={colors.onAccent} size={9} strokeWidth={3.4} />
+                      </View>
+                    ) : null}
+                  </View>
                   <Text style={styles.itemName} numberOfLines={1}>
                     {item.name}
                   </Text>
+                  {link?.status === "broken" ? <Text style={styles.linkNote}>Link non più disponibile</Text> : null}
+                  {link?.status === "blocked" ? <Text style={styles.linkNote}>Link rimosso per sicurezza</Text> : null}
                 </View>
                 {item.price_cents !== null ? <Text style={styles.price}>{formatPrice(item.price_cents)}</Text> : null}
-                {url ? (
+                {target ? (
                   <Pressable
                     role="link"
-                    aria-label={`Apri ${item.link?.domain ?? "il negozio"}`}
+                    aria-label={`Apri ${link?.domain ?? "il negozio"}`}
                     onPress={() => {
                       track({ name: "shop_click", post_id: post.id, item: item.position });
-                      void WebBrowser.openBrowserAsync(url);
+                      void WebBrowser.openBrowserAsync(target);
                     }}
                     style={styles.shop}
                   >
@@ -188,6 +199,16 @@ const styles = StyleSheet.create({
     borderTopColor: "#161619",
   },
   itemText: { flex: 1, minWidth: 0 },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  verified: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: colors.accent,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  linkNote: { fontFamily: fonts.ui, fontSize: 11, color: colors.textTertiary, marginTop: 2 },
   brand: {
     fontFamily: fonts.uiBold,
     fontSize: 11,

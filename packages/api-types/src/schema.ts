@@ -55,6 +55,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/blocked-domains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Blocked Domains */
+        get: operations["blocked_domains_v1_admin_blocked_domains_get"];
+        put?: never;
+        /** Add Blocked Domain */
+        post: operations["add_blocked_domain_v1_admin_blocked_domains_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/blocked-domains/{domain}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Blocked Domain */
+        delete: operations["remove_blocked_domain_v1_admin_blocked_domains__domain__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/me": {
         parameters: {
             query?: never;
@@ -797,6 +832,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/shop-domains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Domains */
+        get: operations["list_domains_v1_me_shop_domains_get"];
+        put?: never;
+        /** Add Domain */
+        post: operations["add_domain_v1_me_shop_domains_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/shop-domains/{domain}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Domain */
+        delete: operations["remove_domain_v1_me_shop_domains__domain__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/shop-domains/{domain}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify Domain */
+        post: operations["verify_domain_v1_me_shop_domains__domain__verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/styles": {
         parameters: {
             query?: never;
@@ -1382,6 +1469,27 @@ export interface components {
             /** Nickname */
             nickname: string;
         };
+        /** BlockedDomainIn */
+        BlockedDomainIn: {
+            /** Domain */
+            domain: string;
+            /** Reason */
+            reason: string;
+        };
+        /** BlockedDomainOut */
+        BlockedDomainOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Domain */
+            domain: string;
+            /** Links */
+            links: number;
+            /** Reason */
+            reason: string;
+        };
         /** CapsuleIn */
         CapsuleIn: {
             /** Name */
@@ -1698,6 +1806,8 @@ export interface components {
         LinkOut: {
             /** Domain */
             domain: string;
+            /** Go Url */
+            go_url?: string | null;
             /**
              * Id
              * Format: uuid
@@ -1707,9 +1817,14 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "pending" | "safe" | "blocked";
+            status: "pending" | "safe" | "blocked" | "broken";
             /** Url */
             url: string | null;
+            /**
+             * Verified
+             * @default false
+             */
+            verified: boolean;
         };
         /** MarkRead */
         MarkRead: {
@@ -2302,6 +2417,24 @@ export interface components {
              */
             post_id: string;
         };
+        /** ShopDomainIn */
+        ShopDomainIn: {
+            /** Domain */
+            domain: string;
+        };
+        /** ShopDomainOut */
+        ShopDomainOut: {
+            /** Domain */
+            domain: string;
+            /** File Content */
+            file_content: string;
+            /** File Url */
+            file_url: string;
+            /** Verified */
+            verified: boolean;
+            /** Verified At */
+            verified_at: string | null;
+        };
         /** StaffIn */
         StaffIn: {
             /**
@@ -2581,6 +2714,11 @@ export interface components {
             stats: components["schemas"]["UserStats"];
             /** Styles */
             styles: components["schemas"]["StyleRef"][];
+            /**
+             * Verified Domains
+             * @default []
+             */
+            verified_domains: string[];
         };
         /** UserRow */
         UserRow: {
@@ -2728,6 +2866,88 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AuditPage"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    blocked_domains_v1_admin_blocked_domains_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BlockedDomainOut"][];
+                };
+            };
+        };
+    };
+    add_blocked_domain_v1_admin_blocked_domains_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BlockedDomainIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BlockedDomainOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_blocked_domain_v1_admin_blocked_domains__domain__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                domain: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -4164,6 +4384,119 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_domains_v1_me_shop_domains_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShopDomainOut"][];
+                };
+            };
+        };
+    };
+    add_domain_v1_me_shop_domains_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShopDomainIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShopDomainOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_domain_v1_me_shop_domains__domain__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                domain: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_domain_v1_me_shop_domains__domain__verify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                domain: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShopDomainOut"];
+                };
             };
             /** @description Validation Error */
             422: {

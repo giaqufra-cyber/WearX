@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import AppealsPage from "@/app/appeals/page";
+import DomainsPage from "@/app/domains/page";
 import StaffPage from "@/app/staff/page";
 import StylesPage from "@/app/styles/page";
 
@@ -127,6 +128,38 @@ describe("Le scritture mandano solo i campi che l'API accetta", () => {
       url: "http://localhost:8000/v1/admin/staff/nuova.mod",
       method: "PUT",
       body: { role: "moderator" },
+    });
+  });
+
+  test("dominio bloccato: dominio e motivo; sblocco con conferma", async () => {
+    serve({
+      "GET http://localhost:8000/v1/admin/blocked-domains": [
+        { domain: "falso.com", reason: "phishing", created_at: "2026-10-05T10:00:00Z", links: 3 },
+      ],
+      "POST http://localhost:8000/v1/admin/blocked-domains": {
+        domain: "truffa.it",
+        reason: "imita un marchio",
+        created_at: "2026-10-05T11:00:00Z",
+        links: 2,
+      },
+      "DELETE http://localhost:8000/v1/admin/blocked-domains/falso.com": null,
+    });
+    render(<DomainsPage />, { wrapper });
+    expect(await screen.findByText("falso.com")).toBeTruthy();
+    await userEvent.type(screen.getByLabelText("Dominio"), " truffa.it ");
+    await userEvent.type(screen.getByLabelText("Motivo"), "imita un marchio");
+    await userEvent.click(screen.getByRole("button", { name: "Blocca" }));
+    await waitFor(() => expect(writes()).toHaveLength(1));
+    expect(writes()[0]!.body).toEqual({ domain: "truffa.it", reason: "imita un marchio" });
+    expect(await screen.findByText("truffa.it bloccato · 2 link fermati")).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: "Sblocca" }));
+    expect(writes()).toHaveLength(1);
+    await userEvent.click(screen.getByRole("button", { name: "Conferma sblocco" }));
+    await waitFor(() => expect(writes()).toHaveLength(2));
+    expect(writes()[1]).toEqual({
+      url: "http://localhost:8000/v1/admin/blocked-domains/falso.com",
+      method: "DELETE",
+      body: undefined,
     });
   });
 });

@@ -115,6 +115,8 @@ function RootNavigator() {
         <Stack.Screen name="data-export" />
         <Stack.Screen name="delete-account" />
         <Stack.Screen name="change-password" />
+        <Stack.Screen name="account-type" />
+        <Stack.Screen name="shop-domains" />
         <Stack.Screen name="new-post" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
       </Stack.Protected>
       <Stack.Protected guard={shown === "auth"}>

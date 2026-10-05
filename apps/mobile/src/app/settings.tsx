@@ -35,6 +35,23 @@ export default function SettingsScreen() {
           />
         </Section>
 
+        {profile?.age_band === "18_plus" ? (
+          <Section title="ACCOUNT">
+            <ListRow
+              label="Tipo di account"
+              value={profile.account_type === "business" ? "Business" : "Privato"}
+              onPress={() => router.push("/account-type")}
+            />
+            {profile.account_type === "business" ? (
+              <ListRow
+                label="I tuoi negozi"
+                description="Verifica il sito del tuo negozio."
+                onPress={() => router.push("/shop-domains")}
+              />
+            ) : null}
+          </Section>
+        ) : null}
+
         <Section title="ACCESSO">
           <ListRow label="Cambia password" onPress={() => router.push("/change-password")} />
           <ListRow

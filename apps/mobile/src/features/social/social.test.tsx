@@ -33,6 +33,7 @@ const get = apiGet as jest.Mock;
 const request = apiRequest as jest.Mock;
 
 const person = (extra: Partial<UserProfile> = {}): UserProfile => ({
+  verified_domains: [],
   nickname: "giulia.rossi",
   bio: null,
   account_type: "private",

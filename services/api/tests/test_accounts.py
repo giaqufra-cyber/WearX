@@ -212,7 +212,9 @@ async def test_minor_profile_keeps_age_band(client, keys, db_admin):
     assert profile["age_band"] == "16_17"
 
 
-async def test_business_disabled_by_feature_flag(client, keys, db_admin):
+async def test_business_disabled_by_feature_flag(client, keys, db_admin, monkeypatch):
+    # Il flag ora è acceso (seduta 21), ma spegnerlo deve ancora fermare i Business.
+    monkeypatch.setitem(get_settings().feature_flags, "business_accounts", False)
     user_id = create_auth_user(db_admin)
     pass_age_check(db_admin, user_id)
     r = await client.post(

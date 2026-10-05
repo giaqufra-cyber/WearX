@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.links import go_url
 from app.post_access import AUTHOR_SHOWN_SQL, POST_VISIBLE_SQL
 from app.profiles import Profile
 from app.routers.media import MediaUrls, media_urls
@@ -33,9 +34,14 @@ class AuthorRef(BaseModel):
 class LinkOut(BaseModel):
     id: uuid.UUID
     domain: str
-    status: Literal["pending", "safe", "blocked"]
+    # pending: non ancora controllato; broken: la pagina non esiste più.
+    status: Literal["pending", "safe", "blocked", "broken"]
     # Assente se il link è stato bloccato dai controlli.
     url: str | None
+    # Da aprire nell'app: passa dal redirect firmato (controllo al momento del clic).
+    go_url: str | None = None
+    # Il sito appartiene all'autore del fit (account Business con dominio verificato).
+    verified: bool = False
 
 
 class ItemOut(BaseModel):
@@ -183,7 +189,12 @@ async def posts_out(
             text(
                 """select i.post_id, i.position, i.brand, i.name, i.price_cents, i.currency,
                           i.media_position, i.pin_x, i.pin_y,
-                          l.id as link_id, l.url, l.domain, l.status::text as link_status
+                          l.id as link_id, l.url, l.domain, l.status::text as link_status,
+                          exists (select 1 from app.business_domains bd
+                                    join app.posts p on p.id = i.post_id
+                                   where bd.user_id = p.author_id and bd.verified_at is not null
+                                     and (l.domain = bd.domain or l.domain like '%.' || bd.domain))
+                            as link_verified
                      from app.post_items i left join app.links l on l.id = i.link_id
                     where i.post_id = any(:ids) order by i.post_id, i.position"""
             ),
@@ -218,6 +229,10 @@ async def posts_out(
                         domain=i["domain"],
                         status=i["link_status"],
                         url=None if i["link_status"] == "blocked" else i["url"],
+                        go_url=None
+                        if i["link_status"] == "blocked"
+                        else go_url(i["link_id"], row["id"], i["position"]),
+                        verified=i["link_verified"],
                     )
                     if i["link_id"]
                     else None,

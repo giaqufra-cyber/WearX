@@ -17,9 +17,11 @@ from app.routers import (
     admin_console,
     admin_moderation,
     age,
+    business,
     config,
     events,
     feed,
+    go,
     health,
     insights,
     media,
@@ -86,6 +88,8 @@ def create_app() -> FastAPI:
     app.include_router(events.router)
     app.include_router(insights.router)
     app.include_router(privacy.router)
+    app.include_router(business.router)
+    app.include_router(go.router)
     app.include_router(admin_moderation.router)
     app.include_router(admin_console.router)
     if settings.age_provider == "fake" and not settings.is_production:

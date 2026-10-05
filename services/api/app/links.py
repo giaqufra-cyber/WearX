@@ -2,15 +2,24 @@
 
 Si rifiutano: http, credenziali nell'indirizzo (https://utente:pw@…), indirizzi IP,
 localhost e domini interni, porte diverse da 443, indirizzi troppo lunghi.
-Il controllo di sicurezza del sito (liste di phishing/malware) arriva con la seduta 21:
-fino ad allora il link resta "pending".
+Il controllo del sito (liste di phishing/malware, pagina esistente) è in `app.link_check`.
+
+Nell'app i link non si aprono direttamente: passano da `/r/<codice>` (redirect firmato), che
+controlla lo stato del link AL MOMENTO DEL CLIC (un sito diventato pericoloso dopo la
+pubblicazione si ferma lì) e conta il clic.
 """
 
 from __future__ import annotations
 
+import base64
+import binascii
+import hashlib
+import hmac
 import ipaddress
+import uuid
 from urllib.parse import urlsplit, urlunsplit
 
+from app.config import get_settings
 from app.errors import ApiError
 
 MAX_URL_LENGTH = 2048
@@ -57,3 +66,39 @@ def normalize_shop_url(raw: str) -> tuple[str, str]:
         raise _invalid("indirizzo troppo lungo")
     domain = ascii_host.removeprefix("www.")
     return url, domain
+
+
+# ---------- Redirect firmato ----------
+
+_SIG = 10  # byte di firma: abbastanza per non essere indovinata, link corti
+
+
+def _sign(payload: bytes) -> bytes:
+    pepper = get_settings().vote_pepper.get_secret_value().encode()
+    return hmac.new(pepper, b"go:" + payload, hashlib.sha256).digest()[:_SIG]
+
+
+def go_token(link_id: uuid.UUID, post_id: uuid.UUID, item: int) -> str:
+    payload = link_id.bytes + post_id.bytes + bytes([item])
+    return base64.urlsafe_b64encode(payload + _sign(payload)).decode().rstrip("=")
+
+
+def parse_go_token(token: str) -> tuple[uuid.UUID, uuid.UUID, int] | None:
+    """(link, post, posizione del capo) se il codice è integro, altrimenti None."""
+    if len(token) > 64:
+        return None
+    try:
+        raw = base64.urlsafe_b64decode(token + "=" * (-len(token) % 4))
+    except (binascii.Error, ValueError):
+        return None
+    if len(raw) != 33 + _SIG:
+        return None
+    payload, signature = raw[:33], raw[33:]
+    if not hmac.compare_digest(signature, _sign(payload)):
+        return None
+    return uuid.UUID(bytes=payload[:16]), uuid.UUID(bytes=payload[16:32]), payload[32]
+
+
+def go_url(link_id: uuid.UUID, post_id: uuid.UUID, item: int) -> str:
+    base = get_settings().public_api_url.rstrip("/")
+    return f"{base}/r/{go_token(link_id, post_id, item)}"

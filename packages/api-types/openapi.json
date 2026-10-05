@@ -662,6 +662,58 @@
         "title": "AuthorRef",
         "type": "object"
       },
+      "BlockedDomainIn": {
+        "additionalProperties": false,
+        "properties": {
+          "domain": {
+            "maxLength": 255,
+            "minLength": 3,
+            "title": "Domain",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 200,
+            "minLength": 3,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "domain",
+          "reason"
+        ],
+        "title": "BlockedDomainIn",
+        "type": "object"
+      },
+      "BlockedDomainOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "domain": {
+            "title": "Domain",
+            "type": "string"
+          },
+          "links": {
+            "title": "Links",
+            "type": "integer"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "domain",
+          "reason",
+          "created_at",
+          "links"
+        ],
+        "title": "BlockedDomainOut",
+        "type": "object"
+      },
       "CapsuleIn": {
         "additionalProperties": false,
         "properties": {
@@ -1677,6 +1729,17 @@
             "title": "Domain",
             "type": "string"
           },
+          "go_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Go Url"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -1686,7 +1749,8 @@
             "enum": [
               "pending",
               "safe",
-              "blocked"
+              "blocked",
+              "broken"
             ],
             "title": "Status",
             "type": "string"
@@ -1701,6 +1765,11 @@
               }
             ],
             "title": "Url"
+          },
+          "verified": {
+            "default": false,
+            "title": "Verified",
+            "type": "boolean"
           }
         },
         "required": [
@@ -3474,6 +3543,63 @@
         "title": "ShopClick",
         "type": "object"
       },
+      "ShopDomainIn": {
+        "additionalProperties": false,
+        "properties": {
+          "domain": {
+            "maxLength": 255,
+            "minLength": 3,
+            "title": "Domain",
+            "type": "string"
+          }
+        },
+        "required": [
+          "domain"
+        ],
+        "title": "ShopDomainIn",
+        "type": "object"
+      },
+      "ShopDomainOut": {
+        "properties": {
+          "domain": {
+            "title": "Domain",
+            "type": "string"
+          },
+          "file_content": {
+            "title": "File Content",
+            "type": "string"
+          },
+          "file_url": {
+            "title": "File Url",
+            "type": "string"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          }
+        },
+        "required": [
+          "domain",
+          "verified",
+          "verified_at",
+          "file_url",
+          "file_content"
+        ],
+        "title": "ShopDomainOut",
+        "type": "object"
+      },
       "StaffIn": {
         "additionalProperties": false,
         "properties": {
@@ -4344,6 +4470,14 @@
             },
             "title": "Styles",
             "type": "array"
+          },
+          "verified_domains": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Verified Domains",
+            "type": "array"
           }
         },
         "required": [
@@ -4721,6 +4855,105 @@
           }
         },
         "summary": "Audit Log",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/blocked-domains": {
+      "get": {
+        "operationId": "blocked_domains_v1_admin_blocked_domains_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BlockedDomainOut"
+                  },
+                  "title": "Response Blocked Domains V1 Admin Blocked Domains Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Blocked Domains",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "add_blocked_domain_v1_admin_blocked_domains_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BlockedDomainIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockedDomainOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Blocked Domain",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/blocked-domains/{domain}": {
+      "delete": {
+        "operationId": "remove_blocked_domain_v1_admin_blocked_domains__domain__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "required": true,
+            "schema": {
+              "title": "Domain",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Blocked Domain",
         "tags": [
           "admin"
         ]
@@ -6614,6 +6847,147 @@
         "summary": "Remove Token",
         "tags": [
           "notifications"
+        ]
+      }
+    },
+    "/v1/me/shop-domains": {
+      "get": {
+        "operationId": "list_domains_v1_me_shop_domains_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ShopDomainOut"
+                  },
+                  "title": "Response List Domains V1 Me Shop Domains Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Domains",
+        "tags": [
+          "business"
+        ]
+      },
+      "post": {
+        "operationId": "add_domain_v1_me_shop_domains_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopDomainIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopDomainOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Domain",
+        "tags": [
+          "business"
+        ]
+      }
+    },
+    "/v1/me/shop-domains/{domain}": {
+      "delete": {
+        "operationId": "remove_domain_v1_me_shop_domains__domain__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "required": true,
+            "schema": {
+              "title": "Domain",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Domain",
+        "tags": [
+          "business"
+        ]
+      }
+    },
+    "/v1/me/shop-domains/{domain}/verify": {
+      "post": {
+        "operationId": "verify_domain_v1_me_shop_domains__domain__verify_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "domain",
+            "required": true,
+            "schema": {
+              "title": "Domain",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopDomainOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verify Domain",
+        "tags": [
+          "business"
         ]
       }
     },

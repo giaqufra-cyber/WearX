@@ -87,6 +87,8 @@ class UserOut(BaseModel):
     relationship: Relationship
     # Solo sul proprio profilo: richieste di follow da accettare.
     pending_requests: int | None = None
+    # Account Business: i siti del negozio verificati.
+    verified_domains: list[str] = []
 
 
 class PortfolioTile(BaseModel):
@@ -202,7 +204,21 @@ async def get_user(nickname: str, viewer: CurrentProfile, session: Session) -> U
             {"id": target.id},
         )
     ).one()
+    domains: list[str] = []
+    if target.account_type == "business":
+        domains = list(
+            (
+                await session.execute(
+                    text(
+                        """select domain from app.business_domains
+                            where user_id = :id and verified_at is not null order by domain"""
+                    ),
+                    {"id": target.id},
+                )
+            ).scalars()
+        )
     return UserOut(
+        verified_domains=domains,
         followers=int(counts[0]),
         following=int(counts[1]),
         pending_requests=int(counts[2]) if own else None,

@@ -59,7 +59,14 @@ const post = (id: string, extra: Partial<Post> = {}): Post => ({
       name: "Smoking in lana",
       price_cents: 189_000,
       currency: "EUR",
-      link: { id: "l1", domain: "armani.com", status: "safe", url: "https://www.armani.com/smoking" },
+      link: {
+        id: "l1",
+        domain: "armani.com",
+        status: "safe",
+        url: "https://www.armani.com/smoking",
+        go_url: "http://localhost:8000/r/firmato",
+        verified: false,
+      },
       media_position: 0,
       pin_x: 0.5,
       pin_y: 0.3,
@@ -172,7 +179,7 @@ describe("Feed", () => {
     expect(get).toHaveBeenCalledWith("/v1/feed", expect.objectContaining({ token: "tok" }));
 
     await user.press(screen.getByRole("link", { name: "Apri armani.com" }));
-    expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith("https://www.armani.com/smoking");
+    expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith("http://localhost:8000/r/firmato");
     // Il capo senza link non ha il pulsante.
     expect(screen.queryAllByRole("link", { name: /^Apri [a-z0-9.-]+\.[a-z]+$/ })).toHaveLength(1);
     // Il nome dell'autore apre il suo profilo.

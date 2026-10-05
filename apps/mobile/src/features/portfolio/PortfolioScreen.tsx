@@ -29,7 +29,7 @@ import { ApiError } from "@/lib/api";
 import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { IconButton } from "@/ui/IconButton";
-import { IconBack, IconChart, IconFolder, IconLock, IconMore, IconSliders, IconUserPlus } from "@/ui/icons";
+import { IconBack, IconChart, IconCheck, IconFolder, IconLock, IconMore, IconSliders, IconUserPlus } from "@/ui/icons";
 import { ErrorNotice } from "@/ui/LoadState";
 import { Sheet } from "@/ui/Sheet";
 import { Skeleton } from "@/ui/Skeleton";
@@ -367,6 +367,18 @@ function ProfileHead({ profile }: { profile: UserProfile }) {
           />
         </View>
         {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
+        {(profile.verified_domains ?? []).length > 0 ? (
+          <View style={styles.shops}>
+            {profile.verified_domains.map((domain) => (
+              <View key={domain} style={styles.shop} accessible aria-label={`Negozio verificato: ${domain}`}>
+                <View style={styles.shopCheck}>
+                  <IconCheck color={colors.onAccent} size={9} strokeWidth={3.4} />
+                </View>
+                <Text style={styles.shopText}>{domain}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
         {profile.styles.length > 0 ? (
           <View style={styles.styleChips} aria-label={`Stili: ${profile.styles.map((s) => s.name).join(", ")}`}>
             {profile.styles.slice(0, MAX_STYLE_CHIPS).map((style) => (
@@ -464,6 +476,17 @@ function AccountSheet({ visible, onClose }: { visible: boolean; onClose: () => v
 }
 
 const styles = StyleSheet.create({
+  shops: { flexDirection: "row", flexWrap: "wrap", gap: spacing[3] },
+  shop: { flexDirection: "row", alignItems: "center", gap: 6 },
+  shopCheck: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: colors.accent,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  shopText: { fontFamily: fonts.uiSemiBold, fontSize: 13, color: colors.text },
   safe: { flex: 1, backgroundColor: colors.background },
   list: { flex: 1 },
   content: { alignSelf: "center", paddingBottom: spacing[6] },

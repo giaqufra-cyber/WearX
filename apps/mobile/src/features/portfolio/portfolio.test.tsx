@@ -54,6 +54,7 @@ const page = (items: PortfolioTile[], extra: Partial<PortfolioPage> = {}): Portf
 });
 
 const user = (extra: Partial<UserProfile> = {}): UserProfile => ({
+  verified_domains: [],
   nickname: "fra.fit",
   bio: "Trento, presto Monaco.",
   account_type: "private",
