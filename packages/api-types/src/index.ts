@@ -55,6 +55,11 @@ export type NotificationSettingsUpdate = Schemas["NotificationSettingsPatch"];
 export type PushTokenRequest = Schemas["PushTokenIn"];
 export type UsageEvent = Schemas["EventBatch"]["events"][number];
 export type UsageEventBatch = Schemas["EventBatch"];
+export type Insights = Schemas["InsightsOut"];
+export type InsightMetric = Schemas["Metric"];
+export type InsightPoint = Schemas["InsightPoint"];
+export type InsightPost = Schemas["InsightPost"];
+export type InsightPeriod = Schemas["InsightsOut"]["days"];
 
 // Pannello dello staff (/v1/admin)
 export type StaffMe = Schemas["StaffMe"];
@@ -114,6 +119,8 @@ export type ApiErrorCode =
   | "follow.not_allowed"
   | "follow.request_not_found"
   | "follow.self"
+  | "insights.bad_period"
+  | "insights.disabled"
   | "item.bad_media_position"
   | "item.incomplete"
   | "link.invalid"

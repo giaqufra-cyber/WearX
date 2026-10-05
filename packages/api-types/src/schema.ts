@@ -543,6 +543,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Insights */
+        get: operations["insights_v1_me_insights_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/moderation": {
         parameters: {
             query?: never;
@@ -1341,6 +1358,83 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** InsightPoint */
+        InsightPoint: {
+            /** Impressions */
+            impressions: number | null;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /** Votes */
+            votes: number | null;
+        };
+        /** InsightPost */
+        InsightPost: {
+            /** Average */
+            average: number | null;
+            /** Blurhash */
+            blurhash: string | null;
+            /** Caption */
+            caption: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Impressions */
+            impressions: number | null;
+            /** Shop Clicks */
+            shop_clicks: number | null;
+            /** Style */
+            style: string;
+            thumb: components["schemas"]["MediaUrls"] | null;
+            /** Votes */
+            votes: number | null;
+        };
+        /** InsightTotals */
+        InsightTotals: {
+            /** Average */
+            average: number | null;
+            impressions: components["schemas"]["Metric"];
+            opens: components["schemas"]["Metric"];
+            profile_views: components["schemas"]["Metric"];
+            shop_clicks: components["schemas"]["Metric"];
+            votes: components["schemas"]["Metric"];
+        };
+        /** InsightsOut */
+        InsightsOut: {
+            /**
+             * Bucket
+             * @enum {string}
+             */
+            bucket: "day" | "week";
+            /**
+             * Days
+             * @enum {integer}
+             */
+            days: 7 | 28 | 90;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /** Series */
+            series: components["schemas"]["InsightPoint"][];
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /** Threshold */
+            threshold: number;
+            /** Top Posts */
+            top_posts: components["schemas"]["InsightPost"][];
+            totals: components["schemas"]["InsightTotals"];
+            /** Updated At */
+            updated_at: string | null;
+        };
         /** ItemIn */
         ItemIn: {
             /** Brand */
@@ -1445,6 +1539,13 @@ export interface components {
             variants: {
                 [key: string]: string;
             };
+        };
+        /** Metric */
+        Metric: {
+            /** Change */
+            change: number | null;
+            /** Value */
+            value: number | null;
         };
         /** NicknameCheckIn */
         NicknameCheckIn: {
@@ -3410,6 +3511,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PeoplePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    insights_v1_me_insights_get: {
+        parameters: {
+            query?: {
+                /** @description Periodo: 7, 28 o 90 giorni */
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InsightsOut"];
                 };
             };
             /** @description Validation Error */

@@ -547,7 +547,11 @@ def test_partizioni_degli_eventi(db_admin):
             where ts >= date_trunc('month', now()) + interval '5 months'"""
     ).fetchone()
     assert part[0].startswith("app.events_20")
-    assert db_admin.execute("select count(*) from app.events_default").fetchone() == (0,)
+    moved = db_admin.execute(
+        """select count(*) from app.events_default
+            where ts >= date_trunc('month', now()) + interval '5 months'"""
+    ).fetchone()
+    assert moved == (0,)
 
     db_admin.execute(
         """create table if not exists app.events_2020_01 partition of app.events

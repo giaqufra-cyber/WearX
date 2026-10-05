@@ -11,6 +11,7 @@ from sqlalchemy import text
 from app.config import get_settings
 from app.db import session_scope
 from app.feed import refresh_all
+from app.insights import ROME, aggregate_recent
 from app.logging_setup import configure_logging
 from app.media.jobs import cleanup_uploads, process_upload
 from app.push import check_receipts, get_sender, send_pending, vote_milestones
@@ -49,6 +50,12 @@ async def event_partitions(ctx: dict[str, Any]) -> tuple[int, int]:
         return int(made or 0), int(dropped or 0)
 
 
+async def insights_nightly(ctx: dict[str, Any]) -> int:
+    """Ogni notte: totali degli Insight di ieri e dell'altro ieri."""
+    async with session_scope() as session:
+        return await aggregate_recent(session)
+
+
 async def startup(ctx: dict[str, Any]) -> None:
     settings = get_settings()
     configure_logging(json_logs=settings.env not in ("local", "test"))
@@ -63,7 +70,10 @@ class WorkerSettings:
         cron(milestones, minute=set(range(2, 60, 10))),
         cron(push_receipts, minute={7, 22, 37, 52}),
         cron(event_partitions, hour={3}, minute={17}),
+        cron(insights_nightly, hour={3}, minute={40}),
     ]
+    # Gli orari dei lavori sono in ora italiana (anche quando il server è in UTC).
+    timezone = ROME
     on_startup = startup
     redis_settings = RedisSettings.from_dsn(get_settings().redis_url)
     max_jobs = 4

@@ -109,6 +109,7 @@ function RootNavigator() {
         <Stack.Screen name="moderation" />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="notification-settings" />
+        <Stack.Screen name="insights" />
         <Stack.Screen name="new-post" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
       </Stack.Protected>
       <Stack.Protected guard={shown === "auth"}>

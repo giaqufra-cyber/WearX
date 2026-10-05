@@ -970,6 +970,263 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "InsightPoint": {
+        "properties": {
+          "impressions": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impressions"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          },
+          "votes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Votes"
+          }
+        },
+        "required": [
+          "start",
+          "impressions",
+          "votes"
+        ],
+        "title": "InsightPoint",
+        "type": "object"
+      },
+      "InsightPost": {
+        "properties": {
+          "average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average"
+          },
+          "blurhash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blurhash"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "impressions": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impressions"
+          },
+          "shop_clicks": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shop Clicks"
+          },
+          "style": {
+            "title": "Style",
+            "type": "string"
+          },
+          "thumb": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MediaUrls"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "votes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Votes"
+          }
+        },
+        "required": [
+          "id",
+          "caption",
+          "style",
+          "blurhash",
+          "thumb",
+          "impressions",
+          "votes",
+          "average",
+          "shop_clicks"
+        ],
+        "title": "InsightPost",
+        "type": "object"
+      },
+      "InsightTotals": {
+        "properties": {
+          "average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average"
+          },
+          "impressions": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "opens": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "profile_views": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "shop_clicks": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "votes": {
+            "$ref": "#/components/schemas/Metric"
+          }
+        },
+        "required": [
+          "impressions",
+          "opens",
+          "votes",
+          "shop_clicks",
+          "profile_views",
+          "average"
+        ],
+        "title": "InsightTotals",
+        "type": "object"
+      },
+      "InsightsOut": {
+        "properties": {
+          "bucket": {
+            "enum": [
+              "day",
+              "week"
+            ],
+            "title": "Bucket",
+            "type": "string"
+          },
+          "days": {
+            "enum": [
+              7,
+              28,
+              90
+            ],
+            "title": "Days",
+            "type": "integer"
+          },
+          "end": {
+            "format": "date",
+            "title": "End",
+            "type": "string"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/InsightPoint"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          },
+          "threshold": {
+            "title": "Threshold",
+            "type": "integer"
+          },
+          "top_posts": {
+            "items": {
+              "$ref": "#/components/schemas/InsightPost"
+            },
+            "title": "Top Posts",
+            "type": "array"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/InsightTotals"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "days",
+          "start",
+          "end",
+          "updated_at",
+          "threshold",
+          "bucket",
+          "totals",
+          "series",
+          "top_posts"
+        ],
+        "title": "InsightsOut",
+        "type": "object"
+      },
       "ItemIn": {
         "additionalProperties": false,
         "properties": {
@@ -1304,6 +1561,38 @@
           "expires_at"
         ],
         "title": "MediaUrls",
+        "type": "object"
+      },
+      "Metric": {
+        "properties": {
+          "change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "change"
+        ],
+        "title": "Metric",
         "type": "object"
       },
       "NicknameCheckIn": {
@@ -5550,6 +5839,51 @@
         "summary": "Following",
         "tags": [
           "social"
+        ]
+      }
+    },
+    "/v1/me/insights": {
+      "get": {
+        "operationId": "insights_v1_me_insights_get",
+        "parameters": [
+          {
+            "description": "Periodo: 7, 28 o 90 giorni",
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 7,
+              "description": "Periodo: 7, 28 o 90 giorni",
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsightsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Insights",
+        "tags": [
+          "insights"
         ]
       }
     },

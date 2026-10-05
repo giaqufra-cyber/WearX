@@ -813,3 +813,52 @@ Schermate: `docs/screens/seduta-18-notifiche.png`.
 Da fare in seduta 19: Insight per chi pubblica (riepilogo notturno degli eventi, API, schermata
 Insight con soglie minime per non far riconoscere chi ha guardato o votato).
 
+### Seduta 19 — 2026-10-05
+
+Fatto (API, migrazione 0013):
+- **Riepilogo notturno** (3:40, ora italiana): per ogni fit e giorno, persone diverse che l'hanno
+  visto, aperto, che hanno toccato un link di un negozio; voti ricevuti e loro somma; per ogni
+  autore, persone diverse che hanno visitato il profilo. Ricalcola ieri e l'altro ieri (gli eventi
+  arrivano fino a 24 ore dopo); al primo avvio ricostruisce gli ultimi 90 giorni. Ripetibile
+  senza doppioni. Gli orari dei lavori del worker ora sono in ora italiana.
+- `GET /v1/me/insights?days=7|28|90`: totali del periodo con la variazione rispetto al periodo
+  prima, media dei voti, andamento giorno per giorno (per settimana sui 90 giorni), i 5 fit più
+  visti. Solo i propri dati. Account o fit cancellati: spariscono anche i loro totali.
+- **Soglie di riservatezza**: i numeri da 1 a 4 non si mostrano («<5»), lo zero sì; la media dei
+  voti solo da 5 voti in su e mai giorno per giorno; la variazione percentuale solo se entrambi i
+  periodi superano la soglia.
+- Flag `insights` acceso.
+
+Fatto (app):
+- Pulsante **Insight** (icona grafico) in alto nel proprio profilo.
+- Schermata Insight: periodo 7/28/90 giorni, sei numeri (visualizzazioni, voti, media, aperture,
+  click ai negozi, visite al profilo) con ▲/▼ e percentuale rispetto al periodo prima, grafico a
+  colonne (viste o voti) dove si tocca un giorno per leggere il valore, i giorni con «meno di 5»
+  disegnati come contorno vuoto (forma diversa, non solo colore), i fit più visti con miniatura,
+  nota che spiega le soglie.
+
+Provato davvero (web, 390×844) con due mesi di attività simulata (20.672 eventi, 2.417 voti):
+7, 28 e 90 giorni, tocco su un giorno di calo, passaggio ai voti, fit più visti.
+
+Corretto provando: il periodo nell'indirizzo veniva rifiutato (7/28/90 come testo), la prima
+settimana dei 90 giorni partiva prima del periodo, titolo del grafico e valore massimo
+impaginati meglio; il profilo di un'altra persona non chiede più la configurazione.
+
+Verifiche: 341 test API (+5); 227 test app (+3); ruff, mypy, tsc puliti.
+
+Note e decisioni da confermare:
+- Insight aggiornati una volta per notte (dati fino a ieri): aggiornarli ogni ora renderebbe
+  più facile capire chi ha guardato o votato in un certo momento.
+- Da valutare in seduta 22 (hardening): sul proprio fit la media e il numero dei voti si
+  aggiornano a ogni voto. Chi pubblica, se sa che un amico sta votando proprio in quel momento,
+  può ricavare il suo voto dal cambio della media. Proposta: aggiornare media e conteggio a
+  intervalli (es. ogni ora) invece che in tempo reale.
+- Visualizzazioni = persone diverse per giorno, sommate sul periodo: chi guarda lo stesso fit in
+  due giorni diversi conta due volte (il numero esatto di persone uniche sul periodo
+  richiederebbe di tenere più a lungo gli eventi grezzi).
+
+Schermate: `docs/screens/seduta-19-insight.png`.
+
+Da fare in seduta 20: privacy e sicurezza nell'app (dispositivi collegati, scarica i tuoi dati,
+cancellazione dell'account con 30 giorni per ripensarci, impostazioni) e recupero password.
+

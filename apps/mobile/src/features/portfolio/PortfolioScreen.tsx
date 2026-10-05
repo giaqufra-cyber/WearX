@@ -24,11 +24,12 @@ import { accountTypeLabel, statValue } from "@/features/portfolio/format";
 import { ReportSheet } from "@/features/moderation/ReportSheet";
 import { FollowButton } from "@/features/social/FollowButton";
 import { PersonMenu } from "@/features/social/PersonMenu";
+import { useAppConfig } from "@/features/styles/useAppConfig";
 import { ApiError } from "@/lib/api";
 import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { IconButton } from "@/ui/IconButton";
-import { IconBack, IconFolder, IconLock, IconMore, IconSliders, IconUserPlus } from "@/ui/icons";
+import { IconBack, IconChart, IconFolder, IconLock, IconMore, IconSliders, IconUserPlus } from "@/ui/icons";
 import { ErrorNotice } from "@/ui/LoadState";
 import { Sheet } from "@/ui/Sheet";
 import { Skeleton } from "@/ui/Skeleton";
@@ -131,6 +132,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
         </View>
         {own ? (
           <>
+            <InsightButton />
             <IconButton label="Trova persone" onPress={() => router.push("/find")}>
               <IconUserPlus color={colors.text} />
             </IconButton>
@@ -315,6 +317,17 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
         />
       ) : null}
     </SafeAreaView>
+  );
+}
+
+/** Solo sul proprio profilo, se gli Insight sono attivi (flag dell'API). */
+function InsightButton() {
+  const on = useAppConfig().data?.feature_flags?.insights === true;
+  if (!on) return null;
+  return (
+    <IconButton label="Insight" onPress={() => router.push("/insights")}>
+      <IconChart color={colors.text} />
+    </IconButton>
   );
 }
 

@@ -21,6 +21,7 @@ from app.routers import (
     events,
     feed,
     health,
+    insights,
     media,
     notifications,
     portfolio,
@@ -82,6 +83,7 @@ def create_app() -> FastAPI:
     app.include_router(reports.router)
     app.include_router(notifications.router)
     app.include_router(events.router)
+    app.include_router(insights.router)
     app.include_router(admin_moderation.router)
     app.include_router(admin_console.router)
     if settings.age_provider == "fake" and not settings.is_production:

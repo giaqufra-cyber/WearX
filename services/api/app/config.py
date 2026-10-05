@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     # Feature flag esposti all'app via /v1/config.
     feature_flags: dict[str, bool] = Field(
         default_factory=lambda: {
-            "insights": False,
+            "insights": True,
             "business_accounts": False,
             "capsules": False,
             "spid_cie": False,
