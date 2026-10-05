@@ -14,6 +14,7 @@ from app.middleware import install_middleware
 from app.redis_client import close_redis
 from app.routers import (
     accounts,
+    admin_console,
     admin_moderation,
     age,
     config,
@@ -50,14 +51,17 @@ def create_app() -> FastAPI:
     )
     install_middleware(app)
     install_error_handlers(app)
+    # CORS: l'app nativa non ne ha bisogno (sez. 12.2). Si apre solo per l'anteprima web in
+    # locale e per le origini del pannello dello staff indicate nella configurazione.
+    origins = list(settings.admin_origins)
     if settings.env == "local":
-        # Solo in locale, per l'anteprima web dell'app (Expo su :8081). In ogni altro
-        # ambiente CORS resta chiuso: l'app nativa non ne ha bisogno (sez. 12.2).
+        origins += ["http://localhost:8081", "http://localhost:8082", "http://localhost:3000"]
+    if origins:
         from fastapi.middleware.cors import CORSMiddleware
 
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=["http://localhost:8081", "http://localhost:8082"],
+            allow_origins=origins,
             allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
             allow_headers=["*"],
             expose_headers=["X-Request-Id"],
@@ -75,6 +79,7 @@ def create_app() -> FastAPI:
     app.include_router(social.router)
     app.include_router(reports.router)
     app.include_router(admin_moderation.router)
+    app.include_router(admin_console.router)
     if settings.age_provider == "fake" and not settings.is_production:
         # Pagina del fornitore finto: solo sviluppo e test.
         from app.routers import dev_age

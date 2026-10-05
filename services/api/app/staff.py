@@ -44,6 +44,16 @@ async def current_staff(
 CurrentStaff = Annotated[Staff, Depends(current_staff)]
 
 
+async def current_admin(staff: CurrentStaff) -> Staff:
+    """Stili, staff e registro di audit: solo il ruolo admin."""
+    if staff.role != "admin":
+        raise ApiError(403, "staff.admin_required", "Serve il ruolo di amministratore")
+    return staff
+
+
+CurrentAdmin = Annotated[Staff, Depends(current_admin)]
+
+
 async def audit(
     session: AsyncSession, staff: Staff, action: str, target: str, details: dict[str, Any]
 ) -> None:

@@ -48,6 +48,26 @@ export type ReportReceipt = Schemas["ReportOut"];
 export type ModerationNotice = Schemas["NoticeOut"];
 export type Appeal = Schemas["AppealOut"];
 
+// Pannello dello staff (/v1/admin)
+export type StaffMe = Schemas["StaffMe"];
+export type AdminStats = Schemas["Stats"];
+export type QueueItem = Schemas["QueueItem"];
+export type ModerationDecision = Schemas["DecisionIn"];
+export type ModerationDecisionResult = Schemas["DecisionOut"];
+export type AdminPost = Schemas["AdminPost"];
+export type AdminUserRow = Schemas["UserRow"];
+export type UserCase = Schemas["UserCase"];
+export type ModerationAction = Schemas["ActionOut"];
+export type SanctionRequest = Schemas["SanctionIn"];
+export type AppealItem = Schemas["AppealItem"];
+export type AppealDecision = Schemas["AppealDecisionIn"];
+export type AdminStyle = Schemas["AdminStyle"];
+export type AdminStyleCreate = Schemas["StyleCreate"];
+export type AdminStyleUpdate = Schemas["StyleFields"];
+export type StaffRow = Schemas["StaffRow"];
+export type AuditPage = Schemas["AuditPage"];
+export type AuditRow = Schemas["AuditRow"];
+
 /** Codici di errore stabili restituiti dall'API (campo `code` di problem+json). */
 export type ApiErrorCode =
   | "account.business_requires_adult"
@@ -117,17 +137,22 @@ export type ApiErrorCode =
   | "request.invalid"
   | "resource.not_found"
   | "server.error"
+  | "staff.admin_required"
+  | "staff.last_admin"
   | "staff.mfa_required"
   | "style.age_restricted"
+  | "style.bad_dates"
   | "style.last_membership"
   | "style.limit"
   | "style.not_found"
+  | "style.slug_taken"
   | "terms.outdated"
   | "text.invalid_characters"
   | "text.not_allowed"
   | "text.too_long"
   | "text.too_many_lines"
   | "user.not_found"
+  | "user.not_restricted"
   | "vote.not_allowed"
   | "vote.own_post"
   | "webhook.rejected"

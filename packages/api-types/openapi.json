@@ -48,6 +48,18 @@
             "title": "Id",
             "type": "string"
           },
+          "reversed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reversed At"
+          },
           "statement": {
             "title": "Statement",
             "type": "string"
@@ -64,6 +76,187 @@
           "appeal_status"
         ],
         "title": "ActionOut",
+        "type": "object"
+      },
+      "AdminPost": {
+        "properties": {
+          "author": {
+            "title": "Author",
+            "type": "string"
+          },
+          "author_status": {
+            "title": "Author Status",
+            "type": "string"
+          },
+          "average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "media": {
+            "items": {
+              "$ref": "#/components/schemas/MediaOut"
+            },
+            "title": "Media",
+            "type": "array"
+          },
+          "minor_author": {
+            "title": "Minor Author",
+            "type": "boolean"
+          },
+          "reports": {
+            "items": {
+              "$ref": "#/components/schemas/ReportLine"
+            },
+            "title": "Reports",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "style": {
+            "title": "Style",
+            "type": "string"
+          },
+          "vote_count": {
+            "title": "Vote Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "author",
+          "author_status",
+          "minor_author",
+          "style",
+          "caption",
+          "created_at",
+          "media",
+          "items",
+          "vote_count",
+          "average",
+          "reports"
+        ],
+        "title": "AdminPost",
+        "type": "object"
+      },
+      "AdminStyle": {
+        "properties": {
+          "active_from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active From"
+          },
+          "active_until": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Until"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "members": {
+            "title": "Members",
+            "type": "integer"
+          },
+          "min_age_band": {
+            "enum": [
+              "16_17",
+              "18_plus"
+            ],
+            "title": "Min Age Band",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "posts_7d": {
+            "title": "Posts 7D",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          },
+          "tagline": {
+            "title": "Tagline",
+            "type": "string"
+          },
+          "tone": {
+            "title": "Tone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "tagline",
+          "tone",
+          "min_age_band",
+          "active_from",
+          "active_until",
+          "sort_order",
+          "is_active",
+          "members",
+          "posts_7d"
+        ],
+        "title": "AdminStyle",
         "type": "object"
       },
       "AgeSessionIn": {
@@ -356,6 +549,95 @@
           "decision_note"
         ],
         "title": "AppealOut",
+        "type": "object"
+      },
+      "AuditPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AuditRow"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "AuditPage",
+        "type": "object"
+      },
+      "AuditRow": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "staff": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "staff",
+          "action",
+          "target",
+          "details",
+          "ts"
+        ],
+        "title": "AuditRow",
         "type": "object"
       },
       "AuthorRef": {
@@ -1144,6 +1426,34 @@
         "title": "OnboardingIn",
         "type": "object"
       },
+      "OpenReports": {
+        "properties": {
+          "overdue": {
+            "title": "Overdue",
+            "type": "integer"
+          },
+          "p0": {
+            "title": "P0",
+            "type": "integer"
+          },
+          "p1": {
+            "title": "P1",
+            "type": "integer"
+          },
+          "p2": {
+            "title": "P2",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "p0",
+          "p1",
+          "p2",
+          "overdue"
+        ],
+        "title": "OpenReports",
+        "type": "object"
+      },
       "OrderIn": {
         "additionalProperties": false,
         "properties": {
@@ -1889,6 +2199,22 @@
         "title": "QueueItem",
         "type": "object"
       },
+      "ReinstateIn": {
+        "additionalProperties": false,
+        "properties": {
+          "note": {
+            "maxLength": 1000,
+            "minLength": 2,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "note"
+        ],
+        "title": "ReinstateIn",
+        "type": "object"
+      },
       "Relationship": {
         "properties": {
           "following": {
@@ -1982,6 +2308,47 @@
         "title": "ReportIn",
         "type": "object"
       },
+      "ReportLine": {
+        "properties": {
+          "auto": {
+            "title": "Auto",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason",
+          "details",
+          "status",
+          "auto",
+          "created_at"
+        ],
+        "title": "ReportLine",
+        "type": "object"
+      },
       "ReportOut": {
         "properties": {
           "id": {
@@ -2069,6 +2436,135 @@
         "title": "SanctionIn",
         "type": "object"
       },
+      "StaffIn": {
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "enum": [
+              "moderator",
+              "admin"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "title": "StaffIn",
+        "type": "object"
+      },
+      "StaffMe": {
+        "properties": {
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname"
+          },
+          "role": {
+            "enum": [
+              "moderator",
+              "admin"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "nickname"
+        ],
+        "title": "StaffMe",
+        "type": "object"
+      },
+      "StaffRow": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname"
+          },
+          "role": {
+            "enum": [
+              "moderator",
+              "admin"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nickname",
+          "role",
+          "created_at"
+        ],
+        "title": "StaffRow",
+        "type": "object"
+      },
+      "Stats": {
+        "properties": {
+          "appeals_open": {
+            "title": "Appeals Open",
+            "type": "integer"
+          },
+          "posts_7d": {
+            "title": "Posts 7D",
+            "type": "integer"
+          },
+          "posts_today": {
+            "title": "Posts Today",
+            "type": "integer"
+          },
+          "reports": {
+            "$ref": "#/components/schemas/OpenReports"
+          },
+          "suspended": {
+            "title": "Suspended",
+            "type": "integer"
+          },
+          "users": {
+            "title": "Users",
+            "type": "integer"
+          },
+          "users_new_7d": {
+            "title": "Users New 7D",
+            "type": "integer"
+          },
+          "votes_today": {
+            "title": "Votes Today",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "users",
+          "users_new_7d",
+          "posts_today",
+          "posts_7d",
+          "votes_today",
+          "reports",
+          "appeals_open",
+          "suspended"
+        ],
+        "title": "Stats",
+        "type": "object"
+      },
       "StyleCard": {
         "properties": {
           "active_until": {
@@ -2132,6 +2628,102 @@
           "joined"
         ],
         "title": "StyleCard",
+        "type": "object"
+      },
+      "StyleCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "active_from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active From"
+          },
+          "active_until": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Until"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "min_age_band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "16_17",
+                  "18_plus"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Age Band"
+          },
+          "name": {
+            "maxLength": 40,
+            "minLength": 2,
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "sort_order": {
+            "anyOf": [
+              {
+                "maximum": 10000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort Order"
+          },
+          "tagline": {
+            "maxLength": 90,
+            "minLength": 2,
+            "title": "Tagline",
+            "type": "string"
+          },
+          "tone": {
+            "default": "#2A2A2E",
+            "title": "Tone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "tagline",
+          "slug"
+        ],
+        "title": "StyleCreate",
         "type": "object"
       },
       "StyleDetail": {
@@ -2202,6 +2794,113 @@
           "posts_last_7_days"
         ],
         "title": "StyleDetail",
+        "type": "object"
+      },
+      "StyleFields": {
+        "additionalProperties": false,
+        "properties": {
+          "active_from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active From"
+          },
+          "active_until": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Until"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "min_age_band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "16_17",
+                  "18_plus"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Age Band"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "sort_order": {
+            "anyOf": [
+              {
+                "maximum": 10000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort Order"
+          },
+          "tagline": {
+            "anyOf": [
+              {
+                "maxLength": 90,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tagline"
+          },
+          "tone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tone"
+          }
+        },
+        "title": "StyleFields",
         "type": "object"
       },
       "StyleList": {
@@ -2612,6 +3311,45 @@
         "title": "UserOut",
         "type": "object"
       },
+      "UserRow": {
+        "properties": {
+          "account_type": {
+            "title": "Account Type",
+            "type": "string"
+          },
+          "age_band": {
+            "title": "Age Band",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "nickname": {
+            "title": "Nickname",
+            "type": "string"
+          },
+          "posts": {
+            "title": "Posts",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nickname",
+          "status",
+          "age_band",
+          "account_type",
+          "created_at",
+          "posts"
+        ],
+        "title": "UserRow",
+        "type": "object"
+      },
       "UserStats": {
         "properties": {
           "average": {
@@ -2875,6 +3613,132 @@
         ]
       }
     },
+    "/v1/admin/audit": {
+      "get": {
+        "operationId": "audit_log_v1_admin_audit_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Audit Log",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/me": {
+      "get": {
+        "operationId": "me_v1_admin_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffMe"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Me",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/posts/{post_id}": {
+      "get": {
+        "operationId": "post_v1_admin_posts__post_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "post_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Post Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPost"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/v1/admin/reports/decide": {
       "post": {
         "operationId": "decide_v1_admin_reports_decide_post",
@@ -2983,6 +3847,301 @@
         ]
       }
     },
+    "/v1/admin/staff": {
+      "get": {
+        "operationId": "list_staff_v1_admin_staff_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StaffRow"
+                  },
+                  "title": "Response List Staff V1 Admin Staff Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Staff",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/staff/{nickname}": {
+      "delete": {
+        "operationId": "delete_staff_v1_admin_staff__nickname__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nickname",
+            "required": true,
+            "schema": {
+              "title": "Nickname",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Staff",
+        "tags": [
+          "admin"
+        ]
+      },
+      "put": {
+        "operationId": "put_staff_v1_admin_staff__nickname__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nickname",
+            "required": true,
+            "schema": {
+              "title": "Nickname",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffRow"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Staff",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/stats": {
+      "get": {
+        "operationId": "stats_v1_admin_stats_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stats"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Stats",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/styles": {
+      "get": {
+        "operationId": "list_styles_v1_admin_styles_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminStyle"
+                  },
+                  "title": "Response List Styles V1 Admin Styles Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Styles",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "create_style_v1_admin_styles_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StyleCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminStyle"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Style",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/styles/{slug}": {
+      "patch": {
+        "operationId": "update_style_v1_admin_styles__slug__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StyleFields"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminStyle"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Style",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/users": {
+      "get": {
+        "operationId": "users_v1_admin_users_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 20,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserRow"
+                  },
+                  "title": "Response Users V1 Admin Users Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Users",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/v1/admin/users/{nickname}": {
       "get": {
         "operationId": "user_case_v1_admin_users__nickname__get",
@@ -3020,6 +4179,52 @@
           }
         },
         "summary": "User Case",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/users/{nickname}/reinstate": {
+      "post": {
+        "description": "Riattiva un account sospeso e toglie la sospensione della pubblicazione.",
+        "operationId": "reinstate_v1_admin_users__nickname__reinstate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nickname",
+            "required": true,
+            "schema": {
+              "title": "Nickname",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReinstateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reinstate",
         "tags": [
           "admin"
         ]

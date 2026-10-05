@@ -61,6 +61,7 @@ ignore = ["S101"]  # assert nei test
 "app/routers/portfolio.py" = ["S608"]
 "app/routers/social.py" = ["S608"]
 "app/routers/reports.py" = ["S608"]
+"app/routers/admin_console.py" = ["S608"]
 
 [tool.mypy]
 strict = true

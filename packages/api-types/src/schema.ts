@@ -38,6 +38,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Audit Log */
+        get: operations["audit_log_v1_admin_audit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["me_v1_admin_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/posts/{post_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Post */
+        get: operations["post_v1_admin_posts__post_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/reports/decide": {
         parameters: {
             query?: never;
@@ -72,6 +123,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Staff */
+        get: operations["list_staff_v1_admin_staff_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/staff/{nickname}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put Staff */
+        put: operations["put_staff_v1_admin_staff__nickname__put"];
+        post?: never;
+        /** Delete Staff */
+        delete: operations["delete_staff_v1_admin_staff__nickname__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stats */
+        get: operations["stats_v1_admin_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/styles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Styles */
+        get: operations["list_styles_v1_admin_styles_get"];
+        put?: never;
+        /** Create Style */
+        post: operations["create_style_v1_admin_styles_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/styles/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Style */
+        patch: operations["update_style_v1_admin_styles__slug__patch"];
+        trace?: never;
+    };
+    "/v1/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Users */
+        get: operations["users_v1_admin_users_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/users/{nickname}": {
         parameters: {
             query?: never;
@@ -83,6 +238,26 @@ export interface paths {
         get: operations["user_case_v1_admin_users__nickname__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/{nickname}/reinstate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reinstate
+         * @description Riattiva un account sospeso e toglie la sospensione della pubblicazione.
+         */
+        post: operations["reinstate_v1_admin_users__nickname__reinstate_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -732,8 +907,73 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Reversed At */
+            reversed_at?: string | null;
             /** Statement */
             statement: string;
+        };
+        /** AdminPost */
+        AdminPost: {
+            /** Author */
+            author: string;
+            /** Author Status */
+            author_status: string;
+            /** Average */
+            average: number | null;
+            /** Caption */
+            caption: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Items */
+            items: components["schemas"]["ItemOut"][];
+            /** Media */
+            media: components["schemas"]["MediaOut"][];
+            /** Minor Author */
+            minor_author: boolean;
+            /** Reports */
+            reports: components["schemas"]["ReportLine"][];
+            /** Status */
+            status: string;
+            /** Style */
+            style: string;
+            /** Vote Count */
+            vote_count: number;
+        };
+        /** AdminStyle */
+        AdminStyle: {
+            /** Active From */
+            active_from: string | null;
+            /** Active Until */
+            active_until: string | null;
+            /** Is Active */
+            is_active: boolean;
+            /** Members */
+            members: number;
+            /**
+             * Min Age Band
+             * @enum {string}
+             */
+            min_age_band: "16_17" | "18_plus";
+            /** Name */
+            name: string;
+            /** Posts 7D */
+            posts_7d: number;
+            /** Slug */
+            slug: string;
+            /** Sort Order */
+            sort_order: number;
+            /** Tagline */
+            tagline: string;
+            /** Tone */
+            tone: string;
         };
         /** AgeSessionIn */
         AgeSessionIn: {
@@ -833,6 +1073,33 @@ export interface components {
              * @enum {string}
              */
             status: "open" | "upheld" | "reversed";
+        };
+        /** AuditPage */
+        AuditPage: {
+            /** Items */
+            items: components["schemas"]["AuditRow"][];
+            /** Next Cursor */
+            next_cursor: number | null;
+        };
+        /** AuditRow */
+        AuditRow: {
+            /** Action */
+            action: string;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            } | null;
+            /** Id */
+            id: number;
+            /** Staff */
+            staff: string | null;
+            /** Target */
+            target: string | null;
+            /**
+             * Ts
+             * Format: date-time
+             */
+            ts: string;
         };
         /** AuthorRef */
         AuthorRef: {
@@ -1096,6 +1363,17 @@ export interface components {
             /** Terms Version */
             terms_version: string;
         };
+        /** OpenReports */
+        OpenReports: {
+            /** Overdue */
+            overdue: number;
+            /** P0 */
+            p0: number;
+            /** P1 */
+            p1: number;
+            /** P2 */
+            p2: number;
+        };
         /** OrderIn */
         OrderIn: {
             /** After Id */
@@ -1322,6 +1600,11 @@ export interface components {
              */
             target_type: "post" | "profile" | "link";
         };
+        /** ReinstateIn */
+        ReinstateIn: {
+            /** Note */
+            note: string;
+        };
         /** Relationship */
         Relationship: {
             /**
@@ -1350,6 +1633,22 @@ export interface components {
              * @enum {string}
              */
             target_type: "post" | "profile" | "link";
+        };
+        /** ReportLine */
+        ReportLine: {
+            /** Auto */
+            auto: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Details */
+            details: string | null;
+            /** Reason */
+            reason: string;
+            /** Status */
+            status: string;
         };
         /** ReportOut */
         ReportOut: {
@@ -1385,6 +1684,57 @@ export interface components {
              */
             sanction: "warn" | "limit_posting" | "ban";
         };
+        /** StaffIn */
+        StaffIn: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "moderator" | "admin";
+        };
+        /** StaffMe */
+        StaffMe: {
+            /** Nickname */
+            nickname: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "moderator" | "admin";
+        };
+        /** StaffRow */
+        StaffRow: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Nickname */
+            nickname: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "moderator" | "admin";
+        };
+        /** Stats */
+        Stats: {
+            /** Appeals Open */
+            appeals_open: number;
+            /** Posts 7D */
+            posts_7d: number;
+            /** Posts Today */
+            posts_today: number;
+            reports: components["schemas"]["OpenReports"];
+            /** Suspended */
+            suspended: number;
+            /** Users */
+            users: number;
+            /** Users New 7D */
+            users_new_7d: number;
+            /** Votes Today */
+            votes_today: number;
+        };
         /** StyleCard */
         StyleCard: {
             /** Active Until */
@@ -1407,6 +1757,30 @@ export interface components {
             /** Tagline */
             tagline: string;
             /** Tone */
+            tone: string;
+        };
+        /** StyleCreate */
+        StyleCreate: {
+            /** Active From */
+            active_from?: string | null;
+            /** Active Until */
+            active_until?: string | null;
+            /** Is Active */
+            is_active?: boolean | null;
+            /** Min Age Band */
+            min_age_band?: ("16_17" | "18_plus") | null;
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+            /** Sort Order */
+            sort_order?: number | null;
+            /** Tagline */
+            tagline: string;
+            /**
+             * Tone
+             * @default #2A2A2E
+             */
             tone: string;
         };
         /** StyleDetail */
@@ -1434,6 +1808,25 @@ export interface components {
             tagline: string;
             /** Tone */
             tone: string;
+        };
+        /** StyleFields */
+        StyleFields: {
+            /** Active From */
+            active_from?: string | null;
+            /** Active Until */
+            active_until?: string | null;
+            /** Is Active */
+            is_active?: boolean | null;
+            /** Min Age Band */
+            min_age_band?: ("16_17" | "18_plus") | null;
+            /** Name */
+            name?: string | null;
+            /** Sort Order */
+            sort_order?: number | null;
+            /** Tagline */
+            tagline?: string | null;
+            /** Tone */
+            tone?: string | null;
         };
         /** StyleList */
         StyleList: {
@@ -1566,6 +1959,24 @@ export interface components {
             /** Styles */
             styles: components["schemas"]["StyleRef"][];
         };
+        /** UserRow */
+        UserRow: {
+            /** Account Type */
+            account_type: string;
+            /** Age Band */
+            age_band: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Nickname */
+            nickname: string;
+            /** Posts */
+            posts: number;
+            /** Status */
+            status: string;
+        };
         /** UserStats */
         UserStats: {
             /** Average */
@@ -1674,6 +2085,89 @@ export interface operations {
             };
         };
     };
+    audit_log_v1_admin_audit_get: {
+        parameters: {
+            query?: {
+                cursor?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    me_v1_admin_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffMe"];
+                };
+            };
+        };
+    };
+    post_v1_admin_posts__post_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPost"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     decide_v1_admin_reports_decide_post: {
         parameters: {
             query?: never;
@@ -1739,6 +2233,229 @@ export interface operations {
             };
         };
     };
+    list_staff_v1_admin_staff_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffRow"][];
+                };
+            };
+        };
+    };
+    put_staff_v1_admin_staff__nickname__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nickname: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffRow"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_staff_v1_admin_staff__nickname__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nickname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stats_v1_admin_stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Stats"];
+                };
+            };
+        };
+    };
+    list_styles_v1_admin_styles_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminStyle"][];
+                };
+            };
+        };
+    };
+    create_style_v1_admin_styles_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StyleCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminStyle"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_style_v1_admin_styles__slug__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StyleFields"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminStyle"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    users_v1_admin_users_get: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRow"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     user_case_v1_admin_users__nickname__get: {
         parameters: {
             query?: never;
@@ -1758,6 +2475,39 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UserCase"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reinstate_v1_admin_users__nickname__reinstate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nickname: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReinstateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

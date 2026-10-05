@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     # Staff di moderazione: serve il secondo fattore (Supabase MFA, claim aal = "aal2").
     # Si può spegnere solo in locale e nei test; in staging e produzione è sempre richiesto.
     staff_require_mfa: bool = True
+    # Origini del pannello web dello staff ammesse da CORS (es. https://admin.wearx.app).
+    admin_origins: list[str] = Field(default_factory=list)
 
     # Dietro Cloudflare l'IP reale arriva in CF-Connecting-IP. Va attivato SOLO se l'API
     # è raggiungibile esclusivamente attraverso il proxy, altrimenti l'header è falsificabile.

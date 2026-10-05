@@ -76,6 +76,26 @@ jobs:
         env:
           EXPO_NO_TELEMETRY: "1"
 
+  admin:
+    name: Pannello staff (tipi, test, build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @wearx/admin typecheck
+      - run: pnpm --filter @wearx/admin test
+      - run: pnpm --filter @wearx/admin build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          NEXT_PUBLIC_API_URL: https://api.example.invalid
+          NEXT_PUBLIC_SUPABASE_URL: https://example.invalid
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci
+
   security:
     name: Sicurezza (segreti e dipendenze)
     runs-on: ubuntu-latest

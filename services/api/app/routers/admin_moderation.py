@@ -88,6 +88,7 @@ class ActionOut(BaseModel):
     expires_at: datetime | None
     statement: str
     appeal_status: str | None
+    reversed_at: datetime | None = None
 
 
 class UserCase(BaseModel):
@@ -299,8 +300,24 @@ async def decide(body: DecisionIn, staff: CurrentStaff, session: Session) -> Dec
                 body.decision == "restore"
                 or await _last_automatic(session, "post", body.target_id, "hide")
             ):
-                action_id = await actions.restore_post(
-                    session, body.target_id, ground="review_cleared", actor_id=staff.id
+                # Si annulla la decisione che l'ha nascosto (con l'eventuale sanzione collegata).
+                hide_id = await session.scalar(
+                    text(
+                        """select id from app.moderation_actions
+                            where target_type = 'post' and target_id = :id and action = 'hide'
+                              and reversed_at is null
+                            order by created_at desc limit 1"""
+                    ),
+                    {"id": body.target_id},
+                )
+                action_id = (
+                    await actions.reverse(
+                        session, hide_id, actor_id=staff.id, ground="review_cleared"
+                    )
+                    if hide_id is not None
+                    else await actions.restore_post(
+                        session, body.target_id, ground="review_cleared", actor_id=staff.id
+                    )
                 )
                 created += [action_id] if action_id else []
             if body.decision == "dismiss" and await _last_automatic(
@@ -319,7 +336,9 @@ async def decide(body: DecisionIn, staff: CurrentStaff, session: Session) -> Dec
                     {"id": subject},
                 )
                 if status == "suspended" and last is not None:
-                    restored = await actions.reverse(session, last, actor_id=staff.id)
+                    restored = await actions.reverse(
+                        session, last, actor_id=staff.id, ground="review_cleared"
+                    )
                     created += [restored] if restored else []
 
         if body.sanction != "none" and body.decision != "dismiss":
@@ -387,7 +406,7 @@ async def _actions_of(session: AsyncSession, user_id: uuid.UUID) -> list[ActionO
         await session.execute(
             text(
                 """select m.id, m.action, m.ground, m.automated, m.created_at, m.expires_at,
-                          m.statement, a.status as appeal_status
+                          m.statement, a.status as appeal_status, m.reversed_at
                      from app.moderation_actions m
                      left join app.appeals a on a.action_id = m.id
                     where m.subject_id = :id order by m.created_at desc limit 200"""

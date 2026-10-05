@@ -5,7 +5,7 @@ se è automatica, chi l'ha decisa, chi è colpito, fino a quando, e il testo che
 nell'app (statement), compreso come fare reclamo.
 
 Scala delle sanzioni: avviso -> pubblicazione sospesa 7 giorni -> account chiuso. Si contano le
-sanzioni degli ultimi 12 mesi non annullate da un reclamo.
+sanzioni degli ultimi 12 mesi non annullate (reclamo accolto, o annullate insieme al fit).
 """
 
 from __future__ import annotations
@@ -42,6 +42,7 @@ GROUNDS: dict[str, str] = {
     "image_classifier": "il controllo automatico delle foto",
     "appeal": "il tuo reclamo è stato accolto",
     "review_cleared": "un moderatore ha verificato che rispetta le regole",
+    "staff_review": "una revisione dello staff",
 }
 
 _APPEAL = "Se pensi che sia un errore puoi fare reclamo da questo avviso entro 6 mesi."
@@ -103,6 +104,11 @@ def statement_for(
     if action == "ban":
         return f"Il tuo account è stato chiuso. Motivo: {why}. {who}. {appeal}"
     if action == "restore":
+        if linked:
+            return (
+                "Annullata anche la sanzione decisa insieme al fit: non conta più per le "
+                "sanzioni successive."
+            )
         return f"Abbiamo annullato una decisione precedente: {why}. Ci scusiamo per il disagio."
     return f"Decisione di moderazione. Motivo: {why}. {who}. {_APPEAL}"
 
@@ -260,8 +266,7 @@ async def strikes(session: AsyncSession, user_id: uuid.UUID) -> int:
                   and m.action in ('warn', 'limit_posting')
                   and not m.automated
                   and m.created_at > now() - make_interval(days => :days)
-                  and not exists (select 1 from app.appeals a
-                                   where a.action_id = m.id and a.status = 'reversed')"""
+                  and m.reversed_at is null"""
         ),
         {"uid": user_id, "days": STRIKE_WINDOW_DAYS},
     )
@@ -343,19 +348,52 @@ async def suspend_pending_review(
 
 
 async def reverse(
-    session: AsyncSession, action_id: uuid.UUID, *, actor_id: uuid.UUID
+    session: AsyncSession,
+    action_id: uuid.UUID,
+    *,
+    actor_id: uuid.UUID,
+    ground: str = "appeal",
+    linked: bool = False,
 ) -> uuid.UUID | None:
-    """Annulla gli effetti di una decisione (reclamo accolto o errore del moderatore)."""
+    """Annulla gli effetti di una decisione (reclamo accolto o errore del moderatore).
+    La decisione resta nello storico, segnata come annullata (non conta più nella scala).
+    None se era già annullata."""
     row = (
         await session.execute(
             text(
-                """select action, target_type, target_id, subject_id
-                     from app.moderation_actions where id = :id"""
+                """select action, target_type, target_id, subject_id, reversed_at
+                     from app.moderation_actions where id = :id for update"""
             ),
             {"id": action_id},
         )
     ).one()
-    action, target_type, target_id, subject = row
+    action, target_type, target_id, subject, reversed_at = row
+    if reversed_at is not None:
+        return None
+    restored = await _undo(
+        session, action_id, action, target_type, target_id, subject, actor_id, ground, linked
+    )
+    await session.execute(
+        text(
+            """update app.moderation_actions set reversed_at = now(), reversed_by = :by
+                where id = :id"""
+        ),
+        {"id": action_id, "by": restored},
+    )
+    return restored
+
+
+async def _undo(
+    session: AsyncSession,
+    action_id: uuid.UUID,
+    action: str,
+    target_type: str,
+    target_id: uuid.UUID,
+    subject: uuid.UUID | None,
+    actor_id: uuid.UUID,
+    ground: str,
+    linked: bool,
+) -> uuid.UUID | None:
     if action in ("hide", "remove"):
         # La sanzione decisa insieme (stessa decisione = stessa transazione) cade con il fit.
         siblings = (
@@ -370,9 +408,9 @@ async def reverse(
             )
         ).scalars()
         for sibling in list(siblings):
-            await reverse(session, sibling, actor_id=actor_id)
+            await reverse(session, sibling, actor_id=actor_id, ground=ground, linked=True)
     if action == "hide" and target_type == "post":
-        return await restore_post(session, target_id, ground="appeal", actor_id=actor_id)
+        return await restore_post(session, target_id, ground=ground, actor_id=actor_id)
     if action == "remove":
         # Il fit non torna (foto cancellate), ma le sue foto si possono ripubblicare.
         await session.execute(
@@ -395,11 +433,11 @@ async def reverse(
         target_type=target_type,
         target_id=target_id,
         action="restore",
-        ground="appeal",
+        ground=ground,
         automated=False,
         actor_id=actor_id,
         subject_id=subject,
-        statement=statement_for("restore", "appeal", automated=False),
+        statement=statement_for("restore", ground, automated=False, linked=linked),
     )
 
 

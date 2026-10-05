@@ -49,6 +49,9 @@ Promemoria fissi: senza questi punti l'app funziona solo per il fondatore.
       scegliere il classificatore delle foto (Rekognition, Vision SafeSearch o Hive, trattamento
       nell'UE), almeno un moderatore reperibile per i P0 (1 ora) più uno di riserva, procedura
       scritta con il legale per la segnalazione alla Polizia Postale e la conservazione delle prove.
+- [ ] **Pannello staff** (seduta 17): pubblicarlo su un indirizzo proprio (es. `staff.` del
+      dominio, Vercel o simile) e scriverlo in `WEARX_ADMIN_ORIGINS` dell'API; ogni persona dello
+      staff entra con email, password e app di autenticazione (obbligatoria); almeno 2 admin.
 
 ## Registro
 
@@ -679,3 +682,58 @@ Schermate: `docs/screens/seduta-16-moderazione.png`.
 
 Da fare in seduta 17: pannello web dello staff (Next.js): coda di moderazione con foto sfocate,
 decisioni rapide, reclami, persone, stili, registro di audit.
+
+### Seduta 17 — 2026-10-05
+
+Fatto (`apps/admin`, Next.js 16, solo per lo staff):
+- **Accesso**: email e password Supabase, poi **sempre** il codice dell'app di autenticazione
+  (al primo accesso si configura con il QR). Sessione solo nella scheda: chiusa la scheda si
+  rientra da capo. Chi non è nello staff non vede nulla. In locale si entra incollando un token
+  di prova (spento fuori dallo sviluppo). Nessuna chiave segreta nel pannello: se ce ne fosse
+  una, il pannello si rifiuta di partire.
+- **Panoramica**: P0/P1 aperti, in ritardo, reclami aperti, fit e voti di oggi, persone (nuove in
+  7 giorni), account sospesi; contatori anche nel menu.
+- **Coda**: segnalazioni raggruppate per contenuto, filtro per priorità, scadenza visibile.
+  Le foto sono **sfocate** finché non si preme "Mostra" (per i P0 con l'avviso "guarda solo se
+  serve"). Motivo, sanzione (per i P0 proposta la scala automatica), nota interna. **Scorciatoie
+  da tastiera**: J/K scorri, V mostra, A archivia, N nascondi, R rimuovi (chiede conferma).
+- **Reclami**: decisione contestata, testo del reclamo, risposta obbligatoria per la persona,
+  accogli o respingi (l'API impedisce che decida chi aveva deciso la prima volta).
+- **Persone**: ricerca per nickname; scheda con sanzioni degli ultimi 12 mesi, prossima tappa
+  della scala, interventi (avviso, sospensione pubblicazione, chiusura), "togli le limitazioni",
+  storico con le decisioni annullate barrate.
+- **Solo admin**: **Stili** (crea e modifica: nome, indirizzo, descrizione, colore, età minima,
+  stagione dal/al, ordine, visibile o no), **Staff** (aggiungi, cambia ruolo, togli; mai senza
+  almeno un admin), **Registro di audit** a pagine (aprire un fit o una scheda viene registrato).
+- Stile del pannello come l'app (stessi colori e caratteri), protezioni del browser strette
+  (nessun contenuto esterno, niente iframe, non indicizzato).
+
+Fatto (API): `/v1/admin/me`, numeri, fit in qualsiasi stato con foto, capi e segnalazioni,
+ricerca persone, riattivazione, stili, staff, audit (migrazione 0011).
+
+Corretto provando davvero il pannello:
+- Annullare un fit (reclamo accolto o "Rendi visibile" dalla coda) toglie anche l'avviso deciso
+  insieme, ma l'avviso **continuava a contare** nella scala delle sanzioni: ora ogni decisione
+  annullata è segnata (`reversed_at`) e non conta più; un secondo annullamento non fa nulla.
+- Il messaggio per l'annullamento dell'avviso collegato ora è suo ("Annullata anche la sanzione
+  decisa insieme al fit") e non ripete "il tuo reclamo è stato accolto"; archiviare una
+  sospensione automatica dice "un moderatore ha verificato".
+- Tre moduli mandavano all'API campi in più e venivano rifiutati (reclami, modifica stile,
+  ruolo staff): ora mandano solo ciò che serve, con test.
+
+Provato davvero (browser, 1440×900): accesso admin, panoramica, coda P0 con foto sfocata, P1
+nascosto da tastiera, reclamo accolto da un altro moderatore, scheda della persona con avviso
+annullato e scala tornata ad "avviso", nuovo stile stagionale "Après Ski", registro.
+
+Verifiche: 319 test API (+8); 10 test pannello; 209 test app; ruff, mypy, tsc puliti; build del
+pannello ok; nuovo job CI "Pannello staff".
+
+Decisione: le **proposte di stile** dagli utenti ("Proponilo tu… 500 adesioni") slittano dopo
+la v1; per ora gli stili li crea un admin dal pannello.
+
+Schermate: `docs/screens/seduta-17-admin.png`.
+
+Da fare in seduta 18: notifiche ed eventi: push con Expo (voti ricevuti, nuovi follower e
+richieste, avvisi della moderazione, esito dei reclami), lista delle notifiche nell'app,
+raccolta degli eventi d'uso con lista consentita.
+

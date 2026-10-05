@@ -408,7 +408,7 @@ async def test_rimozione_blocca_la_stessa_foto(client, keys, db_admin, store, qu
 
 
 async def test_reclamo_deciso_da_un_altro_moderatore(client, keys, db_admin):
-    author_id, author, _ = await _person(client, keys, db_admin)
+    author_id, author, nick = await _person(client, keys, db_admin)
     post = await _post(client, db_admin, author_id, author)
     _, first = await _staff(client, keys, db_admin)
     await client.post(
@@ -466,15 +466,46 @@ async def test_reclamo_deciso_da_un_altro_moderatore(client, keys, db_admin):
     # Anche l'avviso è annullato: non conta più nella scala delle sanzioni.
     restores = [n for n in notices if n["action"] == "restore"]
     assert len(restores) == 2
-    strikes = db_admin.execute(
-        """select count(*) from app.moderation_actions m
-            where m.subject_id = %s and m.action = 'warn'
-              and not exists (select 1 from app.moderation_actions r
-                               where r.action = 'restore' and r.target_id = m.target_id
-                                 and r.created_at > m.created_at)""",
+    assert any("Annullata anche la sanzione" in n["statement"] for n in restores)
+    case = (await client.get(f"/v1/admin/users/{nick}", headers=second)).json()
+    assert (case["strikes"], case["next_sanction"]) == (0, "warn")
+    reversed_ = db_admin.execute(
+        """select count(*) from app.moderation_actions
+            where subject_id = %s and action in ('hide', 'warn') and reversed_at is not null""",
         (author_id,),
     ).fetchone()
-    assert strikes == (0,)
+    assert reversed_ == (2,)
+
+
+async def test_rendere_visibile_annulla_anche_la_sanzione(client, keys, db_admin):
+    author_id, author, nick = await _person(client, keys, db_admin)
+    post = await _post(client, db_admin, author_id, author)
+    _, staff = await _staff(client, keys, db_admin)
+    decision = {"target_type": "post", "target_id": post, "ground": "nudity"}
+    r = await client.post(
+        "/v1/admin/reports/decide",
+        json={**decision, "decision": "hide", "sanction": "auto"},
+        headers=staff,
+    )
+    assert r.json()["sanction"] == "warn"
+    r = await client.post(
+        "/v1/admin/reports/decide", json={**decision, "decision": "restore"}, headers=staff
+    )
+    assert r.status_code == 200, r.text
+    assert _status(db_admin, post) == "active"
+    case = (await client.get(f"/v1/admin/users/{nick}", headers=staff)).json()
+    assert case["strikes"] == 0
+    notices = (await client.get("/v1/me/moderation", headers=author)).json()
+    assert [n["action"] for n in notices].count("restore") == 2
+    assert "un moderatore ha verificato" in notices[-1]["statement"] or any(
+        "un moderatore ha verificato" in n["statement"] for n in notices
+    )
+    # Annullare due volte non crea altri ripristini.
+    await client.post(
+        "/v1/admin/reports/decide", json={**decision, "decision": "restore"}, headers=staff
+    )
+    notices = (await client.get("/v1/me/moderation", headers=author)).json()
+    assert [n["action"] for n in notices].count("restore") == 2
 
 
 async def test_reclami_solo_propri_e_nei_tempi(client, keys, db_admin):
