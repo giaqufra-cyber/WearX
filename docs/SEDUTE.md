@@ -66,6 +66,14 @@ Promemoria fissi: senza questi punti l'app funziona solo per il fondatore.
       Cloud) in `WEARX_SAFE_BROWSING_KEY`, solo sul server: senza, contano solo i domini bloccati
       dallo staff. Il worker che visita i link gira in una rete senza accesso ai servizi interni
       (seduta 23: difesa in più contro il "DNS rebinding", oltre al controllo degli indirizzi).
+- [ ] **Verifica del dispositivo** (seduta 22): Team ID Apple in `WEARX_APPLE_TEAM_ID` (App
+      Attest, serve l'account Apple della seduta 25); progetto Google Cloud collegato a Play
+      Console con Play Integrity attiva, numero del progetto in
+      `WEARX_PLAY_INTEGRITY_PROJECT_NUMBER` e account di servizio (JSON, SEGRETO, solo nel
+      secret manager) in `WEARX_GOOGLE_SERVICE_ACCOUNT_JSON`; in produzione
+      `WEARX_ATTESTATION_MODE=soft` (poi `required` quando la beta conferma che funziona) e
+      `WEARX_APP_ATTEST_ALLOW_DEVELOPMENT=false`. Link agli store in `WEARX_IOS_STORE_URL` e
+      `WEARX_ANDROID_STORE_URL` (schermata "Aggiorna WearX").
 
 ## Registro
 
@@ -970,3 +978,79 @@ Schermate: `docs/screens/seduta-21-business.png`, `docs/screens/seduta-21-admin-
 
 Da fare in seduta 22: hardening (attestazione del dispositivo, anti-abuso dei voti, media e numero
 dei voti sul proprio fit aggiornati ogni ora, Semgrep, scansione ZAP).
+
+### Seduta 22 — 2026-10-05
+
+Fatto (API, migrazione 0016):
+- **Media e numero dei voti aggiornati ogni ora** (deciso in seduta 19), per tutti: autore e
+  chi ha votato vedono valori pubblicati da un lavoro orario, non quelli in tempo reale. In più:
+  la media compare **da 5 voti** e si aggiorna solo quando sono arrivati **almeno 3 voti nuovi o
+  cambiati** dall'ultima volta. Così dal cambio della media non si ricava il voto di una
+  persona, nemmeno con un secondo account. Il numero dei voti si aggiorna ogni ora. Feed e
+  staff usano i valori in tempo reale; traguardi di voti, profilo, griglia del portfolio ed
+  export dei dati usano quelli pubblicati.
+- **Voti sospetti** (controllo orario, prima della pubblicazione): stesso voto (±1) su almeno 30
+  fit in 7 giorni (comportamento da script) e almeno 8 voti in 24 ore ai fit dello stesso
+  autore tutti ≥95 o tutti ≤10 (spinta o affossamento mirato). I voti trovati non contano più
+  (né nella media né nel numero), per 30 giorni anche quelli nuovi; chi ha votato non se ne
+  accorge. Ricalcolo esatto delle statistiche dai voti. **Raffica**: più di 40 voti in un minuto
+  → 429.
+- **Verifica del dispositivo**: App Attest su iPhone (chiave nel Secure Enclave, attestata una
+  volta, poi firma a ogni nuovo accesso; catena di certificati fino alla radice Apple, contatore
+  anti-riuso) e Play Integrity su Android (verdetto di Google: app dallo store, telefono
+  integro). Sfide monouso legate a persona e accesso. Modalità: `off` (sviluppo), `soft` (i voti
+  da dispositivi non verificati pesano la metà), `required` (senza verifica non si vota).
+- `/v1/config` dice modalità di verifica e link agli store, ed è raggiungibile anche dalle app
+  troppo vecchie.
+- **Intestazioni di sicurezza** su ogni risposta (anti-frame, CSP, nosniff, HSTS in
+  staging/produzione).
+
+Fatto (app e pannello):
+- Pannello del voto: "Voti aggiornati ogni ora · ultimo alle 22:37", "La media compare da 5
+  voti", segno discreto al posto della media quando non c'è ancora.
+- Verifica del dispositivo silenziosa a ogni accesso (`@expo/app-integrity`); se non riesce
+  l'app funziona comunque.
+- Schermata **Aggiorna WearX** quando la versione è troppo vecchia (risposta 426 o versione
+  minima nella configurazione), con il link allo store.
+- Pannello staff: pagina **Voti sospetti** (segnale, pseudonimo del votante, quanti voti,
+  stato) con **Ripristina i voti** per i falsi positivi (nel registro di audit).
+
+Controlli di sicurezza:
+- **Semgrep** in CI: regole di sicurezza della comunità fissate a una versione precisa (Python,
+  FastAPI, JWT, SQLAlchemy, crittografia, JavaScript/TypeScript/React, segreti) più 7 regole di
+  progetto (`.semgrep/wearx.yml`: niente chiavi segrete nelle app, niente variabili PUBLIC che
+  sembrano segreti, TLS sempre verificato, niente redirect automatici verso indirizzi scelti
+  dagli utenti, JWT sempre verificati, niente HTML grezzo nel pannello, `secrets` e non
+  `random` per i codici). Ogni regola di progetto è provata su codice sbagliato. Risultato:
+  0 problemi; 3 casi esaminati e annotati (SQL costante nelle migrazioni).
+- **Fuzzing** dell'API con Schemathesis (4.357 richieste generate, con accesso): nessun errore
+  del server.
+- **Scansione ZAP** in CI: API avviata con dati di prova e accesso, scansione attiva
+  dall'OpenAPI; rischi alti fanno fallire la CI, gli altri diventano avvisi.
+
+Provato davvero (web 390×844, pannello staff, worker acceso): media pubblicata e orario
+dell'ultimo aggiornamento su un fit votato, fit proprio con 3 voti, due votanti sospetti
+trovati dal lavoro orario (8 voti sempre 70; 3 voti a 100 ai fit di una persona), pagina Voti
+sospetti, schermata Aggiorna WearX con l'API che chiede la 9.0.0.
+
+Verifiche: 366 test API (+16); 250 test app (+6); 12 test del pannello (+1); ruff, mypy, tsc
+puliti; build del pannello ok.
+
+Note e decisioni da confermare:
+- Media e numero orari valgono per **tutti**, non solo per l'autore: altrimenti l'autore con un
+  secondo account vedrebbe comunque le variazioni in tempo reale.
+- **Soglie nuove**: la media da 5 voti (come negli Insight) e a gruppi di almeno 3 voti nuovi o
+  cambiati. Un fit con 4 voti mostra "4 voti" senza media.
+- Chi preme "Vota" senza muovere lo slider dà 70: chi lo fa su 30 fit in una settimana viene
+  trattato come uno script e i suoi voti non contano. È una scelta voluta (non sta giudicando),
+  ma si può alzare la soglia.
+- L'attestazione vera si prova solo su un telefono con una build dell'app (seduta 25): oggi è
+  coperta da test con una "Apple" e una "Google" di prova.
+- ZAP gira solo su GitHub (non in questo ambiente). La prima scansione è nella CI di questa
+  seduta.
+- Per la seduta 23: avviare l'API senza l'intestazione `server` (uvicorn `--no-server-header`).
+
+Schermate: `docs/screens/seduta-22-hardening.png`.
+
+Da fare in seduta 23: infrastruttura (Terraform, staging, segreti, osservabilità, rete isolata
+del worker che visita i link, progetto EAS).

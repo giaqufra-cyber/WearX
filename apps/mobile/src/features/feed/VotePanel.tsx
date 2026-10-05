@@ -39,10 +39,10 @@ export function VotePanel({ post, onVote, busy }: Props) {
             </Text>
           </View>
           <Text
-            style={styles.score}
+            style={[styles.score, average === null ? styles.scorePending : null]}
             aria-label={average === null ? "Media non ancora disponibile" : `Media ${average}`}
           >
-            {average === null ? (busy ? "…" : "—") : Math.round(average)}
+            {average === null ? (busy ? "…" : "–") : Math.round(average)}
           </Text>
         </View>
         <View style={styles.bar}>
@@ -110,6 +110,8 @@ const styles = StyleSheet.create({
     color: colors.accent,
     fontVariant: ["tabular-nums"],
   },
+  // Media non ancora disponibile: segno discreto, non un numero.
+  scorePending: { fontFamily: fonts.ui, fontSize: 34, lineHeight: 50, color: colors.textMuted },
   controls: { flexDirection: "row", alignItems: "center", gap: spacing[2], marginTop: spacing[2] },
   confirm: {
     flexDirection: "row",

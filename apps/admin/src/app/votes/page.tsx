@@ -7,14 +7,19 @@ import { errorText } from "@/lib/api";
 import { dateTime } from "@/lib/format";
 import { useStaffMutation, useStaffQuery } from "@/lib/queries";
 
+function votes(f: VoteFlag): string {
+  const n = Number(f.detail.votes ?? 0);
+  return n === 1 ? "1 voto" : `${n} voti`;
+}
+
 const RULES: Record<VoteFlag["rule"], { label: string; text: (f: VoteFlag) => string }> = {
   same_score: {
     label: "Stesso voto ovunque",
-    text: (f) => `${String(f.detail.votes ?? "?")} voti in ${String(f.detail.days ?? 7)} giorni, sempre ${scores(f)}`,
+    text: (f) => `${votes(f)} in ${String(f.detail.days ?? 7)} giorni, sempre ${scores(f)}`,
   },
   author_burst: {
     label: "Spinta mirata",
-    text: (f) => `${String(f.detail.votes ?? "?")} voti in 24 ore ai fit di @${f.author ?? "?"}, tutti ${scores(f)}`,
+    text: (f) => `${votes(f)} in 24 ore ai fit di @${f.author ?? "?"}, tutti ${scores(f)}`,
   },
 };
 

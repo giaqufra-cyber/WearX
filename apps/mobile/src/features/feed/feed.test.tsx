@@ -259,7 +259,7 @@ describe("Feed", () => {
     expect(request).toHaveBeenCalledWith("PUT", "/v1/posts/p1/vote", { token: "tok", body: { score: 70 } });
     expect(await screen.findByText(/1 voto/)).toBeOnTheScreen();
     expect(screen.getByText("La media compare da 5 voti · si aggiornano ogni ora")).toBeOnTheScreen();
-    expect(screen.getByLabelText("Media non ancora disponibile")).toHaveTextContent("—");
+    expect(screen.getByLabelText("Media non ancora disponibile")).toHaveTextContent("–");
   });
 
   test("voto rifiutato: si torna com'era, con il messaggio", async () => {
