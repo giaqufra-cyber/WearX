@@ -106,4 +106,22 @@ async def test_intestazioni_di_sicurezza(client):
         assert r.headers["x-frame-options"] == "DENY"
         assert r.headers["content-security-policy"] == "default-src 'none'; frame-ancestors 'none'"
         assert r.headers["referrer-policy"] == "no-referrer"
+        assert r.headers["cross-origin-resource-policy"] == "same-origin"
         assert "strict-transport-security" not in r.headers  # solo staging/produzione
+
+
+async def test_carattere_nullo_rifiutato_senza_errori_del_server(client, keys, db_admin):
+    # Trovato dalla scansione ZAP (seduta 23): PostgreSQL non accetta il carattere 0 nel testo.
+    from tests.test_accounts import onboard
+
+    _, headers, _ = await onboard(client, keys, db_admin)
+    requests = [
+        client.get("/v1/styles?q=%00", headers=headers),
+        client.get("/v1/feed?style=%00&cursor=", headers=headers),
+        client.get("/v1/users/a%00b", headers=headers),
+        client.patch("/v1/me", json={"bio": "ciao\u0000"}, headers=headers),
+        client.post("/v1/auth/nickname-check", json={"nickname": "a\u0000b"}),
+    ]
+    for pending in requests:
+        r = await pending
+        assert (r.status_code, r.json()["code"]) == (422, "request.invalid"), r.text

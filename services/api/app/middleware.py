@@ -24,6 +24,27 @@ _VERSION_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
 _VERSION_EXEMPT = frozenset({"/v1/config"})
 
 
+_NUL_ESCAPE = re.compile(rb"\\u0000", re.IGNORECASE)
+
+
+async def _has_nul(request: Request) -> bool:
+    """Il carattere 0 non è ammesso nel testo di PostgreSQL: lo si rifiuta subito (422) invece
+    di arrivare a un errore del server (trovato dalla scansione ZAP, seduta 23)."""
+    raw_path = request.scope.get("raw_path") or request.url.path.encode()
+    if b"%00" in raw_path.lower() or b"\x00" in raw_path or "\x00" in request.url.path:
+        return True
+    query = request.scope.get("query_string", b"")
+    if b"%00" in query.lower() or b"\x00" in query:
+        return True
+    if request.method in ("POST", "PUT", "PATCH") and "json" in request.headers.get(
+        "content-type", ""
+    ):
+        body = await request.body()
+        if b"\x00" in body or _NUL_ESCAPE.search(body):
+            return True
+    return False
+
+
 def _secure(response: Response, request_id: str, path: str = "") -> Response:
     """Intestazioni di sicurezza su ogni risposta (seduta 22, risultati della scansione)."""
     headers = response.headers
@@ -37,6 +58,9 @@ def _secure(response: Response, request_id: str, path: str = "") -> Response:
     if not path.startswith("/docs"):  # Swagger UI (solo fuori produzione) carica script e stili
         headers.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
     headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    # Le risposte non si caricano come risorse da altri siti (le chiamate dell'app e del pannello
+    # passano da CORS, che è un'altra cosa). Segnalato dalla scansione ZAP.
+    headers["Cross-Origin-Resource-Policy"] = "same-origin"
     headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
     if get_settings().env in ("staging", "production"):
         headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
@@ -66,6 +90,15 @@ def install_middleware(app: FastAPI) -> None:
         # Versione minima: si controlla solo se l'app manda l'header (i webhook non lo mandano).
         app_version = request.headers.get("x-app-version")
         path = request.url.path
+        if await _has_nul(request):
+            nul = problem(
+                request,
+                422,
+                "request.invalid",
+                "Dati non validi",
+                extra={"errors": [{"loc": ["request"], "msg": "carattere non ammesso"}]},
+            )
+            return _secure(nul, request_id, path)
         if app_version is not None and path.startswith("/v1/") and path not in _VERSION_EXEMPT:
             current = parse_version(app_version)
             minimum = parse_version(get_settings().min_app_version)

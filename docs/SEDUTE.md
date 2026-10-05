@@ -1051,9 +1051,8 @@ Note e decisioni da confermare:
   ma si può alzare la soglia.
 - L'attestazione vera si prova solo su un telefono con una build dell'app (seduta 25): oggi è
   coperta da test con una "Apple" e una "Google" di prova.
-- ZAP gira solo su GitHub (non in questo ambiente). A fine seduta GitHub Actions era fermo per
-  un guasto di GitHub (dalle 21:11 del 5 ottobre): CI e prima scansione ZAP partono appena
-  torna; eventuali risultati si correggono subito dopo.
+- ZAP gira solo su GitHub (non in questo ambiente). La prima scansione è partita nella seduta 23,
+  dopo il guasto di GitHub Actions della sera del 5 ottobre: risultati e correzioni lì.
 - Per la seduta 23: avviare l'API senza l'intestazione `server` (uvicorn `--no-server-header`).
 
 Schermate: `docs/screens/seduta-22-hardening.png`.
@@ -1109,7 +1108,15 @@ intestazioni, API in modalità staging con HSTS e senza `server`, migrazioni su 
 entrambi i worker con il battito. `terraform validate` e la costruzione vera delle immagini
 girano nella CI.
 
-Verifiche: 379 test API (+13); 254 test app (+4); 12 test del pannello; ruff, mypy, tsc puliti;
+**Prima scansione ZAP** (attiva, con accesso, su tutta l'API): un problema vero, corretto — il
+carattere "nullo" (`%00`) nella ricerca degli stili e nel feed faceva arrivare un errore del
+server (500) invece di un rifiuto. Ora qualunque carattere nullo nell'indirizzo, nei parametri o
+nel corpo JSON viene rifiutato subito con 422 (test aggiunto). Aggiunta l'intestazione
+`Cross-Origin-Resource-Policy`. Il resto erano note informative (risposte 4xx attese, cache).
+In CI: Terraform `validate` passato, immagini costruite e avviate come in staging, deploy di
+staging che aspetta la configurazione.
+
+Verifiche: 380 test API (+14); 254 test app (+4); 12 test del pannello; ruff, mypy, tsc puliti;
 bundle Android con Sentry.
 
 Note e decisioni da confermare:
