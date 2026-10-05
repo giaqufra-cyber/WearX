@@ -7,6 +7,7 @@ import type { FollowState, PeoplePage, UserProfile } from "@wearx/api-types";
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { FEED_KEY, POST_KEY } from "@/features/feed/api";
+import { NOTIFICATIONS_KEY } from "@/features/notifications/keys";
 import { PORTFOLIO_KEY, userKey } from "@/features/portfolio/api";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
 
@@ -149,6 +150,8 @@ export function usePeopleAction(kind: PeopleKind, options: { onError?: (message:
     onSettled: () => {
       void client.invalidateQueries({ queryKey: PEOPLE_KEY });
       void client.invalidateQueries({ queryKey: PORTFOLIO_KEY });
+      // Una richiesta decisa cambia anche la lista delle notifiche.
+      if (kind === "requests") void client.invalidateQueries({ queryKey: NOTIFICATIONS_KEY });
     },
   });
 }
@@ -160,7 +163,8 @@ export function useBlock(nickname: string) {
     mutationFn: () => apiRequest<void>("PUT", `/v1/users/${enc(nickname)}/block`, { token }),
     onSuccess: () => {
       // La persona sparisce ovunque: profilo, griglia, feed, dettagli dei fit.
-      for (const key of [PORTFOLIO_KEY, PEOPLE_KEY, FEED_KEY, POST_KEY]) void client.invalidateQueries({ queryKey: key });
+      for (const key of [PORTFOLIO_KEY, PEOPLE_KEY, FEED_KEY, POST_KEY, NOTIFICATIONS_KEY])
+        void client.invalidateQueries({ queryKey: key });
     },
   });
 }

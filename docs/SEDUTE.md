@@ -52,6 +52,11 @@ Promemoria fissi: senza questi punti l'app funziona solo per il fondatore.
 - [ ] **Pannello staff** (seduta 17): pubblicarlo su un indirizzo proprio (es. `staff.` del
       dominio, Vercel o simile) e scriverlo in `WEARX_ADMIN_ORIGINS` dell'API; ogni persona dello
       staff entra con email, password e app di autenticazione (obbligatoria); almeno 2 admin.
+- [ ] **Push** (seduta 18): progetto EAS (`extra.eas.projectId` in app.json, seduta 23), chiavi
+      APNs (Apple) e FCM (Google) caricate su Expo, "sicurezza avanzata" dei push attiva nel
+      progetto Expo con il suo token in `WEARX_EXPO_ACCESS_TOKEN` (segreto, solo sul server),
+      `WEARX_PUSH_PROVIDER=expo`. Prova su un telefono vero con una build di sviluppo (Expo Go su
+      Android non riceve più i push).
 
 ## Registro
 
@@ -741,4 +746,70 @@ Schermate: `docs/screens/seduta-17-admin.png`.
 Da fare in seduta 18: notifiche ed eventi: push con Expo (voti ricevuti, nuovi follower e
 richieste, avvisi della moderazione, esito dei reclami), lista delle notifiche nell'app,
 raccolta degli eventi d'uso con lista consentita.
+
+### Seduta 18 — 2026-10-05
+
+Fatto (API, migrazione 0012):
+- **Registro delle notifiche**: ogni notifica nasce nella stessa operazione che la causa (se
+  l'azione fallisce, la notifica non esiste). Tipi: richiesta di follow, nuovo follower,
+  richiesta accettata, traguardo di voti, decisione della moderazione, esito del reclamo.
+  - Richiesta accettata: la riga diventa "ha iniziato a seguirti" senza un secondo push;
+    richiesta ritirata o rifiutata: sparisce. Bloccare cancella le notifiche tra le due persone
+    e una persona bloccata non ne genera.
+  - Segui, smetti, segui di nuovo: una sola riga e al massimo un push ogni 24 ore.
+  - **Voti**: mai un push per ogni voto (dall'orario si potrebbe capire chi ha votato), solo i
+    traguardi 10, 25, 50, 100, 250, 500, 1000… controllati ogni 10 minuti; i fit già
+    pubblicati partono dal prossimo traguardo (niente valanga di notifiche al primo avvio).
+  - Moderazione: una notifica per decisione; gli annullamenti dovuti a un reclamo li racconta
+    l'esito del reclamo ("Reclamo accolto"), senza doppioni.
+- **Push con Expo**: un lavoro ogni minuto spedisce le notifiche in attesa; più notizie insieme
+  diventano un solo push ("Hai 4 nuove notifiche"); il numero sull'icona dell'app = non lette.
+  Sul telefono (schermo bloccato) la moderazione dice solo "Hai un nuovo avviso della
+  moderazione". Telefoni non più esistenti tolti grazie alle ricevute di Expo. Se Expo non
+  risponde si riprova ogni 5 minuti per 24 ore. **16-17 anni: niente push tra le 22 e le 7**
+  (arrivano alle 7). Un telefono riceve i push di un solo account; all'uscita smette.
+- Endpoint: `GET /v1/notifications` (a pagine), `/unread`, `POST /read`,
+  `PUT/DELETE /v1/me/push-tokens`, `GET/PATCH /v1/me/notification-settings`.
+- **Eventi d'uso** (`POST /v1/events`), lista consentita di 4 soli eventi, quelli che servono
+  agli Insight della seduta 19: fit visto, fit aperto, tocco sul link di un negozio, profilo
+  visitato. Nessun campo libero, nessun identificativo del telefono, nessun IP; chi l'ha fatto
+  è uno pseudonimo; i propri fit e il proprio profilo non contano. Eventi grezzi in partizioni
+  mensili, cancellati dopo circa 3 mesi (lavoro notturno).
+
+Fatto (app):
+- **Campanella** nel feed con il numero delle non lette; **schermata Notifiche** con le nuove
+  evidenziate, Accetta/Rifiuta direttamente sulle richieste, miniatura del fit, tocco che porta
+  al profilo, al fit o agli avvisi.
+- **Attiva le notifiche**: il permesso del telefono si chiede solo quando la persona tocca
+  "Attiva" (mai all'avvio); se l'ha negato, spiega come riattivarlo.
+- **Impostazioni › Notifiche** (anche dal menu Account): follow, voti, moderazione.
+- Tocco su un push: apre solo schermate interne note (un push non può aprire un sito).
+- Eventi raccolti nel feed (fit visto almeno 1 secondo per il 60%), sul fit aperto, sui link
+  dei negozi e sui profili; partono a gruppi ogni 30 secondi o quando l'app va in background.
+
+Provato davvero (web, 390×844, worker acceso): campanella con 4, lista con richieste, traguardo
+"1000 voti", reclamo accolto; Accetta da lista; impostazioni; tocco sul traguardo apre il fit;
+il worker ha spedito un solo push "Hai 4 nuove notifiche" con numero 4 sull'icona; eventi
+"fit visto" arrivati al database.
+
+Corretto grazie a test e prova reale:
+- la coda degli eventi restava "in invio" per sempre dopo un giro vuoto e non spediva più nulla;
+- sul web i pulsanti Accetta/Rifiuta erano dentro la riga toccabile (pulsante dentro pulsante);
+- senza il punto di partenza dei traguardi, al primo avvio ogni fit già pubblicato avrebbe
+  mandato la sua notifica di voti.
+
+Verifiche: 336 test API (+17); 224 test app (+15); ruff, mypy, tsc puliti.
+
+Note e decisioni da confermare:
+- I push veri partono solo con il progetto EAS e le chiavi Apple/Google (seduta 23 e 25):
+  fino ad allora tutto funziona dentro l'app e il server scrive i push nel registro.
+- Eventi solo per gli Insight, nessuna statistica d'uso generica: se servisse (es. quante
+  persone aprono l'app) andrebbe aggiunta con consenso esplicito.
+- Una persona può gonfiare le visualizzazioni di un fit al massimo di 1 al giorno (gli Insight
+  contano persone diverse): i controlli anti-abuso più forti arrivano con la seduta 22.
+
+Schermate: `docs/screens/seduta-18-notifiche.png`.
+
+Da fare in seduta 19: Insight per chi pubblica (riepilogo notturno degli eventi, API, schermata
+Insight con soglie minime per non far riconoscere chi ha guardato o votato).
 

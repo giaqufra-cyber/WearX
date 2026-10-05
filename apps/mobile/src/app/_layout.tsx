@@ -20,6 +20,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 
 import { AuthProvider, useAuth } from "@/features/auth/AuthProvider";
+import { AppBridges } from "@/features/notifications/AppBridges";
 import type { AppRoute } from "@/features/auth/routing";
 import { ToastProvider } from "@/ui/Toast";
 
@@ -95,7 +96,9 @@ function RootNavigator() {
   if (!shown) return null;
 
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+    <>
+      {shown === "app" ? <AppBridges /> : null}
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
       <Stack.Protected guard={shown === "app"}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="style/[slug]" />
@@ -104,6 +107,8 @@ function RootNavigator() {
         <Stack.Screen name="people" />
         <Stack.Screen name="find" />
         <Stack.Screen name="moderation" />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="notification-settings" />
         <Stack.Screen name="new-post" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
       </Stack.Protected>
       <Stack.Protected guard={shown === "auth"}>
@@ -121,6 +126,7 @@ function RootNavigator() {
       <Stack.Protected guard={__DEV__}>
         <Stack.Screen name="dev/ui" />
       </Stack.Protected>
-    </Stack>
+      </Stack>
+    </>
   );
 }

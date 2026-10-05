@@ -1,19 +1,34 @@
 import type { Post } from "@wearx/api-types";
 import { colors, fonts, radii, spacing } from "@wearx/design-tokens";
 import { router } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
+import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  type ViewToken,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useFeed, useVote } from "@/features/feed/api";
 import { PostCard } from "@/features/feed/PostCard";
+import { NotificationBell } from "@/features/notifications/NotificationBell";
 import { useMyStyles } from "@/features/styles/api";
+import { track } from "@/lib/events";
 import { EmptyState } from "@/ui/EmptyState";
 import { IconChat, IconPlus } from "@/ui/icons";
 import { ErrorNotice } from "@/ui/LoadState";
 import { Skeleton } from "@/ui/Skeleton";
 import { Text } from "@/ui/Text";
 import { useToast } from "@/ui/Toast";
+
+// Un fit conta come "visto" se resta per almeno un secondo con il 60% sullo schermo.
+const VIEWABILITY = { itemVisiblePercentThreshold: 60, minimumViewTime: 1000 };
 
 const MAX_CARD_WIDTH = 560;
 
@@ -37,6 +52,12 @@ export default function FeedScreen() {
   }, [feed.data]);
   const emptyReason = feed.data?.pages[0]?.empty_reason ?? null;
 
+  const onViewable = useRef(({ viewableItems }: { viewableItems: ViewToken<Post>[] }) => {
+    for (const token of viewableItems) {
+      if (token.isViewable && token.item) track({ name: "post_impression", post_id: token.item.id, source: "feed" });
+    }
+  }).current;
+
   const onVote = useCallback(
     (post: Post, score: number, styleConfirm: boolean | null) => vote.mutate({ postId: post.id, score, styleConfirm }),
     [vote],
@@ -48,7 +69,10 @@ export default function FeedScreen() {
         <Text variant="logo" role="heading" aria-label="WearX" style={styles.logo}>
           WEAR<Text variant="logo" color={colors.accent} style={styles.logo}>X</Text>
         </Text>
-        <Text variant="secondary" style={styles.subtitle}>i tuoi stili</Text>
+        <View style={styles.headerRight}>
+          <Text variant="secondary" style={styles.subtitle}>i tuoi stili</Text>
+          <NotificationBell />
+        </View>
       </View>
       {mine.data ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
@@ -122,6 +146,8 @@ export default function FeedScreen() {
           </View>
         )}
         ListHeaderComponent={header}
+        viewabilityConfig={VIEWABILITY}
+        onViewableItemsChanged={onViewable}
         ListEmptyComponent={empty}
         ListFooterComponent={
           feed.isFetchingNextPage ? <ActivityIndicator color={colors.textSecondary} style={styles.footer} /> : null
@@ -150,12 +176,14 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: "row",
-    alignItems: "baseline",
+    alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[3],
-    paddingBottom: spacing[2],
+    paddingLeft: spacing[4],
+    paddingRight: 4,
+    paddingTop: spacing[2],
+    paddingBottom: spacing[1],
   },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 2 },
   logo: { fontSize: 26, lineHeight: 30 },
   subtitle: { fontFamily: fonts.displayRegular, fontSize: 16 },
   chips: {

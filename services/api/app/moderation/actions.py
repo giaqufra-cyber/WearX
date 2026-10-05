@@ -17,6 +17,7 @@ from typing import Literal
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.notifications import notify
 from app.post_purge import purge_post
 from app.votes import CONFIRM_MIN, MATCH_THRESHOLD
 
@@ -147,6 +148,16 @@ async def record(
         },
     )
     assert isinstance(action_id, uuid.UUID)
+    # La persona coinvolta riceve una notifica (il testo completo è in Account > Avvisi).
+    # Gli annullamenti dovuti a un reclamo li racconta già l'esito del reclamo.
+    if subject_id is not None and not (action == "restore" and ground == "appeal"):
+        await notify(
+            session,
+            user_id=subject_id,
+            type="moderation",
+            post_id=target_id if target_type == "post" and action != "remove" else None,
+            payload={"action": action, "action_id": str(action_id)},
+        )
     return action_id
 
 

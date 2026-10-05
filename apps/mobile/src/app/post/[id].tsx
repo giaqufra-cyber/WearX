@@ -1,7 +1,7 @@
 import type { Post } from "@wearx/api-types";
 import { colors, fonts, spacing } from "@wearx/design-tokens";
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -11,6 +11,7 @@ import { PostCard } from "@/features/feed/PostCard";
 import { useCapsules, useMoveFit, usePortfolio, usePost, usePostActions } from "@/features/portfolio/api";
 import { CapsulePicker } from "@/features/portfolio/CapsulePicker";
 import { ApiError } from "@/lib/api";
+import { track } from "@/lib/events";
 import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { IconButton } from "@/ui/IconButton";
@@ -23,8 +24,12 @@ const MAX_WIDTH = 560;
 
 /** Un fit a tutto schermo; se è tuo: capsula, copertina, elimina. */
 export default function PostScreen() {
-  const { id = "" } = useLocalSearchParams<{ id: string }>();
+  const { id = "", from } = useLocalSearchParams<{ id: string; from?: string }>();
   const post = usePost(id);
+  const loaded = post.data?.id;
+  useEffect(() => {
+    if (loaded) track({ name: "post_open", post_id: loaded, source: from === "style" || from === "feed" ? from : "profile" });
+  }, [loaded, from]);
   const toast = useToast();
   const vote = useVote({ onError: (message) => toast.show(message, { tone: "error" }) });
   const { width: screen } = useWindowDimensions();

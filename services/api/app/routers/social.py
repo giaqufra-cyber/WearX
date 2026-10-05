@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.errors import ApiError
+from app.notifications import follow_request_handled, forget_between, notify
 from app.people import FollowState, find_person, not_found, profile_id_by_nickname
 from app.profiles import CurrentProfile, Profile
 from app.ratelimit import rate_limit
@@ -69,14 +70,23 @@ async def follow(nickname: str, viewer: CurrentProfile, session: Session) -> Fol
     if person.is_self:
         raise ApiError(422, "follow.self", "Non puoi seguire te stesso")
     initial = "accepted" if person.account_type == "business" else "pending"
-    await session.execute(
+    created = await session.scalar(
         text(
             """insert into app.follows (follower_id, followee_id, status)
                values (:me, :them, cast(:status as app.follow_status))
-               on conflict (follower_id, followee_id) do nothing"""
+               on conflict (follower_id, followee_id) do nothing
+               returning status::text"""
         ),
         {"me": viewer.id, "them": person.id, "status": initial},
     )
+    if created is not None:
+        await notify(
+            session,
+            user_id=person.id,
+            type="follow_request" if created == "pending" else "new_follower",
+            actor_id=viewer.id,
+            dedupe_key=f"follow:{viewer.id}",
+        )
     state = await session.scalar(
         text(
             """select status::text from app.follows
@@ -97,6 +107,8 @@ async def unfollow(nickname: str, viewer: CurrentProfile, session: Session) -> R
             text("delete from app.follows where follower_id = :me and followee_id = :them"),
             {"me": viewer.id, "them": target},
         )
+        # Richiesta ritirata: sparisce anche dalle notifiche di chi l'aveva ricevuta.
+        await follow_request_handled(session, followee=target, follower=viewer.id, accepted=False)
         await session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -242,6 +254,16 @@ async def decide_request(
             text("delete from app.follows where follower_id = :them and followee_id = :me"),
             {"them": requester, "me": viewer.id},
         )
+    assert requester is not None
+    await follow_request_handled(session, followee=viewer.id, follower=requester, accepted=accept)
+    if accept:
+        await notify(
+            session,
+            user_id=requester,
+            type="follow_accepted",
+            actor_id=viewer.id,
+            dedupe_key=f"accepted:{viewer.id}",
+        )
     await session.commit()
     if body.decision == "accept" and not accept:
         raise ApiError(409, "follow.not_allowed", "Questa persona non può seguirti")
@@ -257,6 +279,7 @@ async def remove_follower(nickname: str, viewer: CurrentProfile, session: Sessio
             text("delete from app.follows where follower_id = :them and followee_id = :me"),
             {"them": them, "me": viewer.id},
         )
+        await follow_request_handled(session, followee=viewer.id, follower=them, accepted=False)
         await session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -290,6 +313,7 @@ async def block(nickname: str, viewer: CurrentProfile, session: Session) -> Resp
         ),
         {"me": viewer.id, "them": them},
     )
+    await forget_between(session, viewer.id, them)
     await session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

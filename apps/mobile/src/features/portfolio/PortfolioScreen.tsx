@@ -402,6 +402,15 @@ function AccountSheet({ visible, onClose }: { visible: boolean; onClose: () => v
   return (
     <Sheet visible={visible} title="Account" onClose={onClose}>
       <Button
+        label="Notifiche"
+        variant="secondary"
+        size="md"
+        onPress={() => {
+          onClose();
+          router.push("/notification-settings");
+        }}
+      />
+      <Button
         label="Avvisi della moderazione"
         variant="secondary"
         size="md"

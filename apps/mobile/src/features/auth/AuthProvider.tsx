@@ -9,7 +9,9 @@ import { createContext, type ReactNode, useCallback, useContext, useEffect, useM
 
 import { decideRoute, type AppRoute } from "@/features/auth/routing";
 import { useSignupDraft } from "@/features/auth/signupDraft";
+import { forgetThisDevice } from "@/features/notifications/push";
 import { apiGet } from "@/lib/api";
+import { resetEvents } from "@/lib/events";
 import { supabase } from "@/lib/supabase";
 
 type AuthState = {
@@ -74,10 +76,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [me]);
 
   const signOut = useCallback(async () => {
+    // Prima di uscire: questo telefono smette di ricevere i push di questo account.
+    await forgetThisDevice(session?.access_token);
+    resetEvents();
     await supabase.auth.signOut();
     useSignupDraft.getState().clear();
     queryClient.removeQueries({ queryKey: ME_QUERY_KEY });
-  }, [queryClient]);
+  }, [queryClient, session?.access_token]);
 
   const value = useMemo<AuthState>(
     () => ({ route, session, profile: me.data ?? null, retry, signOut }),

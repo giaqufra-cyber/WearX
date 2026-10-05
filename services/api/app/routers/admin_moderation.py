@@ -24,6 +24,7 @@ from app.db import get_session
 from app.errors import ApiError
 from app.moderation import actions
 from app.moderation.reports import SLA
+from app.notifications import notify
 from app.people import profile_id_by_nickname
 from app.routers.media import MediaUrls, media_urls
 from app.staff import CurrentStaff, audit
@@ -570,6 +571,16 @@ async def decide_appeal(
             "moderation.appeal",
             f"appeal:{appeal_id}",
             {"decision": body.decision, "note": body.note},
+        )
+        await notify(
+            session,
+            user_id=row[1],
+            type="appeal_decided",
+            payload={
+                "outcome": "reversed" if body.decision == "reverse" else "upheld",
+                "appeal_id": str(appeal_id),
+            },
+            dedupe_key=f"appeal:{appeal_id}",
         )
         await session.commit()
     except BaseException:

@@ -264,3 +264,13 @@ export function IconUserPlus({ color, size = 22 }: IconProps) {
     </Svg>
   );
 }
+
+export function IconBell({ color, size = 24 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" />
+      <Path d="M10 21h4" />
+    </Svg>
+  );
+}

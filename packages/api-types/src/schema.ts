@@ -366,6 +366,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Collect */
+        post: operations["collect_v1_events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/feed": {
         parameters: {
             query?: never;
@@ -560,6 +577,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/notification-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Settings */
+        get: operations["get_settings__v1_me_notification_settings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Patch Settings
+         * @description Quali push ricevere. La lista nell'app resta completa.
+         */
+        patch: operations["patch_settings_v1_me_notification_settings_patch"];
+        trace?: never;
+    };
     "/v1/me/portfolio/order": {
         parameters: {
             query?: never;
@@ -572,6 +610,47 @@ export interface paths {
         put: operations["reorder_v1_me_portfolio_order_put"];
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/push-tokens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Register Token
+         * @description Registra il telefono per i push. Lo stesso telefono passato a un altro account cambia
+         *     proprietario (un telefono riceve i push di un solo account: quello con cui è entrato).
+         */
+        put: operations["register_token_v1_me_push_tokens_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/push-tokens/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Token
+         * @description All'uscita dall'account: quel telefono non riceve più push. Ripetibile.
+         */
+        delete: operations["remove_token_v1_me_push_tokens__token__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -643,6 +722,57 @@ export interface paths {
         put?: never;
         /** Complete Upload */
         post: operations["complete_upload_v1_media_uploads__upload_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Notifications */
+        get: operations["notifications_v1_notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/notifications/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark Read */
+        post: operations["mark_read_v1_notifications_read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/notifications/unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Unread */
+        get: operations["unread_v1_notifications_unread_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1179,6 +1309,16 @@ export interface components {
             /** Sanction */
             sanction: string | null;
         };
+        /** EventBatch */
+        EventBatch: {
+            /** Events */
+            events: (components["schemas"]["PostImpression"] | components["schemas"]["PostOpen"] | components["schemas"]["ShopClick"] | components["schemas"]["ProfileView"])[];
+        };
+        /** EventsAccepted */
+        EventsAccepted: {
+            /** Accepted */
+            accepted: number;
+        };
         /** FeedOut */
         FeedOut: {
             /** Empty Reason */
@@ -1272,6 +1412,16 @@ export interface components {
             /** Url */
             url: string | null;
         };
+        /** MarkRead */
+        MarkRead: {
+            /**
+             * All
+             * @default false
+             */
+            all: boolean;
+            /** Ids */
+            ids?: string[] | null;
+        };
         /** MediaOut */
         MediaOut: {
             /** Blurhash */
@@ -1342,6 +1492,84 @@ export interface components {
             reason: string;
             /** Statement */
             statement: string;
+        };
+        /** NotificationActor */
+        NotificationActor: {
+            /**
+             * Account Type
+             * @enum {string}
+             */
+            account_type: "private" | "business";
+            /** Can Open */
+            can_open: boolean;
+            /** Nickname */
+            nickname: string;
+        };
+        /** NotificationOut */
+        NotificationOut: {
+            actor: components["schemas"]["NotificationActor"] | null;
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            post: components["schemas"]["NotificationPost"] | null;
+            /** Read */
+            read: boolean;
+            /** Title */
+            title: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "follow_request" | "new_follower" | "follow_accepted" | "vote_milestone" | "moderation" | "appeal_decided";
+            /** Url */
+            url: string;
+        };
+        /** NotificationPage */
+        NotificationPage: {
+            /** Items */
+            items: components["schemas"]["NotificationOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Unread */
+            unread: number;
+        };
+        /** NotificationPost */
+        NotificationPost: {
+            /** Blurhash */
+            blurhash: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            thumb: components["schemas"]["MediaUrls"] | null;
+        };
+        /** NotificationSettings */
+        NotificationSettings: {
+            /** Follows */
+            follows: boolean;
+            /** Moderation */
+            moderation: boolean;
+            /** Votes */
+            votes: boolean;
+        };
+        /** NotificationSettingsPatch */
+        NotificationSettingsPatch: {
+            /** Follows */
+            follows?: boolean | null;
+            /** Moderation */
+            moderation?: boolean | null;
+            /** Votes */
+            votes?: boolean | null;
         };
         /** OnboardingIn */
         OnboardingIn: {
@@ -1442,6 +1670,26 @@ export interface components {
             /** Vote Count */
             vote_count: number | null;
         };
+        /** PostImpression */
+        PostImpression: {
+            /** At */
+            at?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            name: "post_impression";
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "feed" | "style" | "profile" | "post";
+        };
         /** PostIn */
         PostIn: {
             /** Caption */
@@ -1452,6 +1700,26 @@ export interface components {
             media: string[];
             /** Style */
             style: string;
+        };
+        /** PostOpen */
+        PostOpen: {
+            /** At */
+            at?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            name: "post_open";
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "feed" | "style" | "profile" | "post";
         };
         /** PostOut */
         PostOut: {
@@ -1557,6 +1825,28 @@ export interface components {
             hide_prices?: boolean | null;
             /** Hide Vote Count */
             hide_vote_count?: boolean | null;
+        };
+        /** ProfileView */
+        ProfileView: {
+            /** At */
+            at?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            name: "profile_view";
+            /** Nickname */
+            nickname: string;
+        };
+        /** PushTokenIn */
+        PushTokenIn: {
+            /**
+             * Platform
+             * @enum {string}
+             */
+            platform: "ios" | "android";
+            /** Token */
+            token: string;
         };
         /** QueueItem */
         QueueItem: {
@@ -1683,6 +1973,23 @@ export interface components {
              * @enum {string}
              */
             sanction: "warn" | "limit_posting" | "ban";
+        };
+        /** ShopClick */
+        ShopClick: {
+            /** At */
+            at?: string | null;
+            /** Item */
+            item: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            name: "shop_click";
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
         };
         /** StaffIn */
         StaffIn: {
@@ -1860,6 +2167,11 @@ export interface components {
             slug: string;
             /** Tone */
             tone: string;
+        };
+        /** UnreadOut */
+        UnreadOut: {
+            /** Unread */
+            unread: number;
         };
         /** UploadIn */
         UploadIn: {
@@ -2692,6 +3004,39 @@ export interface operations {
             };
         };
     };
+    collect_v1_events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventBatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventsAccepted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_feed_v1_feed_get: {
         parameters: {
             query?: {
@@ -3133,6 +3478,59 @@ export interface operations {
             };
         };
     };
+    get_settings__v1_me_notification_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationSettings"];
+                };
+            };
+        };
+    };
+    patch_settings_v1_me_notification_settings_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationSettingsPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationSettings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     reorder_v1_me_portfolio_order_put: {
         parameters: {
             query?: never;
@@ -3145,6 +3543,66 @@ export interface operations {
                 "application/json": components["schemas"]["OrderIn"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    register_token_v1_me_push_tokens_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PushTokenIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_token_v1_me_push_tokens__token__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             204: {
@@ -3304,6 +3762,88 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    notifications_v1_notifications_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_read_v1_notifications_read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarkRead"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unread_v1_notifications_unread_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadOut"];
                 };
             };
         };

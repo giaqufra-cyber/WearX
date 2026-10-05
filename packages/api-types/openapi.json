@@ -842,6 +842,60 @@
         "title": "DecisionOut",
         "type": "object"
       },
+      "EventBatch": {
+        "additionalProperties": false,
+        "properties": {
+          "events": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "post_impression": "#/components/schemas/PostImpression",
+                  "post_open": "#/components/schemas/PostOpen",
+                  "profile_view": "#/components/schemas/ProfileView",
+                  "shop_click": "#/components/schemas/ShopClick"
+                },
+                "propertyName": "name"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PostImpression"
+                },
+                {
+                  "$ref": "#/components/schemas/PostOpen"
+                },
+                {
+                  "$ref": "#/components/schemas/ShopClick"
+                },
+                {
+                  "$ref": "#/components/schemas/ProfileView"
+                }
+              ]
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Events",
+            "type": "array"
+          }
+        },
+        "required": [
+          "events"
+        ],
+        "title": "EventBatch",
+        "type": "object"
+      },
+      "EventsAccepted": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "accepted"
+        ],
+        "title": "EventsAccepted",
+        "type": "object"
+      },
       "FeedOut": {
         "properties": {
           "empty_reason": {
@@ -1170,6 +1224,34 @@
         "title": "LinkOut",
         "type": "object"
       },
+      "MarkRead": {
+        "additionalProperties": false,
+        "properties": {
+          "all": {
+            "default": false,
+            "title": "All",
+            "type": "boolean"
+          },
+          "ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ids"
+          }
+        },
+        "title": "MarkRead",
+        "type": "object"
+      },
       "MediaOut": {
         "properties": {
           "blurhash": {
@@ -1377,6 +1459,241 @@
           "appeal_until"
         ],
         "title": "NoticeOut",
+        "type": "object"
+      },
+      "NotificationActor": {
+        "properties": {
+          "account_type": {
+            "enum": [
+              "private",
+              "business"
+            ],
+            "title": "Account Type",
+            "type": "string"
+          },
+          "can_open": {
+            "title": "Can Open",
+            "type": "boolean"
+          },
+          "nickname": {
+            "title": "Nickname",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nickname",
+          "account_type",
+          "can_open"
+        ],
+        "title": "NotificationActor",
+        "type": "object"
+      },
+      "NotificationOut": {
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NotificationActor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "post": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NotificationPost"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "read": {
+            "title": "Read",
+            "type": "boolean"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "follow_request",
+              "new_follower",
+              "follow_accepted",
+              "vote_milestone",
+              "moderation",
+              "appeal_decided"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "title",
+          "body",
+          "url",
+          "created_at",
+          "read",
+          "actor",
+          "post"
+        ],
+        "title": "NotificationOut",
+        "type": "object"
+      },
+      "NotificationPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NotificationOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "unread": {
+            "title": "Unread",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "unread"
+        ],
+        "title": "NotificationPage",
+        "type": "object"
+      },
+      "NotificationPost": {
+        "properties": {
+          "blurhash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blurhash"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "thumb": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MediaUrls"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "blurhash",
+          "thumb"
+        ],
+        "title": "NotificationPost",
+        "type": "object"
+      },
+      "NotificationSettings": {
+        "properties": {
+          "follows": {
+            "title": "Follows",
+            "type": "boolean"
+          },
+          "moderation": {
+            "title": "Moderation",
+            "type": "boolean"
+          },
+          "votes": {
+            "title": "Votes",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "follows",
+          "votes",
+          "moderation"
+        ],
+        "title": "NotificationSettings",
+        "type": "object"
+      },
+      "NotificationSettingsPatch": {
+        "additionalProperties": false,
+        "properties": {
+          "follows": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follows"
+          },
+          "moderation": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moderation"
+          },
+          "votes": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Votes"
+          }
+        },
+        "title": "NotificationSettingsPatch",
         "type": "object"
       },
       "OnboardingIn": {
@@ -1686,6 +2003,50 @@
         "title": "PortfolioTile",
         "type": "object"
       },
+      "PostImpression": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "At"
+          },
+          "name": {
+            "const": "post_impression",
+            "title": "Name",
+            "type": "string"
+          },
+          "post_id": {
+            "format": "uuid",
+            "title": "Post Id",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "feed",
+              "style",
+              "profile",
+              "post"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "post_id",
+          "source"
+        ],
+        "title": "PostImpression",
+        "type": "object"
+      },
       "PostIn": {
         "additionalProperties": false,
         "properties": {
@@ -1731,6 +2092,50 @@
           "media"
         ],
         "title": "PostIn",
+        "type": "object"
+      },
+      "PostOpen": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "At"
+          },
+          "name": {
+            "const": "post_open",
+            "title": "Name",
+            "type": "string"
+          },
+          "post_id": {
+            "format": "uuid",
+            "title": "Post Id",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "feed",
+              "style",
+              "profile",
+              "post"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "post_id",
+          "source"
+        ],
+        "title": "PostOpen",
         "type": "object"
       },
       "PostOut": {
@@ -2092,6 +2497,65 @@
         "title": "ProfileUpdateIn",
         "type": "object"
       },
+      "ProfileView": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "At"
+          },
+          "name": {
+            "const": "profile_view",
+            "title": "Name",
+            "type": "string"
+          },
+          "nickname": {
+            "maxLength": 20,
+            "minLength": 3,
+            "title": "Nickname",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "nickname"
+        ],
+        "title": "ProfileView",
+        "type": "object"
+      },
+      "PushTokenIn": {
+        "additionalProperties": false,
+        "properties": {
+          "platform": {
+            "enum": [
+              "ios",
+              "android"
+            ],
+            "title": "Platform",
+            "type": "string"
+          },
+          "token": {
+            "maxLength": 250,
+            "minLength": 20,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "platform"
+        ],
+        "title": "PushTokenIn",
+        "type": "object"
+      },
       "QueueItem": {
         "properties": {
           "automated": {
@@ -2434,6 +2898,46 @@
           "ground"
         ],
         "title": "SanctionIn",
+        "type": "object"
+      },
+      "ShopClick": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "At"
+          },
+          "item": {
+            "maximum": 19.0,
+            "minimum": 0.0,
+            "title": "Item",
+            "type": "integer"
+          },
+          "name": {
+            "const": "shop_click",
+            "title": "Name",
+            "type": "string"
+          },
+          "post_id": {
+            "format": "uuid",
+            "title": "Post Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "post_id",
+          "item"
+        ],
+        "title": "ShopClick",
         "type": "object"
       },
       "StaffIn": {
@@ -2997,6 +3501,19 @@
           "tone"
         ],
         "title": "StyleRef",
+        "type": "object"
+      },
+      "UnreadOut": {
+        "properties": {
+          "unread": {
+            "title": "Unread",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "unread"
+        ],
+        "title": "UnreadOut",
         "type": "object"
       },
       "UploadIn": {
@@ -4449,6 +4966,47 @@
         ]
       }
     },
+    "/v1/events": {
+      "post": {
+        "operationId": "collect_v1_events_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventBatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventsAccepted"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Collect",
+        "tags": [
+          "events"
+        ]
+      }
+    },
     "/v1/feed": {
       "get": {
         "operationId": "get_feed_v1_feed_get",
@@ -5073,6 +5631,67 @@
         ]
       }
     },
+    "/v1/me/notification-settings": {
+      "get": {
+        "operationId": "get_settings__v1_me_notification_settings_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Settings ",
+        "tags": [
+          "notifications"
+        ]
+      },
+      "patch": {
+        "description": "Quali push ricevere. La lista nell'app resta completa.",
+        "operationId": "patch_settings_v1_me_notification_settings_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationSettingsPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Settings",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
     "/v1/me/portfolio/order": {
       "put": {
         "operationId": "reorder_v1_me_portfolio_order_put",
@@ -5104,6 +5723,77 @@
         "summary": "Reorder",
         "tags": [
           "portfolio"
+        ]
+      }
+    },
+    "/v1/me/push-tokens": {
+      "put": {
+        "description": "Registra il telefono per i push. Lo stesso telefono passato a un altro account cambia\nproprietario (un telefono riceve i push di un solo account: quello con cui è entrato).",
+        "operationId": "register_token_v1_me_push_tokens_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushTokenIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Register Token",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/v1/me/push-tokens/{token}": {
+      "delete": {
+        "description": "All'uscita dall'account: quel telefono non riceve più push. Ripetibile.",
+        "operationId": "remove_token_v1_me_push_tokens__token__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Token",
+        "tags": [
+          "notifications"
         ]
       }
     },
@@ -5287,6 +5977,111 @@
         "summary": "Complete Upload",
         "tags": [
           "media"
+        ]
+      }
+    },
+    "/v1/notifications": {
+      "get": {
+        "operationId": "notifications_v1_notifications_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Notifications",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/v1/notifications/read": {
+      "post": {
+        "operationId": "mark_read_v1_notifications_read_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkRead"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark Read",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/v1/notifications/unread": {
+      "get": {
+        "operationId": "unread_v1_notifications_unread_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnreadOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Unread",
+        "tags": [
+          "notifications"
         ]
       }
     },

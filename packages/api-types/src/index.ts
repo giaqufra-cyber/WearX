@@ -47,6 +47,14 @@ export type ReportReason = Schemas["ReportIn"]["reason"];
 export type ReportReceipt = Schemas["ReportOut"];
 export type ModerationNotice = Schemas["NoticeOut"];
 export type Appeal = Schemas["AppealOut"];
+export type AppNotification = Schemas["NotificationOut"];
+export type NotificationPage = Schemas["NotificationPage"];
+export type NotificationType = Schemas["NotificationOut"]["type"];
+export type NotificationSettings = Schemas["NotificationSettings"];
+export type NotificationSettingsUpdate = Schemas["NotificationSettingsPatch"];
+export type PushTokenRequest = Schemas["PushTokenIn"];
+export type UsageEvent = Schemas["EventBatch"]["events"][number];
+export type UsageEventBatch = Schemas["EventBatch"];
 
 // Pannello dello staff (/v1/admin)
 export type StaffMe = Schemas["StaffMe"];
@@ -122,6 +130,7 @@ export type ApiErrorCode =
   | "nickname.invalid"
   | "nickname.reserved"
   | "nickname.taken"
+  | "notifications.invalid_cursor"
   | "onboarding.required"
   | "people.invalid_cursor"
   | "portfolio.bad_position"
@@ -131,6 +140,7 @@ export type ApiErrorCode =
   | "post.restyle_used"
   | "profile.exists"
   | "profile.private"
+  | "push.bad_token"
   | "rate.limited"
   | "report.own_content"
   | "request.in_progress"

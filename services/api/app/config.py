@@ -69,6 +69,12 @@ class Settings(BaseSettings):
     media_url_ttl_seconds: int = 3600
     max_pending_uploads: int = 20
 
+    # Push: "expo" spedisce davvero (servizio push di Expo), "log" li scrive solo nei log
+    # (sviluppo e test). Il token di accesso Expo è facoltativo ma consigliato: con la
+    # "sicurezza avanzata" attiva nel progetto Expo, senza token nessuno può mandare push.
+    push_provider: Literal["expo", "log"] = "log"
+    expo_access_token: SecretStr | None = None
+
     # Versione dei termini che l'app mostra in registrazione.
     terms_version: str = "2026-10"
 
@@ -118,6 +124,8 @@ def get_settings() -> Settings:
     storage_secret = settings.storage_secret_key.get_secret_value()
     if settings.is_production and storage_secret.startswith("wearx-local"):
         raise RuntimeError("WEARX_STORAGE_SECRET_KEY non impostato in produzione")
+    if settings.is_production and settings.push_provider != "expo":
+        raise RuntimeError("WEARX_PUSH_PROVIDER deve essere 'expo' in produzione")
     if settings.env in ("staging", "production") and not settings.staff_require_mfa:
         raise RuntimeError("WEARX_STAFF_REQUIRE_MFA non può essere spento in staging/produzione")
     return settings

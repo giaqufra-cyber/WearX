@@ -12,6 +12,7 @@ import { VotePanel } from "@/features/feed/VotePanel";
 import { ReportSheet } from "@/features/moderation/ReportSheet";
 import { IconButton } from "@/ui/IconButton";
 import { IconArrowUpRight, IconMore, IconShield } from "@/ui/icons";
+import { track } from "@/lib/events";
 
 type Props = {
   post: Post;
@@ -105,7 +106,10 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting }: 
                   <Pressable
                     role="link"
                     aria-label={`Apri ${item.link?.domain ?? "il negozio"}`}
-                    onPress={() => void WebBrowser.openBrowserAsync(url)}
+                    onPress={() => {
+                      track({ name: "shop_click", post_id: post.id, item: item.position });
+                      void WebBrowser.openBrowserAsync(url);
+                    }}
                     style={styles.shop}
                   >
                     <IconArrowUpRight color={colors.text} />
