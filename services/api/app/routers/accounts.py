@@ -286,6 +286,15 @@ async def update_me(body: ProfileUpdateIn, profile: CurrentProfile, session: Ses
             text(f"update app.profiles set {assignments} where id = :id"),  # noqa: S608
             {**changes, "id": profile.id},
         )
+        if changes.get("account_type") == "business":
+            # Un profilo Business è pubblico: le richieste in attesa diventano follow.
+            await session.execute(
+                text(
+                    """update app.follows set status = 'accepted'
+                        where followee_id = :id and status = 'pending'"""
+                ),
+                {"id": profile.id},
+            )
         await session.commit()
 
     updated = await load_profile(session, profile.id)

@@ -100,6 +100,9 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="style/[slug]" />
         <Stack.Screen name="post/[id]" />
+        <Stack.Screen name="user/[nickname]" />
+        <Stack.Screen name="people" />
+        <Stack.Screen name="find" />
         <Stack.Screen name="new-post" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
       </Stack.Protected>
       <Stack.Protected guard={shown === "auth"}>

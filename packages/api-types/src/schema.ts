@@ -124,6 +124,23 @@ export interface paths {
         patch: operations["update_me_v1_me_patch"];
         trace?: never;
     };
+    "/v1/me/blocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Blocks */
+        get: operations["blocks_v1_me_blocks_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/capsules": {
         parameters: {
             query?: never;
@@ -158,6 +175,78 @@ export interface paths {
         head?: never;
         /** Rename Capsule */
         patch: operations["rename_capsule_v1_me_capsules__capsule_id__patch"];
+        trace?: never;
+    };
+    "/v1/me/follow-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Follow Requests */
+        get: operations["follow_requests_v1_me_follow_requests_get"];
+        put?: never;
+        /** Decide Request */
+        post: operations["decide_request_v1_me_follow_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/followers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Followers */
+        get: operations["followers_v1_me_followers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/followers/{nickname}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Follower
+         * @description Togli un follower (o rifiuta la sua richiesta): non vede più il tuo portfolio.
+         */
+        delete: operations["remove_follower_v1_me_followers__nickname__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/following": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Following */
+        get: operations["following_v1_me_following_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/me/portfolio/order": {
@@ -388,6 +477,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/users/{nickname}/block": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Block */
+        put: operations["block_v1_users__nickname__block_put"];
+        post?: never;
+        /**
+         * Unblock
+         * @description Sblocca. I follow tolti dal blocco non tornano: vanno richiesti di nuovo.
+         */
+        delete: operations["unblock_v1_users__nickname__block_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/users/{nickname}/follow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Follow */
+        post: operations["follow_v1_users__nickname__follow_post"];
+        /**
+         * Unfollow
+         * @description Smetti di seguire, oppure ritira la richiesta. Ripetibile.
+         */
+        delete: operations["unfollow_v1_users__nickname__follow_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/users/{nickname}/posts": {
         parameters: {
             query?: never;
@@ -524,6 +655,14 @@ export interface components {
             items: components["schemas"]["PostOut"][];
             /** Next Cursor */
             next_cursor: string | null;
+        };
+        /** FollowOut */
+        FollowOut: {
+            /**
+             * Following
+             * @enum {string}
+             */
+            following: "none" | "pending" | "accepted";
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -669,6 +808,28 @@ export interface components {
              */
             post_id: string;
         };
+        /** PeoplePage */
+        PeoplePage: {
+            /** Items */
+            items: components["schemas"]["PersonOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** PersonOut */
+        PersonOut: {
+            /**
+             * Account Type
+             * @enum {string}
+             */
+            account_type: "private" | "business";
+            /** Nickname */
+            nickname: string;
+            /**
+             * Since
+             * Format: date-time
+             */
+            since: string;
+        };
         /** PortfolioPage */
         PortfolioPage: {
             /** Cover Id */
@@ -810,6 +971,26 @@ export interface components {
             hide_prices?: boolean | null;
             /** Hide Vote Count */
             hide_vote_count?: boolean | null;
+        };
+        /** Relationship */
+        Relationship: {
+            /**
+             * Following
+             * @enum {string}
+             */
+            following: "none" | "pending" | "accepted";
+            /** Follows You */
+            follows_you: boolean;
+        };
+        /** RequestDecision */
+        RequestDecision: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "accept" | "reject";
+            /** Nickname */
+            nickname: string;
         };
         /** StyleCard */
         StyleCard: {
@@ -956,10 +1137,17 @@ export interface components {
             can_view_posts: boolean;
             /** Capsules */
             capsules: components["schemas"]["CapsuleOut"][];
+            /** Followers */
+            followers: number;
+            /** Following */
+            following: number;
             /** Is Self */
             is_self: boolean;
             /** Nickname */
             nickname: string;
+            /** Pending Requests */
+            pending_requests?: number | null;
+            relationship: components["schemas"]["Relationship"];
             stats: components["schemas"]["UserStats"];
             /** Styles */
             styles: components["schemas"]["StyleRef"][];
@@ -1239,6 +1427,37 @@ export interface operations {
             };
         };
     };
+    blocks_v1_me_blocks_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeoplePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_capsules_v1_me_capsules_get: {
         parameters: {
             query?: never;
@@ -1343,6 +1562,159 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CapsuleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    follow_requests_v1_me_follow_requests_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeoplePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_request_v1_me_follow_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    followers_v1_me_followers_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeoplePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_follower_v1_me_followers__nickname__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nickname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    following_v1_me_following_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeoplePage"];
                 };
             };
             /** @description Validation Error */
@@ -1872,6 +2244,124 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UserOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    block_v1_users__nickname__block_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nickname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unblock_v1_users__nickname__block_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nickname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    follow_v1_users__nickname__follow_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nickname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unfollow_v1_users__nickname__follow_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nickname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

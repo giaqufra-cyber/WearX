@@ -174,7 +174,10 @@ describe("Feed", () => {
     await user.press(screen.getByRole("link", { name: "Apri armani.com" }));
     expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith("https://www.armani.com/smoking");
     // Il capo senza link non ha il pulsante.
-    expect(screen.queryAllByRole("link")).toHaveLength(1);
+    expect(screen.queryAllByRole("link", { name: /^Apri [a-z0-9.-]+\.[a-z]+$/ })).toHaveLength(1);
+    // Il nome dell'autore apre il suo profilo.
+    await user.press(screen.getByRole("link", { name: "Apri il profilo di @giulia.rossi" }));
+    expect(router.push).toHaveBeenCalledWith({ pathname: "/user/[nickname]", params: { nickname: "giulia.rossi" } });
   });
 
   test("anonimo e post proprio", async () => {

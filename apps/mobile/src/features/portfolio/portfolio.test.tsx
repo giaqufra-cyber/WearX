@@ -62,6 +62,10 @@ const user = (extra: Partial<UserProfile> = {}): UserProfile => ({
   styles: [{ slug: "gala", name: "Galà", tone: "#3A1418" }],
   stats: { posts: 3, average: 88.4, votes: 5120 },
   capsules: [{ id: "c1", name: "Serate", post_count: 1 }],
+  followers: 12,
+  following: 30,
+  relationship: { following: "none", follows_you: false },
+  pending_requests: 0,
   ...extra,
 });
 

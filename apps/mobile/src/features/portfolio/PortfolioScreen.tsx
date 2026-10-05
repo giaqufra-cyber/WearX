@@ -21,11 +21,13 @@ import { afterIdForStep, useMoveFit, usePortfolio, useUser } from "@/features/po
 import { CapsuleManager } from "@/features/portfolio/CapsuleManager";
 import { FitTile } from "@/features/portfolio/FitTile";
 import { accountTypeLabel, statValue } from "@/features/portfolio/format";
+import { FollowButton } from "@/features/social/FollowButton";
+import { PersonMenu } from "@/features/social/PersonMenu";
 import { ApiError } from "@/lib/api";
 import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { IconButton } from "@/ui/IconButton";
-import { IconFolder, IconLock, IconSliders } from "@/ui/icons";
+import { IconBack, IconFolder, IconLock, IconMore, IconSliders, IconUserPlus } from "@/ui/icons";
 import { ErrorNotice } from "@/ui/LoadState";
 import { Sheet } from "@/ui/Sheet";
 import { Skeleton } from "@/ui/Skeleton";
@@ -45,6 +47,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
   const [editing, setEditing] = useState(false);
   const [managing, setManaging] = useState(false);
   const [settings, setSettings] = useState(false);
+  const [menu, setMenu] = useState(false);
   const activeCapsule = capsule && profile?.capsules.some((c) => c.id === capsule) ? capsule : null;
 
   const grid = usePortfolio(nickname, activeCapsule, profile?.can_view_posts ?? false);
@@ -112,7 +115,12 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
 
   const header = (
     <View>
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, !own && styles.topBarBack]}>
+        {!own ? (
+          <IconButton label="Indietro" onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}>
+            <IconBack color={colors.text} />
+          </IconButton>
+        ) : null}
         <View style={styles.topName}>
           {profile.account_type === "private" ? <IconLock color={colors.text} size={16} /> : null}
           <Text style={styles.topNick} role="heading" numberOfLines={1}>
@@ -120,13 +128,41 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
           </Text>
         </View>
         {own ? (
-          <IconButton label="Impostazioni dell'account" onPress={() => setSettings(true)}>
-            <IconSliders color={colors.text} />
+          <>
+            <IconButton label="Trova persone" onPress={() => router.push("/find")}>
+              <IconUserPlus color={colors.text} />
+            </IconButton>
+            <IconButton label="Impostazioni dell'account" onPress={() => setSettings(true)}>
+              <IconSliders color={colors.text} />
+            </IconButton>
+          </>
+        ) : (
+          <IconButton label="Altre azioni" onPress={() => setMenu(true)}>
+            <IconMore color={colors.text} />
           </IconButton>
-        ) : null}
+        )}
       </View>
 
       <ProfileHead profile={profile} />
+
+      {own && (profile.pending_requests ?? 0) > 0 ? (
+        <Pressable
+          role="button"
+          onPress={() => router.push({ pathname: "/people", params: { tab: "requests" } })}
+          style={styles.requests}
+          aria-label={`Richieste di follow: ${profile.pending_requests}`}
+        >
+          <Text style={styles.requestsText}>Richieste di follow</Text>
+          <Text style={styles.requestsCount}>{profile.pending_requests}</Text>
+        </Pressable>
+      ) : null}
+      {!own ? (
+        <View style={styles.buttons}>
+          <View style={styles.flex}>
+            <FollowButton user={profile} />
+          </View>
+        </View>
+      ) : null}
 
       {own ? (
         <View style={styles.buttons}>
@@ -261,6 +297,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
       />
       {own ? <CapsuleManager visible={managing} onClose={() => setManaging(false)} /> : null}
       {own ? <AccountSheet visible={settings} onClose={() => setSettings(false)} /> : null}
+      {!own ? <PersonMenu nickname={profile.nickname} visible={menu} onClose={() => setMenu(false)} /> : null}
     </SafeAreaView>
   );
 }
@@ -285,6 +322,20 @@ function ProfileHead({ profile }: { profile: UserProfile }) {
         <View style={styles.nameRow}>
           <Text style={styles.name}>@{profile.nickname}</Text>
           <Text style={styles.type}>{accountTypeLabel(profile.account_type)}</Text>
+          {profile.relationship.follows_you && !profile.is_self ? <Text style={styles.type}>TI SEGUE</Text> : null}
+        </View>
+        <View style={styles.counts}>
+          <Count
+            value={profile.followers}
+            label="follower"
+            onPress={profile.is_self ? () => router.push({ pathname: "/people", params: { tab: "followers" } }) : undefined}
+          />
+          <Text style={styles.countDot}>·</Text>
+          <Count
+            value={profile.following}
+            label="seguiti"
+            onPress={profile.is_self ? () => router.push({ pathname: "/people", params: { tab: "following" } }) : undefined}
+          />
         </View>
         {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
         {profile.styles.length > 0 ? (
@@ -304,6 +355,23 @@ function ProfileHead({ profile }: { profile: UserProfile }) {
   );
 }
 
+function Count({ value, label, onPress }: { value: number; label: string; onPress?: () => void }) {
+  const content = (
+    <Text style={styles.countText}>
+      <Text style={styles.countValue}>{statValue(value, "count")}</Text> {label}
+    </Text>
+  );
+  return onPress ? (
+    <Pressable role="link" onPress={onPress} hitSlop={8} aria-label={`${value} ${label}`}>
+      {content}
+    </Pressable>
+  ) : (
+    <View accessible aria-label={`${value} ${label}`}>
+      {content}
+    </View>
+  );
+}
+
 function Stat({ value, label, accent = false }: { value: string; label: string; accent?: boolean }) {
   return (
     <View style={styles.stat} accessible aria-label={`${label}: ${value === "—" ? "non disponibile" : value}`}>
@@ -317,6 +385,15 @@ function AccountSheet({ visible, onClose }: { visible: boolean; onClose: () => v
   const { signOut } = useAuth();
   return (
     <Sheet visible={visible} title="Account" onClose={onClose}>
+      <Button
+        label="Account bloccati"
+        variant="secondary"
+        size="md"
+        onPress={() => {
+          onClose();
+          router.push({ pathname: "/people", params: { tab: "blocks" } });
+        }}
+      />
       <Text style={styles.sheetText}>
         Privacy e sicurezza (dispositivi collegati, nascondi prezzi, scarica i tuoi dati) arrivano qui con un
         prossimo aggiornamento.
@@ -350,6 +427,37 @@ const styles = StyleSheet.create({
     paddingRight: 4,
     minHeight: 52,
   },
+  topBarBack: { paddingLeft: 0 },
+  requests: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginHorizontal: SIDE,
+    marginTop: spacing[4],
+    paddingHorizontal: 14,
+    minHeight: 48,
+    borderRadius: radii.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+  },
+  requestsText: { fontFamily: fonts.uiBold, fontSize: 14, color: colors.text },
+  requestsCount: {
+    fontFamily: fonts.uiExtraBold,
+    fontSize: 12,
+    color: colors.onAccent,
+    backgroundColor: colors.accent,
+    minWidth: 24,
+    textAlign: "center",
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: radii.pill,
+    overflow: "hidden",
+  },
+  counts: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6 },
+  countText: { fontFamily: fonts.ui, fontSize: 13, color: colors.textSecondary },
+  countValue: { fontFamily: fonts.uiBold, color: colors.text },
+  countDot: { color: colors.textTertiary },
   topName: { flexDirection: "row", alignItems: "center", gap: 7, flex: 1 },
   topNick: { fontFamily: fonts.uiExtraBold, fontSize: 18, color: colors.text },
   head: { flexDirection: "row", alignItems: "center", gap: 18, paddingHorizontal: SIDE, paddingTop: 6 },

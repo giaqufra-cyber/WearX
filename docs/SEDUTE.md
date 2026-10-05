@@ -566,3 +566,51 @@ Schermate: `docs/screens/seduta-14-portfolio.png`.
 
 Da fare in seduta 15: account privati (richiesta di follow, accetta/rifiuta, blocchi, pagina del
 profilo di un'altra persona dal feed, regole 16-17 / 18+).
+
+### Seduta 15 — 2026-10-05
+
+Fatto (API, `app/people.py`, `app/routers/social.py`, migrazione 0009):
+- **Follow con richiesta**: `POST/DELETE /v1/users/{nickname}/follow`. Un account privato riceve
+  una richiesta da accettare; un Business si segue subito; passando a Business le richieste in
+  attesa diventano follow. Ripetibile (anche 8 richieste in contemporanea = una sola riga);
+  100 al giorno.
+- **Richieste ed elenchi**: `GET /v1/me/follow-requests` + `POST` per accettare o rifiutare,
+  `GET /v1/me/followers`, `/v1/me/following`, `/v1/me/blocks` (a pagine, dal più recente),
+  `DELETE /v1/me/followers/{nickname}` per togliere un follower.
+- **Blocchi**: `PUT/DELETE /v1/users/{nickname}/block`. Bloccare toglie i follow e le richieste
+  nei due sensi; da quel momento l'uno per l'altro non esistono (profilo, griglia, fit, feed). Si
+  può bloccare chiunque si conosca per nickname. Sbloccando ci si rivede, ma i follow vanno
+  richiesti di nuovo.
+- **Profilo**: contatori follower/seguiti, rapporto con chi guarda (segui, richiesta inviata, ti
+  segue), richieste in attesa sul proprio profilo.
+- **Tutele 16-17 (sez. 14.1)**, in un solo punto per tutta l'app:
+  - un maggiorenne non trova il profilo di un 16-17enne (risposta identica a "non esiste"),
+    quindi non può chiedergli il follow; un 16-17enne vede gli adulti e può chiedere di seguirli;
+  - i fit pubblicati da un 16-17enne li vedono solo altri 16-17 (feed, pagina, voto, griglia);
+  - scelta presa: **i fit pubblicati quando aveva 16-17 anni restano tra 16-17 anche dopo i 18**
+    (colonna `posts.minor_author`); quelli nuovi sono visibili a tutti;
+  - una richiesta vecchia di chi nel frattempo ha compiuto 18 anni non si può accettare.
+
+Fatto (app):
+- **Profilo di un'altra persona** (`/user/[nickname]`): si apre toccando il nome dell'autore nel
+  feed. Pulsante Segui → "Richiesta inviata" (tocca di nuovo per ritirarla) → "Segui già"
+  (smettere chiede conferma se l'account è privato). "Account privato" finché non si è accettati.
+  Menu "…" con Blocca e conferma.
+- **Il tuo profilo**: contatori follower · seguiti, banner "Richieste di follow" con il numero,
+  icona "Trova persone".
+- **Persone** (`/people`): Richieste (Accetta / ×), Follower (Rimuovi), Seguiti (Non seguire
+  più), Bloccati (Sblocca). Tutto si vede subito e torna com'era se il server dice no.
+- **Trova persone** (`/find`): nickname esatto → scheda con Segui. Non è una ricerca: nessun
+  elenco di persone da sfogliare (la specifica la esclude per la v1).
+- Nel pannello Account: "Account bloccati".
+
+Provato davvero sul web: due richieste in arrivo, una accettata (compare tra i follower);
+nickname cercato, richiesta inviata, profilo bloccato finché l'altra persona non accetta, poi la
+griglia si apre; menu Blocca.
+
+Verifiche: 295 test API (+12); 200 test app (+13); ruff, mypy, tsc puliti; export Android ok.
+
+Schermate: `docs/screens/seduta-15-account-privati.png`.
+
+Da fare in seduta 16: moderazione lato server (segnalazioni con priorità, azioni dei moderatori,
+classificatore immagini e hash dietro interfacce, pulsante "Segnala").

@@ -244,3 +244,23 @@ export function IconPencil({ color, size = 18 }: IconProps) {
     </Svg>
   );
 }
+
+export function IconMore({ color, size = 22 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
+      <Circle cx={5} cy={12} r={1.8} />
+      <Circle cx={12} cy={12} r={1.8} />
+      <Circle cx={19} cy={12} r={1.8} />
+    </Svg>
+  );
+}
+
+export function IconUserPlus({ color, size = 22 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <Circle cx={9} cy={8} r={4} />
+      <Path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6" />
+    </Svg>
+  );
+}

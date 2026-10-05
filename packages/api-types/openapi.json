@@ -305,6 +305,24 @@
         "title": "FeedOut",
         "type": "object"
       },
+      "FollowOut": {
+        "properties": {
+          "following": {
+            "enum": [
+              "none",
+              "pending",
+              "accepted"
+            ],
+            "title": "Following",
+            "type": "string"
+          }
+        },
+        "required": [
+          "following"
+        ],
+        "title": "FollowOut",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -749,6 +767,62 @@
           "after_id"
         ],
         "title": "OrderIn",
+        "type": "object"
+      },
+      "PeoplePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PersonOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "PeoplePage",
+        "type": "object"
+      },
+      "PersonOut": {
+        "properties": {
+          "account_type": {
+            "enum": [
+              "private",
+              "business"
+            ],
+            "title": "Account Type",
+            "type": "string"
+          },
+          "nickname": {
+            "title": "Nickname",
+            "type": "string"
+          },
+          "since": {
+            "format": "date-time",
+            "title": "Since",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nickname",
+          "account_type",
+          "since"
+        ],
+        "title": "PersonOut",
         "type": "object"
       },
       "PortfolioPage": {
@@ -1264,6 +1338,54 @@
         "title": "ProfileUpdateIn",
         "type": "object"
       },
+      "Relationship": {
+        "properties": {
+          "following": {
+            "enum": [
+              "none",
+              "pending",
+              "accepted"
+            ],
+            "title": "Following",
+            "type": "string"
+          },
+          "follows_you": {
+            "title": "Follows You",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "following",
+          "follows_you"
+        ],
+        "title": "Relationship",
+        "type": "object"
+      },
+      "RequestDecision": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "enum": [
+              "accept",
+              "reject"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "nickname": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Nickname",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nickname",
+          "decision"
+        ],
+        "title": "RequestDecision",
+        "type": "object"
+      },
       "StyleCard": {
         "properties": {
           "active_until": {
@@ -1686,6 +1808,14 @@
             "title": "Capsules",
             "type": "array"
           },
+          "followers": {
+            "title": "Followers",
+            "type": "integer"
+          },
+          "following": {
+            "title": "Following",
+            "type": "integer"
+          },
           "is_self": {
             "title": "Is Self",
             "type": "boolean"
@@ -1693,6 +1823,20 @@
           "nickname": {
             "title": "Nickname",
             "type": "string"
+          },
+          "pending_requests": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Requests"
+          },
+          "relationship": {
+            "$ref": "#/components/schemas/Relationship"
           },
           "stats": {
             "$ref": "#/components/schemas/UserStats"
@@ -1713,7 +1857,10 @@
           "can_view_posts",
           "styles",
           "stats",
-          "capsules"
+          "capsules",
+          "followers",
+          "following",
+          "relationship"
         ],
         "title": "UserOut",
         "type": "object"
@@ -2197,6 +2344,56 @@
         ]
       }
     },
+    "/v1/me/blocks": {
+      "get": {
+        "operationId": "blocks_v1_me_blocks_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeoplePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Blocks",
+        "tags": [
+          "social"
+        ]
+      }
+    },
     "/v1/me/capsules": {
       "get": {
         "operationId": "list_capsules_v1_me_capsules_get",
@@ -2345,6 +2542,224 @@
         "summary": "Rename Capsule",
         "tags": [
           "portfolio"
+        ]
+      }
+    },
+    "/v1/me/follow-requests": {
+      "get": {
+        "operationId": "follow_requests_v1_me_follow_requests_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeoplePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Follow Requests",
+        "tags": [
+          "social"
+        ]
+      },
+      "post": {
+        "operationId": "decide_request_v1_me_follow_requests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide Request",
+        "tags": [
+          "social"
+        ]
+      }
+    },
+    "/v1/me/followers": {
+      "get": {
+        "operationId": "followers_v1_me_followers_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeoplePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Followers",
+        "tags": [
+          "social"
+        ]
+      }
+    },
+    "/v1/me/followers/{nickname}": {
+      "delete": {
+        "description": "Togli un follower (o rifiuta la sua richiesta): non vede più il tuo portfolio.",
+        "operationId": "remove_follower_v1_me_followers__nickname__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nickname",
+            "required": true,
+            "schema": {
+              "title": "Nickname",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Follower",
+        "tags": [
+          "social"
+        ]
+      }
+    },
+    "/v1/me/following": {
+      "get": {
+        "operationId": "following_v1_me_following_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeoplePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Following",
+        "tags": [
+          "social"
         ]
       }
     },
@@ -3059,6 +3474,151 @@
         "summary": "Get User",
         "tags": [
           "portfolio"
+        ]
+      }
+    },
+    "/v1/users/{nickname}/block": {
+      "delete": {
+        "description": "Sblocca. I follow tolti dal blocco non tornano: vanno richiesti di nuovo.",
+        "operationId": "unblock_v1_users__nickname__block_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nickname",
+            "required": true,
+            "schema": {
+              "title": "Nickname",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unblock",
+        "tags": [
+          "social"
+        ]
+      },
+      "put": {
+        "operationId": "block_v1_users__nickname__block_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nickname",
+            "required": true,
+            "schema": {
+              "title": "Nickname",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Block",
+        "tags": [
+          "social"
+        ]
+      }
+    },
+    "/v1/users/{nickname}/follow": {
+      "delete": {
+        "description": "Smetti di seguire, oppure ritira la richiesta. Ripetibile.",
+        "operationId": "unfollow_v1_users__nickname__follow_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nickname",
+            "required": true,
+            "schema": {
+              "title": "Nickname",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unfollow",
+        "tags": [
+          "social"
+        ]
+      },
+      "post": {
+        "operationId": "follow_v1_users__nickname__follow_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nickname",
+            "required": true,
+            "schema": {
+              "title": "Nickname",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Follow",
+        "tags": [
+          "social"
         ]
       }
     },

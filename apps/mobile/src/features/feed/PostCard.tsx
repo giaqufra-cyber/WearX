@@ -1,5 +1,6 @@
 import type { Post } from "@wearx/api-types";
 import { colors, fonts, spacing } from "@wearx/design-tokens";
+import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -30,9 +31,22 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting }: 
           <Text style={styles.avatarText}>{initials(post.author?.nickname) || "?"}</Text>
         </View>
         <View style={styles.headText}>
-          <Text style={styles.author} numberOfLines={1}>
-            {post.is_own ? `${name} · tu` : name}
-          </Text>
+          {post.author && !post.is_own ? (
+            <Pressable
+              role="link"
+              aria-label={`Apri il profilo di ${name}`}
+              onPress={() => router.push({ pathname: "/user/[nickname]", params: { nickname: post.author!.nickname } })}
+              hitSlop={6}
+            >
+              <Text style={styles.author} numberOfLines={1}>
+                {name}
+              </Text>
+            </Pressable>
+          ) : (
+            <Text style={styles.author} numberOfLines={1}>
+              {post.is_own ? `${name} · tu` : name}
+            </Text>
+          )}
           <View style={styles.styleRow}>
             <Text style={styles.styleName}>{post.style.name}</Text>
             {match ? (

@@ -280,8 +280,9 @@ async def _insert_post(session: AsyncSession, profile: Profile, body: PostIn) ->
         await session.execute(
             text(
                 """insert into app.posts
-                     (id, author_id, style_id, caption, status, portfolio_rank, published_at)
-                   values (:id, :uid, :style, :caption, 'active', :rank, now())"""
+                     (id, author_id, style_id, caption, status, portfolio_rank, published_at,
+                      minor_author)
+                   values (:id, :uid, :style, :caption, 'active', :rank, now(), :minor)"""
             ),
             {
                 "id": post_id,
@@ -289,6 +290,7 @@ async def _insert_post(session: AsyncSession, profile: Profile, body: PostIn) ->
                 "style": style_id,
                 "caption": caption,
                 "rank": rank,
+                "minor": not profile.is_adult,
             },
         )
         for position, upload_id in enumerate(body.media):

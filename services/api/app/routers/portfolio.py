@@ -3,9 +3,10 @@
 Chi vede cosa:
 - il proprio portfolio sempre, compresi i fit fuori stile o nascosti dalla moderazione;
 - quello di un account Business, o di un account privato che segui (richiesta accettata);
-- altrimenti l'intestazione dice solo nickname, tipo, bio e numero di fit, e la griglia
-  risponde 403 `profile.private` (i follow arrivano con la seduta 15);
-- con un blocco, in una qualsiasi direzione, la persona "non esiste" (404).
+- altrimenti l'intestazione dice solo nickname, tipo, bio, numero di fit e di follower, e la
+  griglia risponde 403 `profile.private`;
+- con un blocco, o se è un 16-17 e tu sei maggiorenne, la persona "non esiste" (404):
+  regole in `app/people.py`.
 Le medie seguono la regola dei post: un fit altrui mostra la media solo se l'hai votato.
 """
 
@@ -26,6 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.errors import ApiError
+from app.people import FollowState, find_person
 from app.portfolio import lock_portfolio, move_after
 from app.post_access import POST_VISIBLE_SQL
 from app.post_views import MediaOut, StyleRef
@@ -46,7 +48,6 @@ PAGE_MAX = 60
 # La media complessiva di un'altra persona si mostra solo se mescola almeno 3 fit votati:
 # con un fit solo sarebbe la media di quel fit, che si vede soltanto dopo averlo votato.
 PUBLIC_AVERAGE_MIN_POSTS = 3
-NICKNAME_RE = re.compile(r"^[A-Za-z0-9._]{3,20}$")
 
 
 # ---------- Modelli ----------
@@ -65,6 +66,13 @@ class UserStats(BaseModel):
     votes: int | None
 
 
+class Relationship(BaseModel):
+    # Tu verso questa persona: nessun follow, richiesta in attesa, la segui.
+    following: FollowState
+    # Questa persona ti segue (richiesta accettata).
+    follows_you: bool
+
+
 class UserOut(BaseModel):
     nickname: str
     bio: str | None
@@ -74,6 +82,11 @@ class UserOut(BaseModel):
     styles: list[StyleRef]
     stats: UserStats
     capsules: list[CapsuleOut]
+    followers: int
+    following: int
+    relationship: Relationship
+    # Solo sul proprio profilo: richieste di follow da accettare.
+    pending_requests: int | None = None
 
 
 class PortfolioTile(BaseModel):
@@ -113,39 +126,6 @@ class CapsuleIn(BaseModel):
 # ---------- Chi guarda chi ----------
 
 
-async def _target(session: AsyncSession, viewer: Profile, nickname: str) -> Any:
-    if not NICKNAME_RE.fullmatch(nickname):
-        raise ApiError(404, "user.not_found", "Profilo non trovato")
-    row = (
-        (
-            await session.execute(
-                text(
-                    """select a.id, a.nickname::text as nickname, a.bio,
-                              a.account_type::text as account_type, a.hide_vote_count,
-                              a.id = :viewer as is_self,
-                              (a.id = :viewer or a.account_type = 'business' or exists (
-                                 select 1 from app.follows f
-                                  where f.follower_id = :viewer and f.followee_id = a.id
-                                    and f.status = 'accepted')) as can_view
-                         from app.profiles a
-                        where a.nickname = :nick
-                          and (a.status = 'active' or a.id = :viewer)
-                          and not exists (
-                            select 1 from app.blocks b
-                             where (b.blocker_id = :viewer and b.blocked_id = a.id)
-                                or (b.blocker_id = a.id and b.blocked_id = :viewer))"""
-                ),
-                {"nick": nickname.lower(), "viewer": viewer.id},
-            )
-        )
-        .mappings()
-        .first()
-    )
-    if row is None:
-        raise ApiError(404, "user.not_found", "Profilo non trovato")
-    return row
-
-
 def _visible(viewer: Profile) -> dict[str, Any]:
     return {"viewer": viewer.id, "adult": viewer.is_adult}
 
@@ -159,8 +139,8 @@ def _avg(wsum: float | Decimal, wcount: float | Decimal) -> float | None:
 
 @router.get("/users/{nickname}", response_model=UserOut)
 async def get_user(nickname: str, viewer: CurrentProfile, session: Session) -> UserOut:
-    target = await _target(session, viewer, nickname)
-    params = {**_visible(viewer), "author": target["id"]}
+    target = await find_person(session, viewer, nickname)
+    params = {**_visible(viewer), "author": target.id}
     stats = (
         (
             await session.execute(
@@ -182,11 +162,11 @@ async def get_user(nickname: str, viewer: CurrentProfile, session: Session) -> U
         .mappings()
         .one()
     )
-    own, can_view = bool(target["is_self"]), bool(target["can_view"])
+    own, can_view = bool(target.is_self), bool(target.can_view)
     average = _avg(stats["wsum"], stats["wcount"])
     if not own and (not can_view or stats["voted_posts"] < PUBLIC_AVERAGE_MIN_POSTS):
         average = None
-    votes = int(stats["votes"]) if own or (can_view and not target["hide_vote_count"]) else None
+    votes = int(stats["votes"]) if own or (can_view and not target.hide_vote_count) else None
 
     styles: list[StyleRef] = []
     capsules: list[CapsuleOut] = []
@@ -205,11 +185,31 @@ async def get_user(nickname: str, viewer: CurrentProfile, session: Session) -> U
                 )
             ).mappings()
         ]
-        capsules = await _capsules(session, viewer, target["id"], include_empty=own)
+        capsules = await _capsules(session, viewer, target.id, include_empty=own)
+    counts = (
+        await session.execute(
+            text(
+                """select
+                     (select count(*) from app.follows f join app.profiles p on p.id = f.follower_id
+                       where f.followee_id = :id and f.status = 'accepted'
+                         and p.status = 'active') as followers,
+                     (select count(*) from app.follows f join app.profiles p on p.id = f.followee_id
+                       where f.follower_id = :id and f.status = 'accepted'
+                         and p.status = 'active') as following,
+                     (select count(*) from app.follows f
+                       where f.followee_id = :id and f.status = 'pending') as pending"""
+            ),
+            {"id": target.id},
+        )
+    ).one()
     return UserOut(
-        nickname=target["nickname"],
-        bio=target["bio"],
-        account_type=target["account_type"],
+        followers=int(counts[0]),
+        following=int(counts[1]),
+        pending_requests=int(counts[2]) if own else None,
+        relationship=Relationship(following=target.following, follows_you=target.follows_you),
+        nickname=target.nickname,
+        bio=target.bio,
+        account_type=target.account_type,
         is_self=own,
         can_view_posts=can_view,
         styles=styles,
@@ -271,19 +271,19 @@ async def get_user_posts(
     cursor: Annotated[str | None, Query(max_length=200)] = None,
     limit: Annotated[int, Query(ge=1, le=PAGE_MAX)] = PAGE_DEFAULT,
 ) -> PortfolioPage:
-    target = await _target(session, viewer, nickname)
-    if not target["can_view"]:
+    target = await find_person(session, viewer, nickname)
+    if not target.can_view:
         raise ApiError(403, "profile.private", "Questo account è privato")
     if capsule is not None:
         owner = await session.scalar(
             text("select owner_id from app.capsules where id = :id"), {"id": capsule}
         )
-        if owner != target["id"]:
+        if owner != target.id:
             raise ApiError(404, "capsule.not_found", "Capsula non trovata")
     after = _decode_cursor(cursor) if cursor else None
     params: dict[str, Any] = {
         **_visible(viewer),
-        "author": target["id"],
+        "author": target.id,
         "capsule": capsule,
         "r": after[0] if after else None,
         "cid": after[1] if after else None,
@@ -331,7 +331,7 @@ async def get_user_posts(
         text(f"select p.id {base} order by p.portfolio_rank desc, p.id desc limit 1"),
         params,
     )
-    own = bool(target["is_self"])
+    own = bool(target.is_self)
     page = rows[:limit]
     return PortfolioPage(
         items=[_tile(row, own) for row in page],

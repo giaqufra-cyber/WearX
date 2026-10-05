@@ -37,11 +37,17 @@ export type PortfolioTile = Schemas["PortfolioTile"];
 export type PortfolioOrder = Schemas["OrderIn"];
 export type Capsule = Schemas["CapsuleOut"];
 export type CapsuleInput = Schemas["CapsuleIn"];
+export type Relationship = Schemas["Relationship"];
+export type FollowState = Schemas["FollowOut"]["following"];
+export type PersonSummary = Schemas["PersonOut"];
+export type PeoplePage = Schemas["PeoplePage"];
+export type FollowRequestDecision = Schemas["RequestDecision"];
 
 /** Codici di errore stabili restituiti dall'API (campo `code` di problem+json). */
 export type ApiErrorCode =
   | "app.update_required"
   | "auth.required"
+  | "block.self"
   | "auth.invalid_token"
   | "auth.token_expired"
   | "auth.anonymous_not_allowed"
@@ -64,6 +70,9 @@ export type ApiErrorCode =
   | "feature.disabled"
   | "feed.cursor_expired"
   | "feed.invalid_cursor"
+  | "follow.not_allowed"
+  | "follow.request_not_found"
+  | "follow.self"
   | "item.bad_media_position"
   | "item.incomplete"
   | "link.invalid"
@@ -77,6 +86,7 @@ export type ApiErrorCode =
   | "nickname.reserved"
   | "nickname.taken"
   | "onboarding.required"
+  | "people.invalid_cursor"
   | "post.not_found"
   | "post.not_owner"
   | "post.restyle_used"
