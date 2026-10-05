@@ -17,8 +17,6 @@ from pathlib import Path
 
 import tests.conftest as cf  # imposta database e Redis di test (WEARX_ENV=test)
 
-os.environ.setdefault("WEARX_STORAGE_ENDPOINT_URL", "http://127.0.0.1:9000")
-
 
 def prepare_database() -> None:
     with cf.admin_conn() as conn:
@@ -45,6 +43,20 @@ async def main(port: int) -> None:
     from tests.test_accounts import onboarding_body
 
     prepare_database()
+    # Archivio delle foto finto (moto), come nei test.
+    from moto.server import ThreadedMotoServer
+
+    s3_port = cf._free_port()
+    ThreadedMotoServer(ip_address="127.0.0.1", port=s3_port, verbose=False).start()
+    os.environ["WEARX_STORAGE_ENDPOINT_URL"] = f"http://127.0.0.1:{s3_port}"
+    from app.config import get_settings
+    from app.storage import ObjectStore, set_store
+
+    get_settings.cache_clear()
+    store = ObjectStore(get_settings())
+    await store.ensure_bucket()
+    set_store(store)
+
     keys = KeySet()
     set_jwks(keys.cache())
     app = create_app()

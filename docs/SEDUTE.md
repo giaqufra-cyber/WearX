@@ -74,6 +74,11 @@ Promemoria fissi: senza questi punti l'app funziona solo per il fondatore.
       `WEARX_ATTESTATION_MODE=soft` (poi `required` quando la beta conferma che funziona) e
       `WEARX_APP_ATTEST_ALLOW_DEVELOPMENT=false`. Link agli store in `WEARX_IOS_STORE_URL` e
       `WEARX_ANDROID_STORE_URL` (schermata "Aggiorna WearX").
+- [ ] **Infrastruttura** (seduta 23): seguire `docs/INFRA.md` — progetti Google Cloud
+      `wearx-staging` e `wearx-production` con fatturazione, account Cloudflare (R2), Upstash
+      Redis (UE), Sentry (regione UE), utente del database `wearx_api_user` su Supabase,
+      `terraform apply`, segreti in Secret Manager, ambienti e variabili su GitHub. In
+      `envs/*.tfvars`: la tua email per gli allarmi e l'Account ID di Cloudflare.
 
 ## Registro
 
@@ -1055,3 +1060,66 @@ Schermate: `docs/screens/seduta-22-hardening.png`.
 
 Da fare in seduta 23: infrastruttura (Terraform, staging, segreti, osservabilità, rete isolata
 del worker che visita i link, progetto EAS).
+
+### Seduta 23 — 2026-10-05
+
+Decisioni del fondatore: **Google Cloud Run** in Belgio (europe-west1, UE, vicino a Supabase in
+Irlanda), foto su **Cloudflare R2** (giurisdizione UE), **Sentry** (regione UE) per gli errori,
+account Expo nella seduta 25.
+
+Fatto:
+- **Container** (non-root, senza strumenti di build): una sola immagine per API, worker, worker
+  dei link e migrazioni (cambia il comando); pannello staff in Next "standalone". Nessuna
+  intestazione `server`. Nuovo job di CI: costruisce le immagini, migra un database vuoto, avvia
+  API, worker e pannello come in staging e controlla salute, utente non-root, intestazioni,
+  battito dei worker.
+- **Worker dei link separato** (`LinkCheckSettings`, coda propria): visita i siti esterni con
+  un'identità Google senza permessi e solo i segreti che usa (database, Redis, Safe Browsing,
+  Sentry). Chiude il rischio residuo della seduta 21 (DNS rebinding): anche ingannando i
+  controlli non troverebbe chiavi. Ogni componente in produzione parte solo con i **suoi**
+  segreti.
+- **Terraform** (`infra/terraform`, un progetto Google per ambiente): Cloud Run per API e
+  pannello, worker pool sempre accesi per worker e worker dei link, job delle migrazioni lanciato
+  a ogni deploy; Secret Manager con un segreto per voce e lettori minimi; identità separate per
+  ogni servizio; **deploy da GitHub senza chiavi** (Workload Identity legata al repository e
+  all'ambiente GitHub); registro delle immagini con pulizia automatica; bucket R2 UE.
+- **Osservabilità**: log JSON per Cloud Logging collegati alla traccia della richiesta e con
+  l'id richiesta; una riga per richiesta con percorso "modello" (`/v1/users/{nickname}`), esito
+  e durata, senza IP, query o intestazioni; errori su Sentry ripuliti da intestazioni, corpo,
+  utente e IP; `/healthz/workers` (battito ogni minuto). **Allarmi via email**: API giù, worker
+  fermi, pannello giù, più di 5 errori 5xx in 5 minuti; **budget mensile** con avvisi al 50%,
+  90% e alla spesa prevista oltre il 100%.
+- **Deploy**: staging automatico dopo ogni CI verde su main (immagini, migrazioni, API, worker,
+  pannello, prova finale); produzione solo a mano con la tua approvazione. Finché gli ambienti
+  GitHub non sono configurati il deploy non fa nulla.
+- **IP reale** dietro Google (ultimo valore di X-Forwarded-For; i precedenti li scrive chiunque).
+- Play Integrity su Google Cloud con l'identità del servizio: **nessuna chiave** da custodire.
+- **Sentry nell'app** (`@sentry/react-native` 7.11, la versione di Expo SDK 57): solo crash ed
+  errori, niente utente, schermate, testi dei tocchi o console; negli indirizzi id e nickname
+  diventano "…". Si accende con `EXPO_PUBLIC_SENTRY_DSN` (seduta 25).
+- `docs/INFRA.md`: guida passo-passo per accendere staging e produzione, costi, segreti, cosa
+  fare se arriva un allarme e come tornare alla versione precedente.
+
+Controlli: Terraform confrontato campo per campo con la documentazione ufficiale del provider
+Google v8.5 (245 campi; il controllo trova errori di battitura inseriti apposta), formattazione
+come `terraform fmt`, Checkov (Terraform, Dockerfile, workflow: 0 problemi, 3 eccezioni
+motivate), actionlint sui workflow, Semgrep 0. Container provati riproducendo i loro passi qui
+(registro Docker bloccato in questo ambiente): pannello standalone avviato con le sue
+intestazioni, API in modalità staging con HSTS e senza `server`, migrazioni su database vuoto,
+entrambi i worker con il battito. `terraform validate` e la costruzione vera delle immagini
+girano nella CI.
+
+Verifiche: 379 test API (+13); 254 test app (+4); 12 test del pannello; ruff, mypy, tsc puliti;
+bundle Android con Sentry.
+
+Note e decisioni da confermare:
+- Staging con 0 istanze dell'API sempre pronte (primo accesso dopo una pausa più lento, ~2-3 s),
+  produzione con 1. Costo stimato: staging ~25-30 $/mese, produzione ~35-40 $/mese.
+- Redis su Upstash a piano fisso (~10 $/mese): il worker interroga Redis di continuo e il piano
+  a consumo costerebbe di più.
+- Il pannello staff gira anch'esso su Cloud Run (al posto di Vercel): un fornitore in meno.
+- Sentry nel pannello staff non c'è (pochi utenti, errori visibili a chi lo usa).
+- In questo ambiente non posso creare risorse vere né costruire le immagini: lo fa la CI e,
+  con gli account, la guida.
+
+Da fare in seduta 24: qualità (test end-to-end, test di carico, accessibilità, testi completi).

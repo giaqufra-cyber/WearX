@@ -243,8 +243,11 @@ jobs:
             if [ -f scan-token.txt ] && curl -sf http://127.0.0.1:8000/healthz > /dev/null; then break; fi
             sleep 2
           done
-          cat scan.log
-          curl -sf http://127.0.0.1:8000/healthz
+          if ! curl -sf http://127.0.0.1:8000/healthz; then
+            # Il registro completo della CI non sempre si legge: le ultime righe come annotazione.
+            echo "::error title=API di scansione non partita::$(tail -n 25 scan.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+            exit 1
+          fi
       - name: ZAP (scansione attiva dall'OpenAPI, con accesso)
         run: |
           mkdir -p zap && chmod 777 zap
