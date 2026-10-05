@@ -728,6 +728,11 @@ annullato e scala tornata ad "avviso", nuovo stile stagionale "Après Ski", regi
 Verifiche: 319 test API (+8); 10 test pannello; 209 test app; ruff, mypy, tsc puliti; build del
 pannello ok; nuovo job CI "Pannello staff".
 
+CI di nuovo verde (era rossa dalla seduta 15): un test dell'app superava a volte i 5 secondi sui
+computer di GitHub (ora 20) e il controllo dei segreti scambiava per segreta la chiave
+publishable di Supabase, che è pubblica (eccezione solo per quella; le chiavi segrete restano
+bloccate). I test falliti ora compaiono come annotazioni nella pagina della CI.
+
 Decisione: le **proposte di stile** dagli utenti ("Proponilo tu… 500 adesioni") slittano dopo
 la v1; per ora gli stili li crea un admin dal pannello.
 
