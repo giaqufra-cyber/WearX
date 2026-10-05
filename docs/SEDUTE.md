@@ -1046,8 +1046,9 @@ Note e decisioni da confermare:
   ma si può alzare la soglia.
 - L'attestazione vera si prova solo su un telefono con una build dell'app (seduta 25): oggi è
   coperta da test con una "Apple" e una "Google" di prova.
-- ZAP gira solo su GitHub (non in questo ambiente). La prima scansione è nella CI di questa
-  seduta.
+- ZAP gira solo su GitHub (non in questo ambiente). A fine seduta GitHub Actions era fermo per
+  un guasto di GitHub (dalle 21:11 del 5 ottobre): CI e prima scansione ZAP partono appena
+  torna; eventuali risultati si correggono subito dopo.
 - Per la seduta 23: avviare l'API senza l'intestazione `server` (uvicorn `--no-server-header`).
 
 Schermate: `docs/screens/seduta-22-hardening.png`.
