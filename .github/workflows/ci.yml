@@ -69,7 +69,8 @@ jobs:
           git diff --exit-code -- packages/api-types/src/schema.ts
       - run: pnpm --filter @wearx/api-types typecheck
       - run: pnpm --filter @wearx/mobile typecheck
-      - run: pnpm --filter @wearx/mobile test --ci
+      # I test falliti compaiono anche come annotazioni nella pagina della CI.
+      - run: pnpm --filter @wearx/mobile test --ci --reporters=default --reporters=github-actions
       - name: Bundle Android (verifica che il JavaScript compili)
         working-directory: apps/mobile
         run: npx expo export --platform android --output-dir /tmp/export

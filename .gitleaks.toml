@@ -1,0 +1,13 @@
+# Controllo dei segreti (gitleaks): regole standard più un'unica eccezione.
+# La chiave "publishable" di Supabase è pubblica per definizione (sta dentro l'app e il pannello,
+# chiunque può leggerla): non è un segreto. Le chiavi segrete (sb_secret_..., service_role)
+# restano segnalate come sempre.
+title = "WearX"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Chiave publishable di Supabase (pubblica)"
+regexTarget = "match"
+regexes = ['''sb_publishable_[A-Za-z0-9_-]+''']
