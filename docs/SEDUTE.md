@@ -1116,7 +1116,12 @@ nel corpo JSON viene rifiutato subito con 422 (test aggiunto). Aggiunta l'intest
 In CI: Terraform `validate` passato, immagini costruite e avviate come in staging, deploy di
 staging che aspetta la configurazione.
 
-Verifiche: 380 test API (+14); 254 test app (+4); 12 test del pannello; ruff, mypy, tsc puliti;
+**Difetto trovato dalla CI e corretto** (importante per Cloud Run): l'API scaricava le chiavi
+di Supabase solo se la *macchina* era accesa da più di 60 secondi. Su un'istanza appena avviata
+(come succede a ogni "risveglio" di Cloud Run) tutti gli accessi sarebbero stati rifiutati per un
+minuto. Ora il primo uso scarica sempre le chiavi (test che fallisce con il codice vecchio).
+
+Verifiche: 381 test API (+15); 254 test app (+4); 12 test del pannello; ruff, mypy, tsc puliti;
 bundle Android con Sentry.
 
 Note e decisioni da confermare:

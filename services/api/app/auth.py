@@ -44,7 +44,10 @@ class JwksCache:
         self.ttl = ttl_seconds
         self._client = client
         self._keys: dict[str, jwt.PyJWK] = {}
-        self._fetched_at = 0.0
+        # "Mai scaricato": il primo uso scarica sempre. (Con 0.0, su una macchina accesa da meno
+        # di 60 s — un'istanza Cloud Run appena avviata — l'orologio monotono è sotto i 60 s e
+        # le chiavi non si scaricavano: tutti gli accessi rifiutati per un minuto. Seduta 23.)
+        self._fetched_at = float("-inf")
         self._lock = asyncio.Lock()
 
     async def _fetch(self) -> None:

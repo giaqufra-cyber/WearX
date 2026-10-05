@@ -74,7 +74,8 @@ async def main(port: int) -> None:
                     json=onboarding_body(nickname),
                     headers=bearer(token),
                 )
-                r.raise_for_status()
+                if r.status_code != 201:
+                    raise RuntimeError(f"onboarding {nickname}: {r.status_code} {r.text}")
                 people.append((user_id, token))
             owner, owner_token = people[1]
             media = [str(cf.ready_upload(db, owner))]

@@ -158,3 +158,17 @@ async def test_unknown_kid_does_not_hammer_jwks(client, keys):
         assert r.json()["code"] == "auth.invalid_token"
     # Al massimo una ricarica al minuto, anche con molti kid sconosciuti.
     assert keys.fetches - before <= 1
+
+
+async def test_chiavi_scaricate_anche_su_macchina_appena_accesa(monkeypatch):
+    """Su un'istanza appena avviata l'orologio monotono può valere pochi secondi: la prima
+    richiesta deve comunque scaricare le chiavi (prima veniva rifiutata per un minuto)."""
+    import time as time_module
+
+    from tests.authkit import KeySet
+
+    keyset = KeySet()
+    cache = keyset.cache()
+    monkeypatch.setattr(time_module, "monotonic", lambda: 5.0)
+    assert await cache.get(keyset.ec_kid) is not None
+    assert keyset.fetches == 1
