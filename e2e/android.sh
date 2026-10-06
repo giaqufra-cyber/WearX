@@ -9,6 +9,12 @@ OUT="$ROOT/e2e/android-results"
 mkdir -p "$OUT"
 
 adb wait-for-device
+until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ]; do sleep 2; done
+# Sull'emulatore della CI il launcher a volte "non risponde" appena acceso: niente finestre
+# di errore di sistema sopra l'app (coprirebbero i pulsanti) e qualche secondo di calma.
+adb shell settings put global hide_error_dialogs 1 || true
+sleep 20
+adb shell input keyevent KEYCODE_HOME
 # Chrome senza le schermate di benvenuto (la verifica dell'età di prova si apre lì).
 adb shell 'echo "chrome --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
 adb shell am set-debug-app --persistent com.android.chrome || true

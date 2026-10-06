@@ -6,6 +6,10 @@ env:
 ---
 - launchApp:
     clearState: true
+# Se il sistema mostra "... isn't responding", si aspetta invece di chiudere.
+- tapOn:
+    text: "Wait"
+    optional: true
 - tapOn: "Crea il tuo account"
 - tapOn: "NICKNAME"
 - inputText: ${NICK}

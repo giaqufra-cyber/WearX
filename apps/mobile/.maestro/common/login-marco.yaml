@@ -3,6 +3,10 @@ name: accesso di marco.e2e (persona di prova dell'ambiente E2E)
 ---
 - launchApp:
     clearState: true
+# Se il sistema mostra "... isn't responding", si aspetta invece di chiudere.
+- tapOn:
+    text: "Wait"
+    optional: true
 - tapOn: "Ho già un account"
 - tapOn: "EMAIL"
 - inputText: "marco@e2e.test"
