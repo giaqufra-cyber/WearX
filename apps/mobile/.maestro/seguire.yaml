@@ -1,8 +1,9 @@
 appId: app.wearx.mobile
 name: seguire
 ---
-- runFlow: login-marco.yaml
+- runFlow: common/login-marco.yaml
 - openLink: "wearx://user/giulia.e2e"
 - assertVisible: "Account privato"
 - tapOn: "Segui"
 - assertVisible: "Richiesta inviata"
+- takeScreenshot: android-seguire

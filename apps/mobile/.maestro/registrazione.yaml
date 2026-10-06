@@ -36,3 +36,4 @@ env:
 - tapOn: "Elegant.*"
 - tapOn: "Entra in WearX"
 - assertVisible: "Benvenuto su WearX.*"
+- takeScreenshot: android-registrazione

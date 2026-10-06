@@ -1,6 +1,7 @@
-# Flussi Maestro (seduta 24): gli stessi percorsi dei test Playwright (e2e/), sul telefono.
-# Si eseguono con una build di sviluppo che punta all'ambiente E2E (vedi e2e/README.md):
-#   maestro test -e EMAIL=nuova.$(date +%s)@e2e.test apps/mobile/.maestro
+# Flussi Maestro (seduta 24, in CI dalla seduta 25): gli stessi percorsi dei test Playwright
+# (e2e/), sul telefono. In CI girano su un emulatore Android (workflow "App su Android
+# (Maestro)") contro l'ambiente E2E. In locale, con l'ambiente E2E acceso (e2e/README.md):
+#   maestro test apps/mobile/.maestro
 flows:
   - "*.yaml"
 executionOrder:

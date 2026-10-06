@@ -43,3 +43,4 @@ e2e/test-results/
 e2e/playwright-report/
 services/api/load-users.json
 loadtest/results/
+e2e/android-results/

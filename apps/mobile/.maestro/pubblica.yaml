@@ -2,7 +2,7 @@ appId: app.wearx.mobile
 name: pubblica
 # Serve una foto nella galleria del telefono/emulatore (maestro: addMedia).
 ---
-- runFlow: login-marco.yaml
+- runFlow: common/login-marco.yaml
 - addMedia:
     - "../../../e2e/tests/fit.jpg"
 - tapOn: "Pubblica un fit"
@@ -27,3 +27,4 @@ name: pubblica
     timeout: 30000
 - tapOn: "Il tuo profilo"
 - assertVisible: ".*Prova Maestro in centro.*"
+- takeScreenshot: android-pubblica

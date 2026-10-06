@@ -1,0 +1,119 @@
+name: App su Android (Maestro)
+
+# I percorsi Maestro (registrazione, voto, pubblicazione, seguire) sull'app Android vera, in un
+# emulatore, contro l'ambiente E2E (API, worker, accesso finto). Più lento della CI normale
+# (~25 minuti): gira quando cambia l'app, ogni lunedì e a mano.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - "apps/mobile/**"
+      - "e2e/android.sh"
+      - ".github/workflows/mobile-android.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-android
+  cancel-in-progress: true
+
+jobs:
+  maestro:
+    name: Percorsi Maestro su emulatore Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+    env:
+      # Per l'emulatore questo computer è 10.0.2.2.
+      EXPO_PUBLIC_API_URL: http://10.0.2.2:8000
+      EXPO_PUBLIC_SUPABASE_URL: http://10.0.2.2:54321
+      EXPO_PUBLIC_EMAIL_OTP: "1"
+      EXPO_NO_TELEMETRY: "1"
+      # Niente invio delle mappe del codice a Sentry da una build di prova.
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - run: pnpm install --frozen-lockfile
+      - name: Progetto Android (prebuild)
+        working-directory: apps/mobile
+        run: |
+          npx expo prebuild --platform android --no-install
+          # Solo per questa prova: l'ambiente E2E parla http (in produzione è sempre https).
+          sed -i 's|<application |<application android:usesCleartextTraffic="true" |' \
+            android/app/src/main/AndroidManifest.xml
+          grep -c 'usesCleartextTraffic="true"' android/app/src/main/AndroidManifest.xml
+      - name: APK di prova (release, solo x86_64)
+        working-directory: apps/mobile/android
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon -q
+      - name: App web per l'ambiente E2E
+        working-directory: apps/mobile
+        env:
+          EXPO_PUBLIC_API_URL: http://localhost:8000
+          EXPO_PUBLIC_SUPABASE_URL: http://localhost:54321
+        run: npx expo export --platform web --output-dir dist-e2e
+      - name: Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          "$HOME/.maestro/bin/maestro" --version
+      - name: Ambiente E2E (API, worker, accesso finto)
+        working-directory: services/api
+        env:
+          WEARX_TEST_ADMIN_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          E2E_PUBLIC_HOST: 10.0.2.2
+        run: |
+          uv sync --frozen
+          nohup uv run python -m tests.e2e_target > /tmp/wearx-e2e.log 2>&1 &
+          for _ in $(seq 1 90); do [ -f e2e-ready.json ] && break; sleep 1; done
+          test -f e2e-ready.json || { tail -n 40 /tmp/wearx-e2e.log; exit 1; }
+      - name: Accelerazione dell'emulatore (KVM)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Percorsi sull'emulatore
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash e2e/android.sh
+      - name: Registro dell'ambiente
+        if: failure()
+        run: |
+          echo "::error title=Ambiente E2E::$(tail -n 30 /tmp/wearx-e2e.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maestro-android
+          path: e2e/android-results
+          retention-days: 14

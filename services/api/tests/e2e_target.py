@@ -25,8 +25,12 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+# Indirizzo con cui il telefono vede questo computer: "localhost" per il browser, "10.0.2.2" per
+# l'emulatore Android (seduta 25, Maestro in CI). Vale per l'API e per le foto; l'accesso finto
+# di Supabase resta "localhost" come emittente dei token (l'API lo confronta così).
+PUBLIC_HOST = os.environ.get("E2E_PUBLIC_HOST", "localhost")
 os.environ.setdefault("WEARX_SUPABASE_URL", "http://localhost:54321")
-os.environ.setdefault("WEARX_PUBLIC_API_URL", "http://localhost:8000")
+os.environ.setdefault("WEARX_PUBLIC_API_URL", f"http://{PUBLIC_HOST}:8000")
 os.environ.setdefault(
     "WEARX_ADMIN_ORIGINS", json.dumps(["http://localhost:8081", "http://localhost:3000"])
 )
@@ -363,6 +367,7 @@ async def main() -> None:
     s3_port = cf._free_port()
     ThreadedMotoServer(ip_address="127.0.0.1", port=s3_port, verbose=False).start()
     os.environ["WEARX_STORAGE_ENDPOINT_URL"] = f"http://localhost:{s3_port}"
+    os.environ["WEARX_STORAGE_PUBLIC_URL"] = f"http://{PUBLIC_HOST}:{s3_port}"
 
     from app.config import get_settings
     from app.main import create_app

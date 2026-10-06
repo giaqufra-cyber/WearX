@@ -1,5 +1,5 @@
 import { colors, fonts, fontSizes, radii, spacing } from "@wearx/design-tokens";
-import { forwardRef, useId, useState } from "react";
+import { forwardRef, useId, useImperativeHandle, useRef, useState } from "react";
 import {
   Platform,
   Pressable,
@@ -48,13 +48,23 @@ export const TextField = forwardRef<TextInput, Props>(function TextField(
   ref,
 ) {
   const id = useId();
+  const inner = useRef<TextInput>(null);
+  useImperativeHandle(ref, () => inner.current as TextInput, []);
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const message = error ?? hint;
 
   return (
     <View style={styles.wrap}>
-      <Text nativeID={`${id}-label`} style={styles.label}>
+      {/* Toccare l'etichetta porta nel campo, come <label> sul web (e Maestro può usarla). Per i
+          lettori di schermo è nascosta: il nome del campo lo dice già il campo stesso. */}
+      <Text
+        nativeID={`${id}-label`}
+        style={styles.label}
+        onPress={() => inner.current?.focus()}
+        aria-hidden
+        importantForAccessibility="no"
+      >
         {label}
       </Text>
       <View
@@ -66,7 +76,7 @@ export const TextField = forwardRef<TextInput, Props>(function TextField(
       >
         {prefix ? <Text style={styles.prefix}>{prefix}</Text> : null}
         <TextInput
-          ref={ref}
+          ref={inner}
           {...input}
           {...(Platform.OS === "web" && input.autoComplete && WEB_AUTOCOMPLETE[input.autoComplete]
             ? { autoComplete: WEB_AUTOCOMPLETE[input.autoComplete] as TextInputProps["autoComplete"] }
