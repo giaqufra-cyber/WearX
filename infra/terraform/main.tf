@@ -62,6 +62,9 @@ locals {
     WEARX_PUSH_PROVIDER             = var.push_provider
     WEARX_SENTRY_TRACES_SAMPLE_RATE = tostring(var.sentry_traces_sample_rate)
     WEARX_GOOGLE_METADATA_AUTH      = "true"
+    # Posti nel pool di Supabase (modalità session): vedi docs/INFRA.md, "Capacità".
+    WEARX_DB_POOL_SIZE    = "2"
+    WEARX_DB_MAX_OVERFLOW = "2"
   } : k => v if v != "" }
 
   api_env = merge(local.common_env, { for k, v in {
@@ -74,6 +77,8 @@ locals {
     WEARX_PLAY_INTEGRITY_PROJECT_NUMBER = var.play_integrity_project_number
     WEARX_IOS_STORE_URL                 = var.ios_store_url
     WEARX_ANDROID_STORE_URL             = var.android_store_url
+    WEARX_DB_POOL_SIZE                  = "3"
+    WEARX_DB_MAX_OVERFLOW               = "2"
   } : k => v if v != "" })
 
   # Il worker dei link riceve il minimo indispensabile.

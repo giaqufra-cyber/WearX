@@ -1,12 +1,20 @@
 import { colors, fonts, minTouchTarget, radii } from "@wearx/design-tokens";
 import { voteMood } from "@wearx/design-tokens";
 import { useRef, useState } from "react";
-import { type LayoutChangeEvent, PanResponder, Pressable, StyleSheet, Text, View } from "react-native";
+import { type LayoutChangeEvent, PanResponder, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 const THUMB = 28;
 
 export function clampScore(value: number): number {
   return Math.min(100, Math.max(1, Math.round(value)));
+}
+
+/** Tasti del web (come un input range): frecce ±1, pagina su/giù ±10, inizio/fine 1 e 100. */
+export function scoreForKey(key: string, value: number): number | null {
+  const steps: Record<string, number> = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1, PageUp: 10, PageDown: -10 };
+  if (key === "Home") return 1;
+  if (key === "End") return 100;
+  return key in steps ? clampScore(value + steps[key]!) : null;
 }
 
 /** Da posizione sul binario (0..width) a voto 1..100. */
@@ -54,6 +62,20 @@ export function VoteSlider({ value, onChange, color, label }: Props) {
     setWidth(event.nativeEvent.layout.width);
   };
   const fraction = (value - 1) / 99;
+  // Sul web lo slider si raggiunge con Tab e si regola con la tastiera (seduta 24, audit).
+  const keyboard =
+    Platform.OS === "web"
+      ? {
+          tabIndex: 0 as const,
+          onKeyDown: (event: { key: string; preventDefault: () => void }) => {
+            const next = scoreForKey(event.key, value);
+            if (next !== null) {
+              event.preventDefault();
+              onChange(next);
+            }
+          },
+        }
+      : {};
 
   return (
     <View style={styles.row}>
@@ -67,12 +89,16 @@ export function VoteSlider({ value, onChange, color, label }: Props) {
         accessible
         role="slider"
         aria-label={label}
-        accessibilityValue={{ min: 1, max: 100, now: value, text: `${value}, ${voteMood(value)}` }}
+        aria-valuemin={1}
+        aria-valuemax={100}
+        aria-valuenow={value}
+        aria-valuetext={`${value}, ${voteMood(value)}`}
         accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
         onAccessibilityAction={(event) => {
           if (event.nativeEvent.actionName === "increment") onChange(clampScore(value + 1));
           if (event.nativeEvent.actionName === "decrement") onChange(clampScore(value - 1));
         }}
+        {...keyboard}
         {...responder.panHandlers}
       >
         <View style={styles.track} pointerEvents="none">

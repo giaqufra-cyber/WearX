@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     # Connessione dell'API: ruolo dedicato con i soli permessi necessari (mai superuser).
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/wearx"
     redis_url: str = "redis://localhost:6379/0"
+    # Connessioni al database per processo (seduta 24). Con il pooler di Supabase in modalità
+    # "session" ogni connessione aperta occupa un posto del pool del progetto (15 sul piano
+    # gratuito): istanze massime x (pool + extra) + worker deve restarci dentro. Il test di
+    # carico mostra che un'istanza satura la CPU ben prima di 5 connessioni occupate.
+    db_pool_size: int = Field(default=5, ge=1, le=50)
+    db_max_overflow: int = Field(default=5, ge=0, le=50)
 
     # Versione minima dell'app accettata (header X-App-Version). Sotto: 426.
     min_app_version: str = "0.1.0"

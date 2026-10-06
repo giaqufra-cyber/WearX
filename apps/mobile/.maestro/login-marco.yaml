@@ -1,0 +1,13 @@
+appId: app.wearx.mobile
+name: accesso di marco.e2e (persona di prova dell'ambiente E2E)
+---
+- launchApp:
+    clearState: true
+- tapOn: "Ho già un account"
+- tapOn: "EMAIL"
+- inputText: "marco@e2e.test"
+- tapOn: "PASSWORD"
+- inputText: "Fit-di-prova-2026!"
+- hideKeyboard
+- tapOn: "Accedi"
+- assertVisible: "Feed dei tuoi stili"

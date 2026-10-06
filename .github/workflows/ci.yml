@@ -195,6 +195,60 @@ jobs:
           uvx checkov==3.3.23 --quiet --compact --skip-download -d infra/terraform --framework terraform --var-file infra/terraform/envs/production.tfvars
           uvx checkov==3.3.23 --quiet --compact --skip-download -d . --framework dockerfile github_actions --skip-path node_modules
 
+  e2e:
+    name: Percorsi end-to-end (app web + API + worker)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - run: pnpm install --frozen-lockfile
+      - name: App web per i test
+        working-directory: apps/mobile
+        env:
+          EXPO_PUBLIC_API_URL: http://localhost:8000
+          EXPO_PUBLIC_SUPABASE_URL: http://localhost:54321
+          EXPO_PUBLIC_EMAIL_OTP: "1"
+        run: npx expo export --platform web --output-dir dist-e2e
+      - name: Browser
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+      - name: Percorsi
+        working-directory: e2e
+        env:
+          WEARX_TEST_ADMIN_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: |
+          (cd ../services/api && uv sync --frozen)
+          ./run-local.sh
+      - name: Registro dell'ambiente
+        if: failure()
+        run: |
+          echo "::error title=Ambiente E2E::$(tail -n 30 /tmp/wearx-e2e.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-tracce
+          path: e2e/test-results
+          retention-days: 7
+
   security:
     name: Sicurezza (segreti, dipendenze, Semgrep)
     runs-on: ubuntu-latest
@@ -261,3 +315,52 @@ jobs:
         if: always()
         run: python3 .zap/report.py zap/zap.json
 
+
+  load:
+    name: Test di carico (k6, un'istanza dell'API)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - uses: grafana/setup-k6-action@v1
+      - name: API con 150 persone, fit e voti
+        working-directory: services/api
+        env:
+          WEARX_TEST_ADMIN_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          # Come in produzione (infra/terraform/main.tf).
+          WEARX_DB_POOL_SIZE: "3"
+          WEARX_DB_MAX_OVERFLOW: "2"
+        run: |
+          uv sync --frozen
+          nohup uv run python -m tests.load_target 150 > load.log 2>&1 &
+          for i in $(seq 1 150); do
+            if grep -q "Carico pronto" load.log && curl -sf http://127.0.0.1:8000/healthz > /dev/null; then break; fi
+            sleep 2
+          done
+          if ! curl -sf http://127.0.0.1:8000/healthz; then
+            echo "::error title=API di carico non partita::$(tail -n 25 load.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+            exit 1
+          fi
+      - name: k6 (100 persone in contemporanea, 90 secondi)
+        run: |
+          set -o pipefail
+          k6 run -q -e USERS="$PWD/services/api/load-users.json" -e VUS=100 -e DURATION=90s \
+            loadtest/api.js 2>&1 | tee k6.txt
+      - name: Riepilogo
+        if: always()
+        run: |
+          { echo '### Test di carico'; echo '```'; grep -E "p\(95\)|http_reqs|http_req_failed|checks_succeeded" k6.txt || true; echo '```'; } >> "$GITHUB_STEP_SUMMARY"

@@ -29,7 +29,11 @@ export function VotePanel({ post, onVote, busy }: Props) {
           <View style={styles.flex}>
             <Text style={styles.kicker}>{post.is_own ? "IL TUO FIT · MEDIA" : "MEDIA COMMUNITY"}</Text>
             <Text style={styles.meta}>
-              {vote.vote_count !== null ? votesLabel(vote.vote_count) : "Media dei voti"}
+              {vote.vote_count === null
+                ? "Media dei voti"
+                : vote.vote_count === 0
+                  ? "Voti in arrivo" // appena votato: il numero si aggiorna ogni ora
+                  : votesLabel(vote.vote_count)}
               {vote.mine !== null ? (
                 <>
                   {" · il tuo "}

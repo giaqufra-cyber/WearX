@@ -20,10 +20,12 @@ _sessionmaker: async_sessionmaker[AsyncSession] | None = None
 def get_engine() -> AsyncEngine:
     global _engine, _sessionmaker
     if _engine is None:
+        settings = get_settings()
         _engine = create_async_engine(
-            get_settings().database_url,
-            pool_size=10,
-            max_overflow=10,
+            settings.database_url,
+            pool_size=settings.db_pool_size,
+            max_overflow=settings.db_max_overflow,
+            pool_timeout=10,
             pool_pre_ping=True,
             connect_args={"server_settings": {"search_path": "app,public"}},
         )

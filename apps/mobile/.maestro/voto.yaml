@@ -1,0 +1,12 @@
+appId: app.wearx.mobile
+name: voto
+---
+- runFlow: login-marco.yaml
+- assertVisible: "VOTA IL FIT · 1–100"
+- tapOn: "Un punto in più"
+- tapOn: "Un punto in più"
+- tapOn: "Sì"
+- tapOn: "Vota"
+- assertVisible: "MEDIA COMMUNITY"
+- assertVisible: "Voti in arrivo · il tuo 72"
+- assertVisible: "La media compare da 5 voti.*"

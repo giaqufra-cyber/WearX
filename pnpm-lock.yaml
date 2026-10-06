@@ -31,7 +31,7 @@ importers:
         version: link:../../packages/design-tokens
       next:
         specifier: 16.3.8
-        version: 16.3.8(@types/node@22.20.5)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.3.8(@playwright/test@1.56.0)(@types/node@22.20.5)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react:
         specifier: 19.2.3
         version: 19.2.3
@@ -194,6 +194,18 @@ importers:
         specifier: ~6.0.3
         version: 6.0.3
 
+  e2e:
+    devDependencies:
+      '@axe-core/playwright':
+        specifier: ^4.10.2
+        version: 4.13.0(playwright-core@1.56.0)
+      '@playwright/test':
+        specifier: 1.56.0
+        version: 1.56.0
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
   packages/api-types:
     devDependencies:
       openapi-typescript:
@@ -225,6 +237,11 @@ packages:
 
   '@asamuzakjp/nwsapi@2.3.9':
     resolution: {integrity: sha512-n8GuYSrI9bF7FFZ/SjhwevlHc8xaVlb/7HmHelnc/PZXBD2ZR49NnN9sMMuDdEGPeeRQ5d0hqlSlEpgCX3Wl0Q==}
+
+  '@axe-core/playwright@4.13.0':
+    resolution: {integrity: sha512-6YLx+kxXu5GJceG4ozFg+33a2EMTdjYwWGloJ3sb9Kta5pp+ZNS53uxGVog5JetIY8s++P5UrtX+cri+u0VAVg==}
+    peerDependencies:
+      playwright-core: '>= 1.0.0'
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -1395,6 +1412,11 @@ packages:
     resolution: {integrity: sha512-SEeaJLb3qBNF/OaXnaR1NmmBbFYk1zC0ZH/52fATcRPLFg/p791YrcyFFy44Bo9sLaGuSuLp5Q6axbb/O+v/RA==}
     engines: {node: ^14.18.0 || >=16.0.0}
 
+  '@playwright/test@1.56.0':
+    resolution: {integrity: sha512-Tzh95Twig7hUwwNe381/K3PggZBZblKUe2wv25oIpzWLr6Z0m4KgV1ZVIjnR6GM9ANEqjZD7XsZEa6JL/7YEgg==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   '@radix-ui/primitive@1.1.7':
     resolution: {integrity: sha512-rqWnm76nYT8HoNNqEjpgJ7Pw/DrBj5iBTrmEPo6HTX5+VJyBNOqTdv4g89G63HuR5g0AaENoAcH7Is5fF2kZ8Q==}
 
@@ -2406,6 +2428,10 @@ packages:
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
 
+  axe-core@4.13.0:
+    resolution: {integrity: sha512-UzGt8zg7Ny8djbYMhxl2zuEevVa7r2gJjYY5Lwr1xM7+XU2nd6CkIWFTVcCIbAP63vSz71NaVyyuSk9lHKcy0A==}
+    engines: {node: '>=4'}
+
   babel-jest@29.7.0:
     resolution: {integrity: sha512-BrvGY3xZSwEcCzKvKsCi2GgHqDqsYkOP4/by5xCgIwGXQxIEh+8ew3gmrE1y7XRR6LHZIj6yLYnUi/mm2KXKBg==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -3301,6 +3327,11 @@ packages:
 
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
+
+  fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -4461,6 +4492,16 @@ packages:
     resolution: {integrity: sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==}
     engines: {node: '>=8'}
 
+  playwright-core@1.56.0:
+    resolution: {integrity: sha512-1SXl7pMfemAMSDn5rkPeZljxOCYAmQnYLBTExuh6E8USHXGSX3dx6lYZN/xPpTz1vimXmPA9CDnILvmJaB8aSQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright@1.56.0:
+    resolution: {integrity: sha512-X5Q1b8lOdWIE4KAoHpW3SE8HvUB+ZZsUoN64ZhjnN8dOb1UpujxBtENGiZFE+9F/yhzJwYa+ca3u43FeLbboHA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   plist@3.1.1:
     resolution: {integrity: sha512-ZIfcLJC+7E7FBFnDxm9MPmt7D+DidyQ26lewieO75AdhA2ayMtsJSES0iWzqJQbcVRSrTufQoy0DR94xHue0oA==}
     engines: {node: '>=10.4.0'}
@@ -5534,6 +5575,11 @@ snapshots:
       lru-cache: 11.5.3
 
   '@asamuzakjp/nwsapi@2.3.9': {}
+
+  '@axe-core/playwright@4.13.0(playwright-core@1.56.0)':
+    dependencies:
+      axe-core: 4.13.0
+      playwright-core: 1.56.0
 
   '@babel/code-frame@7.29.7':
     dependencies:
@@ -7042,6 +7088,10 @@ snapshots:
 
   '@pkgr/core@0.3.6': {}
 
+  '@playwright/test@1.56.0':
+    dependencies:
+      playwright: 1.56.0
+
   '@radix-ui/primitive@1.1.7': {}
 
   '@radix-ui/react-collection@1.1.15(@types/react-dom@19.2.7(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
@@ -8013,6 +8063,8 @@ snapshots:
   assertion-error@2.0.1: {}
 
   asynckit@0.4.0: {}
+
+  axe-core@4.13.0: {}
 
   babel-jest@29.7.0(@babel/core@7.29.7):
     dependencies:
@@ -9010,6 +9062,9 @@ snapshots:
   fresh@0.5.2: {}
 
   fs.realpath@1.0.0: {}
+
+  fsevents@2.3.2:
+    optional: true
 
   fsevents@2.3.3:
     optional: true
@@ -10558,7 +10613,7 @@ snapshots:
     dependencies:
       content-type: 2.1.0
 
-  next@16.3.8(@types/node@22.20.5)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  next@16.3.8(@playwright/test@1.56.0)(@types/node@22.20.5)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
       '@next/env': 16.3.8
       '@swc/helpers': 0.5.23
@@ -10577,6 +10632,7 @@ snapshots:
       '@next/swc-linux-x64-musl': 16.3.8
       '@next/swc-win32-arm64-msvc': 16.3.8
       '@next/swc-win32-x64-msvc': 16.3.8
+      '@playwright/test': 1.56.0
       babel-plugin-react-compiler: 1.0.0
       sharp: 0.35.5(@types/node@22.20.5)
     transitivePeerDependencies:
@@ -10753,6 +10809,14 @@ snapshots:
   pkg-dir@4.2.0:
     dependencies:
       find-up: 4.1.0
+
+  playwright-core@1.56.0: {}
+
+  playwright@1.56.0:
+    dependencies:
+      playwright-core: 1.56.0
+    optionalDependencies:
+      fsevents: 2.3.2
 
   plist@3.1.1:
     dependencies:

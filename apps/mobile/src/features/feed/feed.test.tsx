@@ -8,7 +8,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import FeedScreen from "@/app/(tabs)/index";
 import { useFeed } from "@/features/feed/api";
 import { bestVariant, initials, matchLabel, totalPrice, votesLabel } from "@/features/feed/format";
-import { clampScore, scoreAt } from "@/features/feed/VoteSlider";
+import { clampScore, scoreAt, scoreForKey } from "@/features/feed/VoteSlider";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
 import { ToastProvider } from "@/ui/Toast";
 
@@ -162,6 +162,16 @@ describe("testi e calcoli", () => {
     expect(scoreAt(10, 0)).toBe(1);
     expect(clampScore(0)).toBe(1);
     expect(clampScore(100.4)).toBe(100);
+  });
+
+  test("slider da tastiera (web): frecce, pagina su/giù, inizio e fine", () => {
+    expect(scoreForKey("ArrowRight", 70)).toBe(71);
+    expect(scoreForKey("ArrowDown", 70)).toBe(69);
+    expect(scoreForKey("PageUp", 95)).toBe(100);
+    expect(scoreForKey("PageDown", 5)).toBe(1);
+    expect(scoreForKey("Home", 70)).toBe(1);
+    expect(scoreForKey("End", 70)).toBe(100);
+    expect(scoreForKey("a", 70)).toBeNull();
   });
 });
 

@@ -132,6 +132,19 @@ di verifica dell'età (D5; con quello finto l'API di produzione non parte), SMTP
 i push (`push_provider = "expo"`), `attestation_mode` e Team ID Apple (seduta 22). Il deploy si
 lancia a mano: Actions → Deploy → `production`, poi approvi.
 
+## Capacità (test di carico, seduta 24)
+
+Un'istanza dell'API (1 vCPU) regge **200 persone attive in contemporanea** restando veloce (95%
+delle risposte sotto 300 ms) e satura intorno a 120 richieste al secondo (`loadtest/README.md`).
+Cloud Run aggiunge istanze da solo (fino a `api_max_instances`, 4): circa 800 persone attive
+nello stesso momento, cioè decine di migliaia di persone al giorno.
+
+**Pool di Supabase.** In modalità *session* ogni connessione aperta occupa un posto del pool del
+progetto. Le connessioni massime sono: istanze API x 5 (3 + 2 di riserva) + worker x 4 +
+migrazioni 1 = **25** con 4 istanze. Sul piano gratuito il pool parte da 15: in Supabase,
+*Database → Settings → Connection pooling → Pool size*, mettilo a **30** (il piano gratuito
+arriva a 60 connessioni). Se alzi `api_max_instances`, alza anche il pool (5 posti per istanza).
+
 ## Se arriva un allarme
 
 - **"API non risponde"**: Cloud Run → `wearx-<env>-api` → *Logs*. Se `/readyz` dice

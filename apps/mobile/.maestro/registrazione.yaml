@@ -1,0 +1,38 @@
+appId: app.wearx.mobile
+name: registrazione
+env:
+  EMAIL: nuova@e2e.test
+  NICK: nuova.maestro
+---
+- launchApp:
+    clearState: true
+- tapOn: "Crea il tuo account"
+- tapOn: "NICKNAME"
+- inputText: ${NICK}
+- tapOn: "EMAIL"
+- inputText: ${EMAIL}
+- tapOn: "PASSWORD"
+- inputText: "Una-password-lunga-2026!"
+- tapOn: "GIORNO"
+- inputText: "14"
+- tapOn: "MESE"
+- inputText: "03"
+- tapOn: "ANNO"
+- inputText: "2003"
+- hideKeyboard
+- tapOn: "Ho letto l'Informativa privacy.*"
+- tapOn: "Accetto le regole della community.*"
+- tapOn: "Continua"
+- assertVisible: "Controlla la mail"
+- tapOn: "CODICE"
+- inputText: "123456"
+- assertVisible: "Confermiamo.*16\\+"
+- tapOn: "Stima con selfie.*"
+# Pagina del fornitore di prova nel browser dell'app.
+- tapOn: "Ho 18 anni o più"
+- assertVisible: "Che profilo vuoi\\?"
+- tapOn: "Continua"
+- tapOn: "Old Money.*"
+- tapOn: "Elegant.*"
+- tapOn: "Entra in WearX"
+- assertVisible: "Benvenuto su WearX.*"

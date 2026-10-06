@@ -1,0 +1,29 @@
+appId: app.wearx.mobile
+name: pubblica
+# Serve una foto nella galleria del telefono/emulatore (maestro: addMedia).
+---
+- runFlow: login-marco.yaml
+- addMedia:
+    - "../../../e2e/tests/fit.jpg"
+- tapOn: "Pubblica un fit"
+- assertVisible: "Nuovo fit"
+- tapOn: "Scegli le foto dalla galleria"
+# Selettore di sistema: si sceglie la prima foto.
+- tapOn:
+    index: 0
+    id: ".*thumbnail.*"
+    optional: true
+- tapOn: "Streetwear"
+- tapOn: "Brand del capo 1"
+- inputText: "Officina"
+- tapOn: "Nome del capo 1"
+- inputText: "Giacca in denim"
+- tapOn: "Didascalia"
+- inputText: "Prova Maestro in centro"
+- hideKeyboard
+- tapOn: "Pubblica"
+- extendedWaitUntil:
+    visible: "Fit pubblicato in Streetwear."
+    timeout: 30000
+- tapOn: "Il tuo profilo"
+- assertVisible: ".*Prova Maestro in centro.*"

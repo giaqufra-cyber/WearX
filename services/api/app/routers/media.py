@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import time
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any, Literal
@@ -75,9 +76,14 @@ def media_urls(upload_id: uuid.UUID, variants: list[int]) -> MediaUrls:
     settings = get_settings()
     store = get_store()
     ttl = settings.media_url_ttl_seconds
+    now = time.time()
+    urls: dict[int, str] = {}
+    expires = 0
+    for w in sorted(variants):
+        urls[w], expires = store.signed_read_url(variant_key(upload_id, w), ttl, now)
     return MediaUrls(
-        variants={w: store.signed_url(variant_key(upload_id, w), ttl) for w in sorted(variants)},
-        expires_at=datetime.now(UTC) + timedelta(seconds=ttl),
+        variants=urls,
+        expires_at=datetime.fromtimestamp(expires, UTC) if urls else datetime.now(UTC),
     )
 
 

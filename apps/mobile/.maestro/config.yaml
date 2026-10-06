@@ -1,0 +1,12 @@
+# Flussi Maestro (seduta 24): gli stessi percorsi dei test Playwright (e2e/), sul telefono.
+# Si eseguono con una build di sviluppo che punta all'ambiente E2E (vedi e2e/README.md):
+#   maestro test -e EMAIL=nuova.$(date +%s)@e2e.test apps/mobile/.maestro
+flows:
+  - "*.yaml"
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - registrazione
+    - voto
+    - pubblica
+    - seguire

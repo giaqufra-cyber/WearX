@@ -1,0 +1,13 @@
+{
+  "name": "@wearx/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.0",
+    "@axe-core/playwright": "^4.10.2",
+    "typescript": "~6.0.3"
+  }
+}
