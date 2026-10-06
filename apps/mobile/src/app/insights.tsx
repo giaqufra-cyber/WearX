@@ -174,6 +174,8 @@ function TopPost({ post, rank }: { post: InsightPost; rank: number }) {
         placeholder={post.blurhash ? { blurhash: post.blurhash } : undefined}
         style={styles.thumb}
         contentFit="cover"
+        accessibilityLabel=""
+        accessible={false}
       />
       <View style={styles.postText}>
         <Text style={styles.postTitle} numberOfLines={1}>

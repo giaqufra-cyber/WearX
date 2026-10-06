@@ -27,7 +27,9 @@ from typing import Any
 
 os.environ.setdefault("WEARX_SUPABASE_URL", "http://localhost:54321")
 os.environ.setdefault("WEARX_PUBLIC_API_URL", "http://localhost:8000")
-os.environ.setdefault("WEARX_ADMIN_ORIGINS", json.dumps(["http://localhost:8081"]))
+os.environ.setdefault(
+    "WEARX_ADMIN_ORIGINS", json.dumps(["http://localhost:8081", "http://localhost:3000"])
+)
 
 import tests.conftest as cf
 

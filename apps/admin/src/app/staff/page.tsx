@@ -60,7 +60,9 @@ export default function StaffPage() {
             <th>Persona</th>
             <th>Ruolo</th>
             <th>Dal</th>
-            <th />
+            <th>
+                <span className="sr-only">Azioni</span>
+              </th>
           </tr>
         </thead>
         <tbody>

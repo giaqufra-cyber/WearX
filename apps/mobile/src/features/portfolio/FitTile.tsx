@@ -77,6 +77,9 @@ export const FitTile = memo(function FitTile({
             transition={150}
             style={StyleSheet.absoluteFill}
             accessibilityIgnoresInvertColors
+            // Decorativa: il pulsante intorno ha già la descrizione.
+            accessibilityLabel=""
+            accessible={false}
           />
         ) : null}
         {/* Sfumatura in basso per leggere il testo sopra la foto. */}

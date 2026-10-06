@@ -138,6 +138,9 @@ const NotificationRow = memo(function NotificationRow({ item, fresh, deciding, o
             style={styles.thumb}
             contentFit="cover"
             accessibilityIgnoresInvertColors
+            // Decorativa: il pulsante intorno ha già la descrizione.
+            accessibilityLabel=""
+            accessible={false}
           />
         ) : null}
       </Pressable>

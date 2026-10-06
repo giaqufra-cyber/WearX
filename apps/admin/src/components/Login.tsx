@@ -10,18 +10,18 @@ export function Login() {
   const auth = useAuth();
   if (auth.status === "loading") {
     return (
-      <div className="login">
+      <main className="login">
         <p className="muted">Caricamento…</p>
-      </div>
+      </main>
     );
   }
   return (
-    <div className="login">
+    <main className="login">
       <div className="card">
         <div>
-          <div className="logo" style={{ margin: 0 }}>
+          <h1 className="logo" style={{ margin: 0 }} aria-label="WearX">
             WEAR<b>X</b>
-          </div>
+          </h1>
           <div className="mono">Pannello dello staff</div>
         </div>
         {auth.status === "signed_out" ? <Password /> : null}
@@ -42,7 +42,7 @@ export function Login() {
         ) : null}
         {env.devLogin && auth.status === "signed_out" ? <DevToken /> : null}
       </div>
-    </div>
+    </main>
   );
 }
 

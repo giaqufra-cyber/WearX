@@ -196,7 +196,7 @@ jobs:
           uvx checkov==3.3.23 --quiet --compact --skip-download -d . --framework dockerfile github_actions --skip-path node_modules
 
   e2e:
-    name: Percorsi end-to-end (app web + API + worker)
+    name: Percorsi end-to-end e accessibilità (app web, pannello, API, worker)
     runs-on: ubuntu-latest
     timeout-minutes: 25
     services:
@@ -235,6 +235,7 @@ jobs:
         working-directory: e2e
         env:
           WEARX_TEST_ADMIN_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          WEARX_E2E_ADMIN: "1" # anche il pannello dello staff (audit di accessibilità)
         run: |
           (cd ../services/api && uv sync --frozen)
           ./run-local.sh
@@ -242,6 +243,9 @@ jobs:
         if: failure()
         run: |
           echo "::error title=Ambiente E2E::$(tail -n 30 /tmp/wearx-e2e.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+          if [ -f /tmp/wearx-e2e-admin.log ]; then
+            echo "::error title=Pannello E2E::$(tail -n 20 /tmp/wearx-e2e-admin.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+          fi
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

@@ -18,6 +18,12 @@ import { IconTag } from "@/ui/icons";
 
 type Props = { post: Post; width: number; authorLabel: string };
 
+/** "Foto 2 di 3, fit di @giulia" o "Foto del fit anonimo" (la didascalia si legge già sotto). */
+export function photoLabel(index: number, count: number, author: string): string {
+  const who = author.startsWith("@") ? `fit di ${author}` : "fit anonimo";
+  return count > 1 ? `Foto ${index + 1} di ${count}, ${who}` : `Foto del ${who}`;
+}
+
 /** Carosello delle foto (prototipo): scorrimento, tocco a sinistra/destra, contatore, capi sulla foto. */
 export function Carousel({ post, width, authorLabel }: Props) {
   const height = Math.round(width * 1.25); // 4:5, il formato verticale dei fit
@@ -58,7 +64,7 @@ export function Carousel({ post, width, authorLabel }: Props) {
               contentFit="cover"
               transition={180}
               recyclingKey={`${post.id}-${item.position}`}
-              accessibilityLabel={`Foto ${i + 1} di ${count} del fit di ${authorLabel}`}
+              accessibilityLabel={photoLabel(i, count, authorLabel)}
               style={{ width, height }}
             />
           )}

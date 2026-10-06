@@ -18,6 +18,7 @@ import { DarkTheme, Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 
 import { AuthProvider, useAuth } from "@/features/auth/AuthProvider";
 import { AppBridges } from "@/features/notifications/AppBridges";
@@ -77,7 +78,11 @@ export default function RootLayout() {
       <ThemeProvider value={navigationTheme}>
         <ToastProvider>
           <StatusBar style="light" />
-          <AuthProvider>{fontsReady ? <RootNavigator /> : null}</AuthProvider>
+          {/* Un'unica zona "principale": sul web i lettori di schermo la trovano subito (audit
+              di accessibilità, seduta 24); su iOS e Android non cambia niente. */}
+          <View role="main" style={styles.main}>
+            <AuthProvider>{fontsReady ? <RootNavigator /> : null}</AuthProvider>
+          </View>
         </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
@@ -155,3 +160,5 @@ function RootNavigator() {
     </>
   );
 }
+
+const styles = StyleSheet.create({ main: { flex: 1 } });

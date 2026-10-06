@@ -82,7 +82,9 @@ export default function DomainsPage() {
               <th>Motivo</th>
               <th>Link</th>
               <th>Dal</th>
-              <th />
+              <th>
+                <span className="sr-only">Azioni</span>
+              </th>
             </tr>
           </thead>
           <tbody>

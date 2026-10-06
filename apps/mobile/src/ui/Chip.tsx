@@ -1,6 +1,8 @@
 import { colors, fonts, radii } from "@wearx/design-tokens";
 import { Pressable, StyleSheet, Text } from "react-native";
 
+import { toggleState } from "./a11y";
+
 type Props = {
   label: string;
   selected?: boolean;
@@ -19,7 +21,7 @@ export function Chip({ label, selected = false, onPress, variant = "filter", ton
       testID={testID}
       role={interactive ? "button" : "none"}
       aria-label={label}
-      aria-selected={interactive ? selected : undefined}
+      {...(interactive ? toggleState(selected) : null)}
       disabled={!interactive}
       onPress={onPress}
       // Chip alte 36 pt: si allarga l'area toccabile fino a 44.

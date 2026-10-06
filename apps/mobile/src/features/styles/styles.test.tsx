@@ -190,12 +190,12 @@ describe("Feed", () => {
     );
     const user = userEvent.setup();
     await render(<FeedScreen />, { wrapper: Providers });
-    expect(await screen.findByRole("button", { name: "Old Money" })).toBeOnTheScreen();
+    expect(await screen.findByRole("tab", { name: "Old Money" })).toBeOnTheScreen();
     expect(screen.queryByText("Halloween")).toBeNull();
     expect(get).toHaveBeenCalledWith("/v1/me/styles", expect.objectContaining({ token: "tok" }));
 
-    await user.press(screen.getByRole("button", { name: "Galà" }));
-    expect(screen.getByRole("button", { name: "Galà" })).toBeSelected();
+    await user.press(screen.getByRole("tab", { name: "Galà" }));
+    expect(screen.getByRole("tab", { name: "Galà" })).toBeSelected();
     await user.press(screen.getByRole("button", { name: "Aggiungi stili" }));
     expect(router.navigate).toHaveBeenCalledWith("/explore");
   });

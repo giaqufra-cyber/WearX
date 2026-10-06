@@ -9,6 +9,7 @@ import FeedScreen from "@/app/(tabs)/index";
 import { useFeed } from "@/features/feed/api";
 import { bestVariant, initials, matchLabel, totalPrice, votesLabel } from "@/features/feed/format";
 import { clampScore, scoreAt, scoreForKey } from "@/features/feed/VoteSlider";
+import { photoLabel } from "@/features/feed/Carousel";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
 import { ToastProvider } from "@/ui/Toast";
 
@@ -305,7 +306,7 @@ describe("Feed", () => {
     serve(page([post("p1")]));
     const user = userEvent.setup();
     await render(<FeedScreen />, { wrapper: Providers });
-    await user.press(await screen.findByRole("button", { name: "Galà" }));
+    await user.press(await screen.findByRole("tab", { name: "Galà" }));
     expect(get).toHaveBeenCalledWith("/v1/feed?style=gala", expect.anything());
   });
 
@@ -332,5 +333,13 @@ describe("Feed", () => {
     await render(<FeedScreen />, { wrapper: Providers });
     await user.press(await screen.findByRole("button", { name: "Riprova" }));
     expect(await screen.findByLabelText("@giulia.rossi, Galà")).toBeOnTheScreen();
+  });
+});
+
+describe("descrizione delle foto per i lettori di schermo", () => {
+  test("dice di chi è il fit e quale foto è, senza ripetere la didascalia", () => {
+    expect(photoLabel(0, 1, "@giulia")).toBe("Foto del fit di @giulia");
+    expect(photoLabel(1, 3, "@giulia")).toBe("Foto 2 di 3, fit di @giulia");
+    expect(photoLabel(0, 1, "Fit anonimo")).toBe("Foto del fit anonimo");
   });
 });

@@ -13,7 +13,7 @@ type Props = {
 export function EmptyState({ title, body, action }: Props) {
   return (
     <View style={styles.wrap}>
-      <Text role="heading" style={styles.title}>
+      <Text role="heading" aria-level={2} style={styles.title}>
         {title}
       </Text>
       {body ? <Text style={styles.body}>{body}</Text> : null}

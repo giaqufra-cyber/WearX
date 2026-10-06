@@ -200,7 +200,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
       ) : null}
 
       {profile.can_view_posts && profile.capsules.length > 0 ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs} style={styles.tabsBar}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} role="tablist" contentContainerStyle={styles.tabs} style={styles.tabsBar}>
           {[{ id: null, name: "Tutti" }, ...profile.capsules].map((tab) => {
             const selected = tab.id === activeCapsule;
             return (

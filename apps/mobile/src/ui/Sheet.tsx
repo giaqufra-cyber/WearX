@@ -1,6 +1,6 @@
 import { colors, fonts, radii, spacing } from "@wearx/design-tokens";
 import type { ReactNode } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IconButton } from "@/ui/IconButton";
@@ -17,18 +17,26 @@ type Props = {
 export function Sheet({ visible, title, onClose, children }: Props) {
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent
+      // Sul web Modal è già la finestra (role="dialog"): le si dà il nome.
+      aria-label={title}
+    >
       <View style={styles.root}>
-        <Pressable style={styles.backdrop} onPress={onClose} role="button" aria-label="Chiudi" />
+        {/* Lo sfondo chiude al tocco ma non è un secondo pulsante "Chiudi" per i lettori di schermo:
+            c'è già la X (e il tasto Esc / il gesto indietro). */}
+        <Pressable style={styles.backdrop} onPress={onClose} accessible={false} focusable={false} aria-hidden />
         <View
           style={[styles.panel, { paddingBottom: insets.bottom + spacing[5] }]}
-          aria-modal
-          role="dialog"
-          aria-label={title}
+          {...(Platform.OS === "web" ? null : { role: "dialog" as const, "aria-modal": true, "aria-label": title })}
         >
           <View style={styles.handle} />
           <View style={styles.header}>
-            <Text role="heading" style={styles.title}>
+            <Text role="heading" aria-level={2} style={styles.title}>
               {title}
             </Text>
             <IconButton label="Chiudi" onPress={onClose}>

@@ -179,7 +179,9 @@ export default function StylesPage() {
             <th>Membri</th>
             <th>Fit 7 gg</th>
             <th>Stato</th>
-            <th />
+            <th>
+                <span className="sr-only">Azioni</span>
+              </th>
           </tr>
         </thead>
         <tbody>

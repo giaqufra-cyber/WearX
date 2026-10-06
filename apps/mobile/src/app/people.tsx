@@ -47,7 +47,7 @@ export default function PeopleScreen() {
         </Text>
         <View style={styles.spacer} />
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsBar} contentContainerStyle={styles.tabs}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} role="tablist" style={styles.tabsBar} contentContainerStyle={styles.tabs}>
         {TABS.map((t) => (
           <Pressable
             key={t.kind}

@@ -61,7 +61,9 @@ export default function VotesPage() {
               <th>Voti</th>
               <th>Trovato</th>
               <th>Stato</th>
-              <th />
+              <th>
+                <span className="sr-only">Azioni</span>
+              </th>
             </tr>
           </thead>
           <tbody>

@@ -46,7 +46,7 @@ test("registrazione completa: account, codice, età, stili, primo feed", async (
   // Dentro: il feed con i fit degli stili scelti (ci sono quelli di giulia.e2e in Old Money).
   await expect(page).toHaveURL(/\/(feed)?$/);
   await expect(page.getByRole("alert")).toContainText(`Benvenuto su WearX, @${nickname}.`);
-  await expect(page.getByRole("button", { name: "Old Money" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Old Money" })).toBeVisible();
   await expect(page.getByRole("article").first()).toBeVisible();
   await expect(page.getByRole("tab", { name: "Feed dei tuoi stili" })).toHaveAttribute("aria-selected", "true");
 });

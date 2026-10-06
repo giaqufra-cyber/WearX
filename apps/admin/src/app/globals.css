@@ -60,6 +60,7 @@ textarea {
   font-family: var(--font-numeric), sans-serif;
   font-size: 26px;
   letter-spacing: -0.5px;
+  font-weight: inherit;
   margin: 0 8px 4px;
 }
 .logo b {
@@ -424,4 +425,17 @@ textarea.input {
   color: var(--text-muted);
   text-decoration: line-through;
   text-decoration-color: color-mix(in srgb, var(--text-muted) 60%, transparent);
+}
+
+/* Testo solo per i lettori di schermo (es. intestazione della colonna dei pulsanti). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

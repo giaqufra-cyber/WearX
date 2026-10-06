@@ -76,13 +76,14 @@ export default function FeedScreen() {
       </View>
       {mine.data ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+          <View role="tablist" aria-label="Filtra per stile" style={styles.chipRow}>
           {chips.map((chip) => {
             const selected = chip.slug === active;
             return (
               <Pressable
                 key={chip.slug}
                 onPress={() => setFilter(chip.slug)}
-                role="button"
+                role="tab"
                 aria-selected={selected}
                 style={[styles.chip, selected && styles.chipActive]}
               >
@@ -90,6 +91,7 @@ export default function FeedScreen() {
               </Pressable>
             );
           })}
+          </View>
           <Pressable onPress={() => router.navigate("/explore")} role="button" aria-label="Aggiungi stili" style={[styles.chip, styles.chipAdd]}>
             <IconPlus color={colors.textSecondary} size={16} />
             <Text style={[styles.chipText, styles.chipAddText]}>Stili</Text>
@@ -192,6 +194,7 @@ const styles = StyleSheet.create({
     paddingTop: 2,
     paddingBottom: spacing[3],
   },
+  chipRow: { flexDirection: "row", gap: spacing[2] },
   chip: {
     minHeight: 36,
     paddingHorizontal: 15,

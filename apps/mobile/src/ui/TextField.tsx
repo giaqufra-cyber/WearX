@@ -1,6 +1,7 @@
 import { colors, fonts, fontSizes, radii, spacing } from "@wearx/design-tokens";
 import { forwardRef, useId, useState } from "react";
 import {
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -24,6 +25,21 @@ type Props = Omit<TextInputProps, "style" | "placeholderTextColor" | "secureText
   /** Colore del testo d'aiuto (es. accento quando il nickname è libero). */
   hintColor?: string;
   centered?: boolean;
+};
+
+// Nomi Android/iOS -> nomi HTML (sul web "birthdate-day" o "username-new" non sono validi e i
+// browser non li riconoscono: audit di accessibilità, seduta 24).
+const WEB_AUTOCOMPLETE: Record<string, string> = {
+  "birthdate-day": "bday-day",
+  "birthdate-month": "bday-month",
+  "birthdate-year": "bday-year",
+  "birthdate-full": "bday",
+  "username-new": "username",
+  "password-new": "new-password",
+  "sms-otp": "one-time-code",
+  "name-family": "family-name",
+  "name-given": "given-name",
+  "postal-address": "street-address",
 };
 
 /** Campo di testo del prototipo: etichetta mono maiuscola, bordo 1 pt, altezza 52. */
@@ -52,6 +68,9 @@ export const TextField = forwardRef<TextInput, Props>(function TextField(
         <TextInput
           ref={ref}
           {...input}
+          {...(Platform.OS === "web" && input.autoComplete && WEB_AUTOCOMPLETE[input.autoComplete]
+            ? { autoComplete: WEB_AUTOCOMPLETE[input.autoComplete] as TextInputProps["autoComplete"] }
+            : null)}
           aria-label={label}
           aria-invalid={Boolean(error)}
           secureTextEntry={secure && !revealed}
