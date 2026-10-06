@@ -115,7 +115,9 @@ jobs:
           import pathlib, xml.etree.ElementTree as ET
           report = pathlib.Path("e2e/android-results/report.xml")
           if not report.exists():
-              print("::error title=Maestro::nessun report (l'emulatore o l'installazione non sono partiti)")
+              log = pathlib.Path("e2e/android-results/maestro.log")
+              tail = log.read_text(errors="replace")[-900:].replace("\n", " | ") if log.exists() else ""
+              print(f"::error title=Maestro::nessun report. {tail}")
               raise SystemExit
           for case in ET.parse(report).iter("testcase"):
               failure = case.find("failure")

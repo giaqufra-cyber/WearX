@@ -20,9 +20,11 @@ adb install -r "$APK"
 adb shell pm grant app.wearx.mobile android.permission.POST_NOTIFICATIONS || true
 
 cd "$OUT"
-status=0
+set +e
 "$HOME/.maestro/bin/maestro" test "$ROOT/apps/mobile/.maestro" \
-  --format junit --output "$OUT/report.xml" --test-output-dir "$OUT" || status=$?
+  --format junit --output "$OUT/report.xml" --debug-output "$OUT/debug" 2>&1 | tee "$OUT/maestro.log"
+status=${PIPESTATUS[0]}
+set -e
 adb exec-out screencap -p > "$OUT/ultima-schermata.png" || true
 adb logcat -d -t 2000 > "$OUT/logcat.txt" || true
 exit $status
