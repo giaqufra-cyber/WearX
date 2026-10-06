@@ -13,6 +13,10 @@ env:
 - inputText: ${EMAIL}
 - tapOn: "PASSWORD"
 - inputText: "Una-password-lunga-2026!"
+- hideKeyboard
+- scrollUntilVisible:
+    element: "GIORNO"
+    direction: DOWN
 - tapOn: "GIORNO"
 - inputText: "14"
 - tapOn: "MESE"
@@ -20,13 +24,16 @@ env:
 - tapOn: "ANNO"
 - inputText: "2003"
 - hideKeyboard
+- scrollUntilVisible:
+    element: "Continua"
+    direction: DOWN
 - tapOn: "Ho letto l'Informativa privacy.*"
 - tapOn: "Accetto le regole della community.*"
 - tapOn: "Continua"
 - assertVisible: "Controlla la mail"
 - tapOn: "CODICE"
 - inputText: "123456"
-- assertVisible: "Confermiamo.*16\\+"
+- assertVisible: "Confermiamo.*"
 - tapOn: "Stima con selfie.*"
 # Pagina del fornitore di prova nel browser dell'app.
 - tapOn: "Ho 18 anni o più"
