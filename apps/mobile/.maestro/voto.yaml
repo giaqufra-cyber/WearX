@@ -3,6 +3,10 @@ name: voto
 ---
 - runFlow: common/login-marco.yaml
 - assertVisible: "VOTA IL FIT · 1–100"
+# La foto (4:5) occupa quasi tutto lo schermo: il cursore del voto è più in basso.
+- scrollUntilVisible:
+    element: "Vota"
+    direction: DOWN
 - tapOn: "Un punto in più"
 - tapOn: "Un punto in più"
 - tapOn: "Sì"
