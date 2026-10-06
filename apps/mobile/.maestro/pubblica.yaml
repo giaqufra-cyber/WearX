@@ -4,7 +4,7 @@ name: pubblica
 ---
 - runFlow: common/login-marco.yaml
 - addMedia:
-    - "../../../e2e/tests/fit.jpg"
+    - "assets/fit.jpg"
 - tapOn: "Pubblica un fit"
 - assertVisible: "Nuovo fit"
 - tapOn: "Scegli le foto dalla galleria"

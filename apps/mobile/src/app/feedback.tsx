@@ -77,8 +77,8 @@ export default function FeedbackScreen() {
         </View>
         <Text variant="secondary" style={styles.note}>
           Insieme al messaggio mandiamo solo la versione dell&apos;app ({info.app_version}), il sistema ({system}
-          {info.os_version ? ` ${info.os_version}` : ""}){from ? " e la schermata da cui sei partito" : ""}. Per una
-          schermata, su iPhone puoi anche scattare uno screenshot e inviarlo da TestFlight.
+          {info.os_version ? ` ${info.os_version}` : ""}){from ? " e la schermata da cui sei partito" : ""}.
+          {info.platform === "ios" ? " Per mostrarci una schermata: screenshot e invio da TestFlight." : ""}
         </Text>
         {tooMany ? (
           <Text color={colors.danger} role="alert">
