@@ -415,3 +415,11 @@ def test_produzione_vieta_il_fornitore_finto(monkeypatch):
     finally:
         monkeypatch.undo()
         cached.cache_clear()
+
+
+async def test_pagina_di_prova_ammette_il_ritorno_all_app(client):
+    # Chrome applica form-action anche al redirect verso l'app: la destinazione va ammessa.
+    r = await client.get(f"/v1/dev/fake-age/abc?method=selfie_estimation&return_url={RETURN}")
+    assert r.status_code == 200
+    csp = r.headers["content-security-policy"]
+    assert "form-action 'self' wearx:;" in csp

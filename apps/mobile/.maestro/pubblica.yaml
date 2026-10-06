@@ -8,19 +8,41 @@ name: pubblica
 - tapOn: "Pubblica un fit"
 - assertVisible: "Nuovo fit"
 - tapOn: "Scegli le foto dalla galleria"
-# Selettore di sistema: si sceglie la prima foto.
+# Selettore di sistema (Android 14: "Photo Picker"): la prima foto, poi "Aggiungi".
 - tapOn:
     index: 0
     id: ".*thumbnail.*"
     optional: true
+- tapOn:
+    index: 0
+    text: "(Photo|Foto).*"
+    optional: true
+- tapOn:
+    text: "(Add|Aggiungi|Done|Fine).*"
+    optional: true
 - tapOn: "Streetwear"
+# La tastiera copre la parte bassa: si chiude e si scorre fino a ogni campo.
+- scrollUntilVisible:
+    element: "Brand del capo 1"
+    direction: DOWN
 - tapOn: "Brand del capo 1"
 - inputText: "Officina"
+- hideKeyboard
+- scrollUntilVisible:
+    element: "Nome del capo 1"
+    direction: DOWN
 - tapOn: "Nome del capo 1"
 - inputText: "Giacca in denim"
+- hideKeyboard
+- scrollUntilVisible:
+    element: "Didascalia"
+    direction: DOWN
 - tapOn: "Didascalia"
 - inputText: "Prova Maestro in centro"
 - hideKeyboard
+- scrollUntilVisible:
+    element: "Pubblica"
+    direction: DOWN
 - tapOn: "Pubblica"
 - extendedWaitUntil:
     visible: "Fit pubblicato in Streetwear."

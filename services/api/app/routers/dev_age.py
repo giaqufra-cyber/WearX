@@ -10,7 +10,7 @@ from __future__ import annotations
 import html
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 from fastapi import APIRouter, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -54,6 +54,15 @@ button.main{{background:#D7FF3A;color:#0A0A0B;border:0}}
 </form></body></html>"""
 
 
+def _return_source(return_url: str) -> str:
+    """Il modulo rimanda all'app (wearx://...): Chrome applica form-action anche al redirect,
+    quindi la destinazione va ammessa (solo lo schema per le app, l'origine per il web)."""
+    parts = urlsplit(return_url)
+    if parts.scheme in ("http", "https"):
+        return f"{parts.scheme}://{parts.netloc}"
+    return f"{parts.scheme}:"
+
+
 @router.get("/{ref}", response_class=HTMLResponse)
 async def fake_page(ref: str, method: str = "", return_url: str = "") -> HTMLResponse:
     if not _valid_return_url(return_url):
@@ -69,8 +78,8 @@ async def fake_page(ref: str, method: str = "", return_url: str = "") -> HTMLRes
         ),
         headers={
             "content-security-policy": (
-                "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; "
-                "frame-ancestors 'none'"
+                "default-src 'none'; style-src 'unsafe-inline'; "
+                f"form-action 'self' {_return_source(return_url)}; frame-ancestors 'none'"
             )
         },
     )
