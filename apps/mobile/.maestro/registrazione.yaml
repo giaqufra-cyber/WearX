@@ -22,10 +22,9 @@ env:
     element: "GIORNO"
     direction: DOWN
 - tapOn: "GIORNO"
+# Dopo 2 cifre il cursore passa da solo al mese e poi all'anno (la tastiera copre i campi).
 - inputText: "14"
-- tapOn: "MESE"
 - inputText: "03"
-- tapOn: "ANNO"
 - inputText: "2003"
 - hideKeyboard
 - scrollUntilVisible:
