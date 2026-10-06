@@ -35,7 +35,7 @@ os.environ.setdefault(
     "WEARX_ADMIN_ORIGINS", json.dumps(["http://localhost:8081", "http://localhost:3000"])
 )
 
-import tests.conftest as cf
+import tests.conftest as cf  # noqa: E402 - dopo le variabili d'ambiente qui sopra
 
 AUTH_PORT, API_PORT, APP_PORT = 54321, 8000, 8081
 OTP = "123456"

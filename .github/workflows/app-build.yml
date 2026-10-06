@@ -5,6 +5,7 @@ name: App (build per i tester e gli store)
 # Serve il segreto EXPO_TOKEN nel repository (lo crei tu su expo.dev, docs/BETA.md).
 on:
   workflow_dispatch:
+    # checkov:skip=CKV_GHA_7:Le scelte sono elenchi fissi (profilo, piattaforma, invio): nessun testo libero entra nella build
     inputs:
       profile:
         description: "beta = TestFlight e test interno di Google Play (staging); production = store"
