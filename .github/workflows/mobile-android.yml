@@ -15,7 +15,8 @@ on:
       - ".github/workflows/mobile-android.yml"
 
 permissions:
-  contents: read
+  # Scrittura solo per pubblicare schermate e registri sul ramo ci/android-results.
+  contents: write
 
 concurrency:
   group: mobile-android
@@ -107,6 +108,39 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: bash e2e/android.sh
+      - name: Esito dei percorsi come annotazioni
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import pathlib, xml.etree.ElementTree as ET
+          report = pathlib.Path("e2e/android-results/report.xml")
+          if not report.exists():
+              print("::error title=Maestro::nessun report (l'emulatore o l'installazione non sono partiti)")
+              raise SystemExit
+          for case in ET.parse(report).iter("testcase"):
+              failure = case.find("failure")
+              if failure is None:
+                  print(f"::notice title=Maestro {case.get('name')}::superato in {case.get('time')} s")
+              else:
+                  text = (failure.get("message") or failure.text or "").strip().replace("\n", " ")[:900]
+                  print(f"::error title=Maestro {case.get('name')}::{text}")
+          PY
+      - name: Schermate e registri sul ramo ci/android-results
+        if: always() && github.event_name != 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          [ -d e2e/android-results ] || exit 0
+          dir=$(mktemp -d)
+          cp -r e2e/android-results/. "$dir"/
+          [ -f "$dir/logcat.txt" ] && grep -E "ReactNativeJS|AndroidRuntime|wearx" "$dir/logcat.txt" | tail -n 400 > "$dir/logcat-app.txt" || true
+          rm -f "$dir/logcat.txt"
+          cp /tmp/wearx-e2e.log "$dir/ambiente-e2e.log" 2>/dev/null || true
+          cd "$dir"
+          git init -q -b ci/android-results
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -q -m "Maestro Android ${GITHUB_SHA::7} (run ${GITHUB_RUN_ID})"
+          git push -q -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:ci/android-results
       - name: Registro dell'ambiente
         if: failure()
         run: |
