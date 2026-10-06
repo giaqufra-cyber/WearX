@@ -78,6 +78,108 @@
         "title": "ActionOut",
         "type": "object"
       },
+      "AdminFeedback": {
+        "properties": {
+          "app_version": {
+            "title": "App Version",
+            "type": "string"
+          },
+          "author": {
+            "title": "Author",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "bug",
+              "idea",
+              "other"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "os_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Os Version"
+          },
+          "platform": {
+            "title": "Platform",
+            "type": "string"
+          },
+          "screen": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Screen"
+          },
+          "staff_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Note"
+          },
+          "status": {
+            "enum": [
+              "new",
+              "seen",
+              "done"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "author",
+          "kind",
+          "message",
+          "app_version",
+          "platform",
+          "os_version",
+          "screen",
+          "status",
+          "staff_note",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AdminFeedback",
+        "type": "object"
+      },
       "AdminPost": {
         "properties": {
           "author": {
@@ -1322,6 +1424,169 @@
           "next_cursor"
         ],
         "title": "FeedOut",
+        "type": "object"
+      },
+      "FeedbackCounts": {
+        "properties": {
+          "done": {
+            "title": "Done",
+            "type": "integer"
+          },
+          "new": {
+            "title": "New",
+            "type": "integer"
+          },
+          "seen": {
+            "title": "Seen",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "new",
+          "seen",
+          "done"
+        ],
+        "title": "FeedbackCounts",
+        "type": "object"
+      },
+      "FeedbackCreated": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at"
+        ],
+        "title": "FeedbackCreated",
+        "type": "object"
+      },
+      "FeedbackIn": {
+        "additionalProperties": false,
+        "properties": {
+          "app_version": {
+            "maxLength": 20,
+            "minLength": 1,
+            "pattern": "^[0-9A-Za-z.+-]+$",
+            "title": "App Version",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "bug",
+              "idea",
+              "other"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "message": {
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Message",
+            "type": "string"
+          },
+          "os_version": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Os Version"
+          },
+          "platform": {
+            "enum": [
+              "ios",
+              "android",
+              "web"
+            ],
+            "title": "Platform",
+            "type": "string"
+          },
+          "screen": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "pattern": "^/[A-Za-z0-9_\\-/\\[\\]()]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Screen"
+          }
+        },
+        "required": [
+          "kind",
+          "message",
+          "app_version",
+          "platform"
+        ],
+        "title": "FeedbackIn",
+        "type": "object"
+      },
+      "FeedbackPage": {
+        "properties": {
+          "counts": {
+            "$ref": "#/components/schemas/FeedbackCounts"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdminFeedback"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items",
+          "counts"
+        ],
+        "title": "FeedbackPage",
+        "type": "object"
+      },
+      "FeedbackUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "staff_note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Note"
+          },
+          "status": {
+            "enum": [
+              "new",
+              "seen",
+              "done"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "FeedbackUpdate",
         "type": "object"
       },
       "FollowOut": {
@@ -5260,6 +5525,128 @@
         ]
       }
     },
+    "/v1/admin/feedback": {
+      "get": {
+        "operationId": "list_feedback_v1_admin_feedback_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "default": "open",
+              "enum": [
+                "open",
+                "done",
+                "all"
+              ],
+              "title": "Status",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "bug",
+                    "idea",
+                    "other"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Feedback",
+        "tags": [
+          "feedback"
+        ]
+      }
+    },
+    "/v1/admin/feedback/{feedback_id}": {
+      "patch": {
+        "operationId": "update_feedback_v1_admin_feedback__feedback_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "feedback_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Feedback Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminFeedback"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Feedback",
+        "tags": [
+          "feedback"
+        ]
+      }
+    },
     "/v1/admin/me": {
       "get": {
         "operationId": "me_v1_admin_me_get",
@@ -6200,6 +6587,47 @@
         "summary": "Get Feed",
         "tags": [
           "feed"
+        ]
+      }
+    },
+    "/v1/feedback": {
+      "post": {
+        "operationId": "send_feedback_v1_feedback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackCreated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Send Feedback",
+        "tags": [
+          "feedback"
         ]
       }
     },

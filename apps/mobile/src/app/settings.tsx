@@ -79,6 +79,14 @@ export default function SettingsScreen() {
           />
         </Section>
 
+        <Section title="AIUTO">
+          <ListRow
+            label="Segnala un problema"
+            description="Qualcosa non va o hai un'idea? Arriva direttamente al team."
+            onPress={() => router.push({ pathname: "/feedback", params: { from: "/settings" } })}
+          />
+        </Section>
+
         <Section title="INFORMAZIONI">
           {(["feed_explainer", "community_rules", "terms", "privacy"] as const).map((doc) => (
             <ListRow key={doc} label={LEGAL_TITLES[doc]} onPress={() => openLegal(legal[doc])} />

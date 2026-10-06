@@ -16,6 +16,7 @@ const CONTENTS = [
   "I voti che hai dato (per gli altri restano anonimi)",
   "Segnalazioni, decisioni di moderazione e reclami",
   "Notifiche, dispositivi e azioni registrate per gli Insight",
+  "I messaggi mandati con \"Segnala un problema\"",
 ];
 
 /** Scarica i tuoi dati (GDPR): archivio ZIP pronto in pochi minuti, valido 7 giorni. */

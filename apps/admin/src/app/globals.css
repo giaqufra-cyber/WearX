@@ -439,3 +439,10 @@ textarea.input {
   white-space: nowrap;
   border: 0;
 }
+
+/* Elenco di schede una sotto l'altra (feedback). */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

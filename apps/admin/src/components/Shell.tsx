@@ -16,6 +16,7 @@ const NAV: ReadonlyArray<{ href: string; label: string; admin?: boolean }> = [
   { href: "/users", label: "Persone" },
   { href: "/domains", label: "Domini bloccati" },
   { href: "/votes", label: "Voti sospetti" },
+  { href: "/feedback", label: "Feedback" },
   { href: "/styles", label: "Stili", admin: true },
   { href: "/staff", label: "Staff", admin: true },
   { href: "/audit", label: "Registro", admin: true },

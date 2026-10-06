@@ -22,6 +22,7 @@ from app.routers import (
     config,
     events,
     feed,
+    feedback,
     go,
     health,
     insights,
@@ -100,6 +101,7 @@ def create_app() -> FastAPI:
     app.include_router(admin_moderation.router)
     app.include_router(admin_console.router)
     app.include_router(legal.router)
+    app.include_router(feedback.router)
     if settings.age_provider == "fake" and not settings.is_production:
         # Pagina del fornitore finto: solo sviluppo e test.
         from app.routers import dev_age

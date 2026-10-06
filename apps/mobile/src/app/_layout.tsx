@@ -136,6 +136,7 @@ function RootNavigator() {
         <Stack.Screen name="change-password" />
         <Stack.Screen name="account-type" />
         <Stack.Screen name="shop-domains" />
+        <Stack.Screen name="feedback" />
         <Stack.Screen name="new-post" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
       </Stack.Protected>
       <Stack.Protected guard={shown === "auth"}>

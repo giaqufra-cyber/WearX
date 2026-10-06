@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import AppealsPage from "@/app/appeals/page";
 import DomainsPage from "@/app/domains/page";
+import FeedbackPage from "@/app/feedback/page";
 import VotesPage from "@/app/votes/page";
 import StaffPage from "@/app/staff/page";
 import StylesPage from "@/app/styles/page";
@@ -206,5 +207,38 @@ describe("Le scritture mandano solo i campi che l'API accetta", () => {
     await userEvent.click(screen.getByRole("button", { name: "Conferma ripristino" }));
     await waitFor(() => expect(writes()).toHaveLength(1));
     expect(writes()[0]!.url).toBe("http://localhost:8000/v1/admin/vote-flags/7/lift");
+  });
+
+  test("feedback: messaggio, contesto, nota e stato nel corpo", async () => {
+    const item = {
+      id: "f1",
+      author: "giulia.rossi",
+      kind: "bug",
+      message: "Il voto non parte\nquando tocco due volte",
+      app_version: "0.1.0",
+      platform: "ios",
+      os_version: "18.6",
+      screen: "/post/[id]",
+      status: "new",
+      staff_note: null,
+      created_at: "2026-10-06T08:00:00Z",
+      updated_at: "2026-10-06T08:00:00Z",
+    };
+    serve({
+      "GET http://localhost:8000/v1/admin/feedback?status=open": { items: [item], counts: { new: 1, seen: 0, done: 3 } },
+      "PATCH http://localhost:8000/v1/admin/feedback/f1": { ...item, status: "done" },
+    });
+    render(<FeedbackPage />, { wrapper });
+    expect(await screen.findByText(/Il voto non parte/)).toBeTruthy();
+    expect(screen.getByText("WearX 0.1.0 · iOS 18.6 · da /post/[id]")).toBeTruthy();
+    expect(screen.getByRole("radio", { name: "Da gestire (1)" })).toBeTruthy();
+    await userEvent.type(screen.getByRole("textbox"), "Corretto nella 0.1.1");
+    await userEvent.click(screen.getByRole("button", { name: "Risolto" }));
+    await waitFor(() => expect(writes()).toHaveLength(1));
+    expect(writes()[0]).toMatchObject({
+      method: "PATCH",
+      url: "http://localhost:8000/v1/admin/feedback/f1",
+      body: { status: "done", staff_note: "Corretto nella 0.1.1" },
+    });
   });
 });

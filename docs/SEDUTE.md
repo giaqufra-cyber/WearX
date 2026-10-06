@@ -85,6 +85,12 @@ Promemoria fissi: senza questi punti l'app funziona solo per il fondatore.
       Attivare le caselle email `privacy@`, `supporto@` e `dsa@` sul dominio.
 - [ ] **Pool di Supabase** (seduta 24): *Database → Settings → Connection pooling → Pool size* a 30
       (vedi "Capacità" in `docs/INFRA.md`).
+- [ ] **Piano di crescita** (richiesto dopo la seduta 24, da fare prima del lancio pubblico):
+      sezione in `docs/INFRA.md` con cosa alzare e quando (istanze massime dell'API, pool e piano
+      di Supabase, Redis, copia di sola lettura del database) e i costi per ogni livello; soglie
+      di allarme (CPU del database oltre il 70%, risposte oltre 500 ms); procedura per i picchi
+      annunciati (lanci, eventi dell'associazione: alzare prima, riabbassare dopo). Poi **prova di
+      carico sullo staging** con 2.000-5.000 persone finte (`loadtest/`) per vedere dove cede.
 
 ## Registro
 

@@ -28,7 +28,7 @@ test("pannello: tutte le sezioni", async ({ page }) => {
   const token = await staffToken();
   await page.addInitScript((t) => window.sessionStorage.setItem("wearx-admin-dev-token", t), token);
   const found = [];
-  for (const path of ["/", "/queue", "/appeals", "/users", "/users/giulia.e2e", "/votes", "/domains", "/styles", "/staff", "/audit"]) {
+  for (const path of ["/", "/queue", "/appeals", "/users", "/users/giulia.e2e", "/votes", "/feedback", "/domains", "/styles", "/staff", "/audit"]) {
     await page.goto(path);
     await expect(page.getByRole("navigation").first()).toBeVisible();
     found.push(...(await violations(page, path)));

@@ -77,6 +77,7 @@ test("accessibilità: schermate dell'app", async ({ page }) => {
     "/change-password",
     "/account-type",
     "/insights",
+    "/feedback",
   ];
   for (const path of screens) {
     await page.goto(path);

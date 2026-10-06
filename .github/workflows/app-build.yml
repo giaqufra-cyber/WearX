@@ -1,0 +1,85 @@
+name: App (build per i tester e gli store)
+
+# Si lancia a mano: Actions → "App (build per i tester e gli store)" → Run workflow.
+# Le build girano sui server di Expo (EAS); qui si controlla e si avvia soltanto.
+# Serve il segreto EXPO_TOKEN nel repository (lo crei tu su expo.dev, docs/BETA.md).
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "beta = TestFlight e test interno di Google Play (staging); production = store"
+        type: choice
+        options: [beta, production, preview]
+        default: beta
+      platform:
+        description: Piattaforma
+        type: choice
+        options: [all, ios, android]
+        default: all
+      submit:
+        description: Invia agli store appena pronta (TestFlight / Play)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-build-${{ inputs.profile }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: EAS ${{ inputs.profile }} (${{ inputs.platform }})
+    runs-on: ubuntu-latest
+    # La produzione chiede la tua approvazione (ambiente "production" su GitHub).
+    environment: ${{ inputs.profile == 'production' && 'production' || 'staging' }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Controlli prima di partire
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error title=Manca EXPO_TOKEN::Crea un token su expo.dev (Account settings → Access tokens) e aggiungilo in GitHub → Settings → Secrets → Actions come EXPO_TOKEN (docs/BETA.md, passo 3)."
+            exit 1
+          fi
+          if ! node -e 'const c=require("./app.json").expo; process.exit(c.extra?.eas?.projectId ? 0 : 1)'; then
+            echo "::error title=Manca il progetto Expo::In app.json manca extra.eas.projectId (docs/BETA.md, passo 2)."
+            exit 1
+          fi
+          npx tsc --noEmit
+          npx jest --silent
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Avvio della build su EAS
+        working-directory: apps/mobile
+        env:
+          PROFILE: ${{ inputs.profile }}
+          PLATFORM: ${{ inputs.platform }}
+          SUBMIT: ${{ inputs.submit && inputs.profile != 'preview' }}
+        run: |
+          args=(--platform "$PLATFORM" --profile "$PROFILE" --non-interactive --no-wait
+            --freeze-credentials --message "$(git log -1 --format='%h %s' | cut -c1-200)")
+          if [ "$SUBMIT" = "true" ]; then
+            args+=(--auto-submit-with-profile "$PROFILE"
+              --what-to-test "Prova registrazione, voto, pubblicazione, segnalazione. Problemi: Profilo → Privacy e sicurezza → Segnala un problema.")
+          fi
+          eas build "${args[@]}" | tee build.txt
+          {
+            echo "### Build avviata"
+            echo
+            echo "Profilo **$PROFILE**, piattaforma **$PLATFORM**, invio agli store: **$SUBMIT**."
+            echo "Avanzamento e link per installare: expo.dev → progetto wearx → Builds."
+            grep -Eo 'https://expo.dev/[^ ]+' build.txt | sort -u | sed 's/^/- /' || true
+          } >> "$GITHUB_STEP_SUMMARY"

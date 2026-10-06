@@ -44,7 +44,7 @@ function Providers({ children }: { children: ReactNode }) {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false } } });
+  client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false, gcTime: 0 } } });
   mockProfile.account_type = "private";
   mockProfile.age_band = "18_plus";
 });

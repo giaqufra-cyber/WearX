@@ -1,0 +1,44 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "base": {
+      "node": "22.22.0",
+      "pnpm": "10.28.0",
+      "env": {
+        "EXPO_PUBLIC_EMAIL_OTP": "1"
+      }
+    },
+    "preview": {
+      "extends": "base",
+      "environment": "preview",
+      "distribution": "internal",
+      "android": { "buildType": "apk" },
+      "ios": { "simulator": false }
+    },
+    "beta": {
+      "extends": "base",
+      "environment": "preview",
+      "distribution": "store",
+      "autoIncrement": true
+    },
+    "production": {
+      "extends": "base",
+      "environment": "production",
+      "distribution": "store",
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "beta": {
+      "android": { "track": "internal", "releaseStatus": "completed" },
+      "ios": {}
+    },
+    "production": {
+      "android": { "track": "production", "releaseStatus": "draft" },
+      "ios": {}
+    }
+  }
+}

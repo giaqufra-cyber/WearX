@@ -90,6 +90,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Feedback */
+        get: operations["list_feedback_v1_admin_feedback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/feedback/{feedback_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Feedback */
+        patch: operations["update_feedback_v1_admin_feedback__feedback_id__patch"];
+        trace?: never;
+    };
     "/v1/admin/me": {
         parameters: {
             query?: never;
@@ -466,6 +500,23 @@ export interface paths {
         get: operations["get_feed_v1_feed_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send Feedback */
+        post: operations["send_feedback_v1_feedback_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1398,6 +1449,48 @@ export interface components {
             /** Statement */
             statement: string;
         };
+        /** AdminFeedback */
+        AdminFeedback: {
+            /** App Version */
+            app_version: string;
+            /** Author */
+            author: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "bug" | "idea" | "other";
+            /** Message */
+            message: string;
+            /** Os Version */
+            os_version: string | null;
+            /** Platform */
+            platform: string;
+            /** Screen */
+            screen: string | null;
+            /** Staff Note */
+            staff_note: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "seen" | "done";
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
         /** AdminPost */
         AdminPost: {
             /** Author */
@@ -1821,6 +1914,65 @@ export interface components {
             items: components["schemas"]["PostOut"][];
             /** Next Cursor */
             next_cursor: string | null;
+        };
+        /** FeedbackCounts */
+        FeedbackCounts: {
+            /** Done */
+            done: number;
+            /** New */
+            new: number;
+            /** Seen */
+            seen: number;
+        };
+        /** FeedbackCreated */
+        FeedbackCreated: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+        };
+        /** FeedbackIn */
+        FeedbackIn: {
+            /** App Version */
+            app_version: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "bug" | "idea" | "other";
+            /** Message */
+            message: string;
+            /** Os Version */
+            os_version?: string | null;
+            /**
+             * Platform
+             * @enum {string}
+             */
+            platform: "ios" | "android" | "web";
+            /** Screen */
+            screen?: string | null;
+        };
+        /** FeedbackPage */
+        FeedbackPage: {
+            counts: components["schemas"]["FeedbackCounts"];
+            /** Items */
+            items: components["schemas"]["AdminFeedback"][];
+        };
+        /** FeedbackUpdate */
+        FeedbackUpdate: {
+            /** Staff Note */
+            staff_note?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "seen" | "done";
         };
         /** FollowOut */
         FollowOut: {
@@ -3187,6 +3339,73 @@ export interface operations {
             };
         };
     };
+    list_feedback_v1_admin_feedback_get: {
+        parameters: {
+            query?: {
+                status?: "open" | "done" | "all";
+                kind?: ("bug" | "idea" | "other") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_feedback_v1_admin_feedback__feedback_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                feedback_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedbackUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminFeedback"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     me_v1_admin_me_get: {
         parameters: {
             query?: never;
@@ -3863,6 +4082,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FeedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_feedback_v1_feedback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedbackIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackCreated"];
                 };
             };
             /** @description Validation Error */

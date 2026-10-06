@@ -58,6 +58,7 @@ segnalazioni.json    le segnalazioni che hai fatto
 moderazione.json     le decisioni di moderazione che ti riguardano e i tuoi reclami
 notifiche.json       le tue notifiche
 dispositivi.json     i dispositivi con cui hai fatto l'accesso
+segnalazioni_problemi.json  i messaggi mandati con "Segnala un problema"
 eventi.json          le azioni registrate per gli Insight (ultimi 3 mesi circa)
 foto/                le foto dei tuoi fit (la versione piu' grande)
 
@@ -220,6 +221,14 @@ async def collect(session: AsyncSession, user_id: uuid.UUID) -> dict[str, Any]:
                       created_at as primo_accesso, last_seen as ultima_attivita,
                       revoked_at as disconnesso_il
                  from app.devices where user_id = :me order by created_at""",
+            **me,
+        ),
+        "segnalazioni_problemi.json": await _rows(
+            session,
+            """select kind as tipo, message as messaggio, app_version as versione_app,
+                      platform as sistema, os_version as versione_sistema, screen as schermata,
+                      status as stato, created_at as quando
+                 from app.feedback where author_id = :me order by created_at""",
             **me,
         ),
         "eventi.json": await _rows(

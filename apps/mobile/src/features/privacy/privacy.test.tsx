@@ -10,9 +10,11 @@ import DataExportScreen from "@/app/data-export";
 import DeleteAccountScreen from "@/app/delete-account";
 import DeletingScreen from "@/app/deleting";
 import DevicesScreen from "@/app/devices";
+import FeedbackScreen from "@/app/feedback";
 import SettingsScreen from "@/app/settings";
 import { checkPasswordLeak } from "@/features/auth/passwordLeak";
 import { useRecovery } from "@/features/auth/recovery";
+import { screenFromSegments } from "@/features/feedback/api";
 import { decideRoute } from "@/features/auth/routing";
 import { formatBytes, lastSeen } from "@/features/privacy/api";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
@@ -52,7 +54,10 @@ jest.mock("@/features/auth/AuthProvider", () => ({
 }));
 jest.mock("@/lib/api", () => ({ ...jest.requireActual("@/lib/api"), apiGet: jest.fn(), apiRequest: jest.fn() }));
 
-const { router } = jest.requireMock("expo-router") as { router: Record<string, jest.Mock> };
+const { router, useLocalSearchParams } = jest.requireMock("expo-router") as {
+  router: Record<string, jest.Mock>;
+  useLocalSearchParams: jest.Mock;
+};
 const { openBrowserAsync } = jest.requireMock("expo-web-browser") as { openBrowserAsync: jest.Mock };
 const auth = supabase.auth as unknown as Record<string, jest.Mock>;
 const get = apiGet as jest.Mock;
@@ -74,7 +79,7 @@ function Providers({ children }: { children: ReactNode }) {
 beforeEach(() => {
   jest.clearAllMocks();
   client = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false } },
+    defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false, gcTime: 0 } },
   });
   request.mockResolvedValue(undefined);
   leak.mockResolvedValue("clean");
@@ -116,8 +121,53 @@ test("impostazioni: interruttori e voci", async () => {
   expect(router.push).toHaveBeenCalledWith("/devices");
   await user.press(screen.getByRole("button", { name: /^Cancella l'account/ }));
   expect(router.push).toHaveBeenCalledWith("/delete-account");
+  await user.press(screen.getByRole("button", { name: /^Segnala un problema/ }));
+  expect(router.push).toHaveBeenCalledWith({ pathname: "/feedback", params: { from: "/settings" } });
+  await user.press(screen.getByRole("button", { name: "Come funziona il feed" }));
+  expect(openBrowserAsync).toHaveBeenCalledWith(expect.stringMatching(/\/legal\/come-funziona-il-feed$/));
   await user.press(screen.getByRole("button", { name: "Esci" }));
   expect(mockSignOut).toHaveBeenCalled();
+});
+
+describe("Segnala un problema", () => {
+  test("percorso della schermata senza id né gruppi", () => {
+    expect(screenFromSegments(["(tabs)", "profile"])).toBe("/profile");
+    expect(screenFromSegments(["post", "[id]"])).toBe("/post/[id]");
+    expect(screenFromSegments(["user", "giulia?x=1"])).toBeNull();
+  });
+
+  test("scrive, invia con versione e sistema, ringrazia e torna indietro", async () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({ from: "/settings" });
+    request.mockResolvedValue({ id: "f1", created_at: "2026-10-06T08:00:00Z" });
+    const user = userEvent.setup();
+    await render(<FeedbackScreen />, { wrapper: Providers });
+    const sendButton = screen.getByRole("button", { name: "Invia al team" });
+    expect(sendButton).toBeDisabled();
+    await user.press(screen.getByRole("radio", { name: "Un'idea" }));
+    await user.type(screen.getByLabelText("Il tuo messaggio"), "Vorrei i fit salvati");
+    await user.press(sendButton);
+    expect(request).toHaveBeenCalledWith("POST", "/v1/feedback", {
+      token: "tok",
+      body: expect.objectContaining({
+        kind: "idea",
+        message: "Vorrei i fit salvati",
+        screen: "/settings",
+        app_version: expect.any(String),
+        platform: "ios",
+      }),
+    });
+    expect(await screen.findByText("Grazie! Il messaggio è arrivato al team di WearX.")).toBeOnTheScreen();
+    expect(router.back).toHaveBeenCalled();
+  });
+
+  test("oltre i 10 messaggi al giorno lo dice", async () => {
+    request.mockRejectedValue(new ApiError(429, "rate_limited", "Troppi tentativi"));
+    const user = userEvent.setup();
+    await render(<FeedbackScreen />, { wrapper: Providers });
+    await user.type(screen.getByLabelText("Il tuo messaggio"), "Ancora un problema");
+    await user.press(screen.getByRole("button", { name: "Invia al team" }));
+    expect(await screen.findByText("Hai già mandato 10 messaggi oggi: riprova domani.")).toBeOnTheScreen();
+  });
 });
 
 const device = (extra: Partial<Device>): Device => ({
