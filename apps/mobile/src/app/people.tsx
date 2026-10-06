@@ -76,7 +76,6 @@ function PeopleList({ kind }: { kind: PeopleKind }) {
 
   return (
     <FlatList
-      removeClippedSubviews={false} // vedi il feed: su Android chiudeva l'app
       data={people}
       keyExtractor={(p) => p.nickname}
       contentContainerStyle={styles.list}

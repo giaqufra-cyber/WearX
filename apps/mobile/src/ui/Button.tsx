@@ -60,8 +60,12 @@ export function Button({
         disabled ? styles.disabled : null,
       ]}
     >
-      {/* Il testo resta (invisibile) durante il caricamento: il pulsante non cambia larghezza. */}
-      <View style={[styles.row, loading ? styles.hidden : null]}>
+      {/* Il testo resta (invisibile) durante il caricamento: il pulsante non cambia larghezza.
+          collapsable={false}: senza, React Native su Android "appiattisce" questa vista quando
+          l'opacità torna a 1 e sposta il testo nel pulsante mentre è ancora qui dentro, e l'app
+          si chiude ("addViewAt: View already has a parent"). Trovato da Maestro in seduta 25
+          alla fine di "Entra in WearX" e "Pubblica". */}
+      <View collapsable={false} style={[styles.row, loading ? styles.hidden : null]}>
         {icon}
         <Text style={[styles.label, { color: palette.fg, fontSize: FONT_SIZES[size] }]} numberOfLines={1}>
           {label}

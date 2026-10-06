@@ -36,9 +36,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={api}>
       {children}
       {/* Contenitore sempre presente (e mai "appiattito" da React Native): l'avviso nasce qui
-          dentro, non come nuova vista accanto alle schermate. Su Android, un avviso mostrato
-          mentre si cambia schermata (benvenuto, fit pubblicato) faceva chiudere l'app
-          ("addViewAt: failed to insert view", trovato da Maestro in seduta 25). */}
+          dentro, non come nuova vista accanto alle schermate che cambiano. */}
       <View pointerEvents="box-none" collapsable={false} style={StyleSheet.absoluteFill}>
         {toast ? <ToastView key={toast.id} message={toast.message} tone={toast.tone} /> : null}
       </View>
