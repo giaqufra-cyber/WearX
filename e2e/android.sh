@@ -22,6 +22,13 @@ adb shell settings put global window_animation_scale 0
 adb shell settings put global transition_animation_scale 0
 adb shell settings put global animator_duration_scale 0
 adb install -r "$APK"
+# Una foto nella galleria per il percorso "pubblica" (il selettore di Android 14 legge solo i
+# file indicizzati: addMedia di Maestro a volte arriva troppo tardi).
+adb push "$ROOT/apps/mobile/.maestro/assets/fit.jpg" /sdcard/Pictures/wearx-fit.jpg
+adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE \
+  -d file:///sdcard/Pictures/wearx-fit.jpg || true
+adb shell content call --method scan_volume --uri content://media --arg external_primary || true
+sleep 5
 # Notifiche: si concede il permesso subito (la richiesta di sistema interromperebbe i percorsi).
 adb shell pm grant app.wearx.mobile android.permission.POST_NOTIFICATIONS || true
 
