@@ -91,6 +91,12 @@ Promemoria fissi: senza questi punti l'app funziona solo per il fondatore.
       di allarme (CPU del database oltre il 70%, risposte oltre 500 ms); procedura per i picchi
       annunciati (lanci, eventi dell'associazione: alzare prima, riabbassare dopo). Poi **prova di
       carico sullo staging** con 2.000-5.000 persone finte (`loadtest/`) per vedere dove cede.
+- [ ] **Beta** (seduta 25): seguire `docs/BETA.md` — account Apple Developer (99 $/anno) e
+      Google Play Console (25 $), account e progetto Expo (mandami nome dell'account e ID del
+      progetto, non sono segreti), segreto `EXPO_TOKEN` su GitHub, variabili dell'app su
+      expo.dev, credenziali Apple con `eas credentials` dal tuo computer, primo caricamento a mano
+      su Google Play. Per Google (account personale): test chiuso con almeno 12 tester per 14
+      giorni prima della pubblicazione.
 
 ## Registro
 
@@ -1203,4 +1209,48 @@ Note e decisioni da confermare:
 
 Da fare in seduta 25: beta (build EAS, TestFlight e test interno Google Play, Maestro sui
 telefoni, Sentry dell'app, account Expo).
+
+### Seduta 25 — 2026-10-06
+
+**Beta: build per i tester, feedback dall'app, l'app vera provata su Android.**
+
+**Build** (`apps/mobile/eas.json`, workflow "App (build per i tester e gli store)"): un pulsante su
+GitHub controlla l'app (tipi e test), fa preparare le build ai server di Expo e le manda da sola a
+TestFlight e al test interno di Google Play. Profili: `preview` (APK da installare a mano),
+`beta` (store, collegata allo staging), `production` (chiede la tua approvazione). Numero di
+build automatico. Una build per gli store senza indirizzo https dell'API si ferma subito.
+`app.json`: manifest privacy di Apple, niente crittografia da dichiarare, App Attest, permessi
+Android inutili bloccati, lingua italiana. Guida passo-passo in `docs/BETA.md` (account,
+credenziali, tester, cosa chiedere di provare).
+
+**Feedback dei tester**: Privacy e sicurezza → **Segnala un problema** (non funziona / un'idea /
+altro, fino a 10 al giorno). Con il messaggio arrivano solo versione dell'app, sistema e
+schermata di partenza. Lo staff li vede nella nuova pagina **Feedback** del pannello (da
+gestire / risolti, con una nota); finiscono nel registro di audit e nell'archivio dei dati della
+persona.
+
+**L'app vera su un telefono Android** (workflow "App su Android (Maestro)"): a ogni modifica
+dell'app, ogni lunedì e a mano, la CI costruisce l'APK di release, accende l'ambiente di prova e
+fa ripetere a Maestro su un emulatore Android 14 registrazione completa (con verifica dell'età),
+voto, pubblicazione con foto dalla galleria e richiesta di follow. Esito, schermate e registri
+finiscono sul ramo `ci/android-results`. **Tutti e 4 i percorsi passano.**
+
+Trovato e corretto grazie a questo (non si vedeva sul web):
+- **L'app si chiudeva su Android** quando un avviso compariva mentre si cambiava schermata (il
+  "Benvenuto" dopo la registrazione, "Fit pubblicato"). Gli avvisi ora nascono in un contenitore
+  fisso. Spento anche il taglio delle viste fuori schermo nelle liste, che su Android con la
+  nuova architettura è fragile.
+- La pagina di prova della verifica dell'età non riportava all'app (Chrome bloccava il ritorno a
+  `wearx://`): corretta, con test.
+- Toccare l'etichetta di un campo ora porta nel campo, come sul web.
+
+Verifiche: 408 test API (+11); 260 test app (+3); 13 test del pannello (+1); 10 percorsi
+Playwright; 4 percorsi Maestro su Android; ruff, mypy, tsc, Semgrep puliti.
+
+Note e decisioni da confermare:
+- Account personali Apple e Google adesso (società e D-U-N-S più avanti, le app si trasferiscono).
+- Su iPhone i percorsi automatici richiedono un Mac: per la beta bastano le prove a mano su
+  TestFlight.
+- Le 25 sedute del piano sono finite. Restano i punti della lista "Prima di far provare l'app ad
+  altri", quasi tutti account e scelte tue.
 
