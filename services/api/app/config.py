@@ -124,6 +124,11 @@ class Settings(BaseSettings):
 
     # Versione dei termini che l'app mostra in registrazione.
     terms_version: str = "2026-10"
+    # Pagine legali (seduta 24): servite dall'API su /legal/... finché non c'è il sito.
+    # Vuoto = public_api_url + "/legal". Con il sito: es. "https://wearx.app".
+    legal_base_url: str = ""
+    # Riquadro "Bozza, da far rivedere a un legale" in cima alle pagine: false dopo la revisione.
+    legal_draft: bool = True
 
     # Feature flag esposti all'app via /v1/config.
     feature_flags: dict[str, bool] = Field(

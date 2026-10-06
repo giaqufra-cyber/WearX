@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 
-import { login, offlineServices, state } from "./helpers";
+import { API, login, offlineServices, state } from "./helpers";
 
 /**
  * Audit di accessibilità (seduta 24): axe-core, regole WCAG 2.2 livello A e AA, su ogni schermata
@@ -44,6 +44,12 @@ test("accessibilità: schermate senza accesso", async ({ page }) => {
   for (const path of ["/welcome", "/login", "/signup", "/forgot"]) {
     await page.goto(path);
     await audit(page, path);
+  }
+  // Pagine legali servite dall'API (aperte dai link dell'app).
+  for (const slug of ["termini", "privacy", "regole", "come-funziona-il-feed", "cancellazione-account"]) {
+    await page.goto(`${API}/legal/${slug}`);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await audit(page, `legal/${slug}`);
   }
   expect(findings, JSON.stringify(findings, null, 2)).toEqual([]);
 });

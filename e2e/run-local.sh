@@ -26,7 +26,7 @@ if [ "${WEARX_E2E_ADMIN:-0}" = "1" ]; then
   done
   PROJECTS=()
 else
-  PROJECTS=(--project app)
+  PROJECTS=(--project=app)
 fi
 cd "$ROOT/e2e"
 npx playwright test "${PROJECTS[@]}" "$@"

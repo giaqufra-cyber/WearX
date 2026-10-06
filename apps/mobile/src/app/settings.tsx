@@ -4,7 +4,9 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/features/auth/AuthProvider";
+import { LEGAL_TITLES, openLegal, useLegalLinks } from "@/features/legal/legal";
 import { useUpdateProfile } from "@/features/privacy/api";
+import { APP_VERSION } from "@/lib/api";
 import { ListRow } from "@/ui/ListRow";
 import { Toggle } from "@/ui/Toggle";
 import { TopBar } from "@/ui/TopBar";
@@ -14,6 +16,7 @@ import { useToast } from "@/ui/Toast";
 export default function SettingsScreen() {
   const { profile, signOut } = useAuth();
   const toast = useToast();
+  const legal = useLegalLinks();
   const update = useUpdateProfile({ onError: () => toast.show("Modifica non salvata. Riprova.", { tone: "error" }) });
 
   return (
@@ -76,8 +79,16 @@ export default function SettingsScreen() {
           />
         </Section>
 
+        <Section title="INFORMAZIONI">
+          {(["feed_explainer", "community_rules", "terms", "privacy"] as const).map((doc) => (
+            <ListRow key={doc} label={LEGAL_TITLES[doc]} onPress={() => openLegal(legal[doc])} />
+          ))}
+        </Section>
+
         <ListRow label="Esci" onPress={() => void signOut()} />
-        <Text style={styles.footer}>@{profile?.nickname}</Text>
+        <Text style={styles.footer}>
+          @{profile?.nickname} · WearX {APP_VERSION}
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );

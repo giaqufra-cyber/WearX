@@ -79,6 +79,12 @@ Promemoria fissi: senza questi punti l'app funziona solo per il fondatore.
       Redis (UE), Sentry (regione UE), utente del database `wearx_api_user` su Supabase,
       `terraform apply`, segreti in Secret Manager, ambienti e variabili su GitHub. In
       `envs/*.tfvars`: la tua email per gli allarmi e l'Account ID di Cloudflare.
+- [ ] **Testi legali** (seduta 24): far rivedere a un legale Termini, Informativa privacy, Regole
+      e "Come funziona il feed" (`services/api/app/legal/`), completare le parti tra parentesi
+      quadre (titolare, indirizzo, P.IVA, data, fornitori D5 e CSAM), poi `WEARX_LEGAL_DRAFT=false`.
+      Attivare le caselle email `privacy@`, `supporto@` e `dsa@` sul dominio.
+- [ ] **Pool di Supabase** (seduta 24): *Database → Settings → Connection pooling → Pool size* a 30
+      (vedi "Capacità" in `docs/INFRA.md`).
 
 ## Registro
 
@@ -1135,3 +1141,60 @@ Note e decisioni da confermare:
   con gli account, la guida.
 
 Da fare in seduta 24: qualità (test end-to-end, test di carico, accessibilità, testi completi).
+
+### Seduta 24 — 2026-10-06
+
+**Qualità: percorsi end-to-end, test di carico, accessibilità, testi.**
+
+**Percorsi end-to-end** (`e2e/`, Playwright sull'app web): un ambiente completo e finto in un
+comando (`tests/e2e_target.py`: API vera, worker vero, archivio foto finto, accesso Supabase finto
+con codice sempre 123456, tre persone e tre fit di prova). Cinque percorsi completi: registrazione
+fino al primo feed, voto con aggiornamento orario, pubblicazione di un fit con foto e capo,
+richiesta di follow a un account privato, segnalazione → decisione dello staff → avviso → reclamo.
+Gli stessi percorsi per telefono in `apps/mobile/.maestro/` (si lanciano dalla seduta 25 sui
+build veri). Nuovo job "e2e" in CI. Trovati e corretti: il cursore del voto non diceva il suo
+valore ai lettori di schermo né si usava da tastiera; subito dopo il voto compariva "0 voti"
+(ora "Voti in arrivo").
+
+**Test di carico** (`loadtest/`, k6): persone finte che scorrono il feed, aprono fit, votano e
+guardano profili, su un'API con 200 persone, ~500 fit e ~12.600 voti. Prima: a 200 persone in
+contemporanea il feed rispondeva in 1,2 s (95% delle volte). Due correzioni:
+- la firma degli indirizzi delle foto era il 21% del lavoro: ora è una funzione nostra, 12 volte
+  più veloce e identica a quella di Amazon (verificato nei test), e l'indirizzo di una foto resta
+  lo stesso per un quarto d'ora (l'app la ritrova in cache invece di riscaricarla);
+- meno connessioni al database per istanza (da 20 a 5): meno attese reciproche, e il pooler di
+  Supabase (15 posti sul piano gratuito) non si satura.
+Dopo: a 200 persone feed 264 ms, voto 277 ms, zero errori; un'istanza regge circa 120 richieste
+al secondo. Nuovo job "load" in CI (100 persone, 90 secondi). Capacità in `docs/INFRA.md`.
+
+**Accessibilità** (WCAG 2.2 AA + buone pratiche, axe-core): 26 schermate dell'app, tutte le
+sezioni del pannello e le pagine legali controllate a ogni modifica. Corretti 11 tipi di problema
+(elenco in `docs/ACCESSIBILITA.md`): filtri del feed come schede, foto senza testo alternativo,
+fogli dal basso con due "Chiudi", due titoli principali, autocompilazione non valida sul web,
+intestazioni vuote nel pannello e altri. Contrasto dei colori: nessun problema.
+
+**Testi**: bozze di Termini, Informativa privacy, Regole della community, "Come funziona il feed"
+(obbligatoria per il DSA) e pagina per cancellare l'account dal web (la chiede Google Play),
+scritte sui fatti del codice. L'API le serve su `/legal/...` con il riquadro "Bozza" finché un
+legale non le rivede; l'app le apre dall'accoglienza, dalla registrazione (prima di accettare) e
+da Privacy e sicurezza → Informazioni. Testi per gli store e risposte ai moduli privacy di Apple e
+Google in `docs/STORE.md`.
+
+**Privacy, corretto scrivendo l'informativa:** dopo la cancellazione definitiva di un account,
+i suoi voti e i suoi eventi restavano ricollegabili a lui da chi conosce il segreto dei voti. Ora
+ricevono uno pseudonimo casuale: diventano davvero anonimi (test aggiunto).
+
+Verifiche: 397 test API (+16); 257 test app (+3); 12 test del pannello; 10 percorsi Playwright
+(5 percorsi + 5 controlli di accessibilità); ruff, mypy, tsc, Semgrep puliti.
+
+Note e decisioni da confermare:
+- Età minima 16 anni ovunque nei testi (come nel codice). Biancheria e costumi ammessi come parte
+  di un outfit, nudità no: da confermare con il legale.
+- Le pagine legali stanno sull'API finché non c'è il sito `wearx.app` (`WEARX_LEGAL_BASE_URL`).
+- Il feed non ha un'opzione "non personalizzata" separata: è personalizzato solo dagli stili
+  scelti, e le pagine stile sono uguali per tutti. Per il DSA basta (non siamo una piattaforma
+  molto grande), ma è scritto nella pagina.
+
+Da fare in seduta 25: beta (build EAS, TestFlight e test interno Google Play, Maestro sui
+telefoni, Sentry dell'app, account Expo).
+

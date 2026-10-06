@@ -17,6 +17,7 @@ from __future__ import annotations
 import io
 import json
 import logging
+import secrets
 import uuid
 import zipfile
 from datetime import UTC, date, datetime, timedelta
@@ -382,6 +383,24 @@ async def _storage_keys(session: AsyncSession, user_id: uuid.UUID) -> list[str]:
     return keys
 
 
+async def _unlink_pseudonyms(session: AsyncSession, user_id: uuid.UUID) -> None:
+    """Voti, segnalazioni di voto ed eventi restano (dentro medie e statistiche altrui), ma con uno
+    pseudonimo nuovo e casuale: dall'id della persona non si risale più a loro, nemmeno con il
+    segreto dei voti. Da pseudonimi diventano dati anonimi (seduta 24, informativa privacy)."""
+    # Stesso pseudonimo nuovo per voti e segnalazioni: i voti segnalati restano senza peso.
+    votes = {"new": secrets.token_bytes(32), "old": voter_key(user_id)}
+    await session.execute(
+        text("update app.votes set voter_key = :new where voter_key = :old"), votes
+    )
+    await session.execute(
+        text("update app.vote_flags set voter_key = :new where voter_key = :old"), votes
+    )
+    await session.execute(
+        text("update app.events set actor_key = :new where actor_key = :old"),
+        {"new": secrets.token_bytes(16), "old": actor_key(user_id)},
+    )
+
+
 async def purge_deleted_accounts(
     session: AsyncSession, store: ObjectStore, admin: AuthAdmin | None = None
 ) -> int:
@@ -412,6 +431,7 @@ async def purge_deleted_accounts(
             log.exception("utente Supabase non cancellato, si riprova domani")
             await session.rollback()
             continue
+        await _unlink_pseudonyms(session, user_id)
         # Se auth.users è altrove (Supabase), il profilo va tolto anche qui.
         await session.execute(text("delete from app.profiles where id = :id"), {"id": user_id})
         await session.commit()

@@ -233,6 +233,18 @@ async def test_cancellazione_definitiva_dopo_30_giorni(client, keys, db_admin, s
         "select count(*) from app.votes where post_id = %s", (other_post,)
     ).fetchone()
     assert votes == (1,)
+    # ... ma non più collegabile alla persona, nemmeno con il segreto dei voti.
+    from app.routers.events import actor_key
+    from app.votes import voter_key
+
+    linked = db_admin.execute(
+        "select count(*) from app.votes where voter_key = %s", (voter_key(user_id),)
+    ).fetchone()
+    assert linked == (0,)
+    events = db_admin.execute(
+        "select count(*) from app.events where actor_key = %s", (actor_key(user_id),)
+    ).fetchone()
+    assert events == (0,)
     action = db_admin.execute(
         "select subject_id from app.moderation_actions where target_id = %s", (post_id,)
     ).fetchone()

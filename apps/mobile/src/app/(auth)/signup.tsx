@@ -12,6 +12,7 @@ import { checkPasswordLeak } from "@/features/auth/passwordLeak";
 import { checkSignup, emptySignup, type SignupForm } from "@/features/auth/signupForm";
 import { useSignupDraft } from "@/features/auth/signupDraft";
 import { type NicknameAvailability, useNicknameAvailability } from "@/features/auth/useNicknameAvailability";
+import { LegalLinkRow } from "@/features/legal/legal";
 import { env } from "@/lib/env";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/ui/Button";
@@ -179,6 +180,7 @@ export default function SignupScreen() {
             checked={form.acceptRules}
             onChange={(acceptRules) => update({ acceptRules })}
           />
+          <LegalLinkRow docs={["privacy", "terms", "community_rules"]} />
         </View>
 
         {formError ? (

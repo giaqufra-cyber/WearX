@@ -30,7 +30,7 @@ async def test_config_returns_active_styles(client):
     beach = next(s for s in body["styles"] if s["slug"] == "beach-party")
     assert beach["min_age_band"] == "18_plus"
     assert body["min_app_version"] == "0.1.0"
-    assert body["legal"]["privacy"].startswith("https://")
+    assert body["legal"]["privacy"].endswith("/legal/privacy")
 
 
 async def test_config_hides_expired_seasonal_styles(client, db_admin):

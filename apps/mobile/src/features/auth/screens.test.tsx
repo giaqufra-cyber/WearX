@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native";
 import type { ReactNode } from "react";
+import * as WebBrowser from "expo-web-browser";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import LoginScreen from "@/app/(auth)/login";
@@ -31,6 +32,10 @@ jest.mock("expo-linking", () => ({ createURL: (path: string) => `wearx://${path.
 jest.mock("@/lib/env", () => ({ env: { ...jest.requireActual("@/lib/env").env, emailOtp: false } }));
 jest.mock("@/features/auth/passwordLeak", () => ({ checkPasswordLeak: jest.fn() }));
 jest.mock("@/features/auth/useNicknameAvailability", () => ({ useNicknameAvailability: jest.fn() }));
+jest.mock("@/features/styles/useAppConfig", () => ({
+  useAppConfig: () => ({ data: { legal: { privacy: "https://api.test/legal/privacy" } } }),
+}));
+jest.mock("expo-web-browser", () => ({ openBrowserAsync: jest.fn() }));
 
 const { router, useLocalSearchParams } = jest.requireMock("expo-router") as {
   router: Record<string, jest.Mock>;
@@ -99,6 +104,16 @@ describe("Registrazione", () => {
       contact: "francesco@example.com",
       birth: { day: 14, month: 3, year: 2003 },
     });
+  });
+
+  test("i documenti da accettare si possono leggere prima", async () => {
+    const user = userEvent.setup();
+    await render(<SignupScreen />, { wrapper: Providers });
+    await user.press(screen.getByRole("link", { name: "Informativa privacy" }));
+    expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith("https://api.test/legal/privacy");
+    // Senza indirizzo nella configurazione: la pagina servita dall'API.
+    await user.press(screen.getByRole("link", { name: "Regole della community" }));
+    expect(WebBrowser.openBrowserAsync).toHaveBeenLastCalledWith(expect.stringMatching(/\/legal\/regole$/));
   });
 
   test("sotto i 16 anni: messaggio, pulsante bloccato, nessun invio", async () => {

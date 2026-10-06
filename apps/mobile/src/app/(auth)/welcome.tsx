@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { LegalLink } from "@/features/legal/legal";
 import { Button } from "@/ui/Button";
 
 /** Benvenuto (prototipo, schermata Splash). */
@@ -32,7 +33,8 @@ export default function WelcomeScreen() {
         <Button label="Crea il tuo account" onPress={() => router.push("/signup")} fullWidth />
         <Button label="Ho già un account" variant="secondary" onPress={() => router.push("/login")} fullWidth />
         <Text style={styles.legal}>
-          Continuando accetti Termini e Informativa privacy.{"\n"}WearX è riservata a chi ha almeno 16 anni.
+          Continuando accetti i <LegalLink doc="terms" label="Termini" /> (come usiamo i dati:{" "}
+          <LegalLink doc="privacy" label="Informativa privacy" />).{"\n"}WearX è riservata a chi ha almeno 16 anni.
         </Text>
       </View>
     </SafeAreaView>

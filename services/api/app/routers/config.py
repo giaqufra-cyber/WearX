@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.db import get_session
 
 router = APIRouter(prefix="/v1", tags=["config"])
@@ -55,6 +55,16 @@ class ConfigOut(BaseModel):
     legal: LegalLinks
 
 
+def legal_links(settings: Settings) -> LegalLinks:
+    base = (settings.legal_base_url or f"{settings.public_api_url}/legal").rstrip("/")
+    return LegalLinks(
+        terms=f"{base}/termini",
+        privacy=f"{base}/privacy",
+        community_rules=f"{base}/regole",
+        feed_explainer=f"{base}/come-funziona-il-feed",
+    )
+
+
 @router.get("/config", response_model=ConfigOut)
 async def get_config(
     response: Response, session: Annotated[AsyncSession, Depends(get_session)]
@@ -85,10 +95,5 @@ async def get_config(
         terms_version=settings.terms_version,
         feature_flags=settings.feature_flags,
         styles=styles,
-        legal=LegalLinks(
-            terms="https://wearx.app/termini",
-            privacy="https://wearx.app/privacy",
-            community_rules="https://wearx.app/regole",
-            feed_explainer="https://wearx.app/come-funziona-il-feed",
-        ),
+        legal=legal_links(settings),
     )
