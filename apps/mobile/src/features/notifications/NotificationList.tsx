@@ -65,6 +65,7 @@ export function NotificationList() {
 
   return (
     <FlatList
+      removeClippedSubviews={false} // vedi il feed: su Android chiudeva l'app
       data={items}
       keyExtractor={(n) => n.id}
       renderItem={({ item }) => (

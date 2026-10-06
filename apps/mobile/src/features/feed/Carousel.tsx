@@ -49,6 +49,7 @@ export function Carousel({ post, width, authorLabel }: Props) {
     <View>
       <View style={{ width, height }}>
         <FlatList
+          removeClippedSubviews={false} // vedi il feed: su Android chiudeva l'app
           ref={list}
           data={post.media}
           horizontal

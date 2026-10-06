@@ -168,7 +168,10 @@ export default function FeedScreen() {
         windowSize={5}
         initialNumToRender={2}
         maxToRenderPerBatch={3}
-        removeClippedSubviews
+        // Mai true: con la nuova architettura di React Native su Android il taglio delle viste
+        // fuori schermo fa chiudere l'app ("addViewAt: failed to insert view", trovato da Maestro
+        // in seduta 25), soprattutto con il carosello orizzontale dentro la card.
+        removeClippedSubviews={false}
       />
     </SafeAreaView>
   );

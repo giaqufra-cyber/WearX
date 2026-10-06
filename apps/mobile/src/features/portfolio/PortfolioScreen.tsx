@@ -264,6 +264,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <FlatList
+        removeClippedSubviews={false} // vedi il feed: su Android chiudeva l'app
         data={profile.can_view_posts ? tiles : []}
         keyExtractor={(tile) => tile.id}
         numColumns={2}
