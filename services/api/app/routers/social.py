@@ -19,6 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.avatars import AvatarOut, avatar_out
 from app.db import get_session
 from app.errors import ApiError
 from app.notifications import follow_request_handled, forget_between, notify
@@ -42,6 +43,8 @@ class FollowOut(BaseModel):
 class PersonOut(BaseModel):
     nickname: str
     account_type: Literal["private", "business"]
+    # Foto profilo (non negli account bloccati).
+    avatar: AvatarOut | None = None
     # Da quando (richiesta, follow o blocco).
     since: datetime
 
@@ -151,9 +154,12 @@ async def _people(
             await session.execute(
                 text(
                     f"""select p.nickname::text as nickname,
-                               p.account_type::text as account_type, x.created_at as since
+                               p.account_type::text as account_type, x.created_at as since,
+                               u.id as avatar_id, u.variants as avatar_variants,
+                               u.blurhash as avatar_blurhash
                           from {table} x
                           join app.profiles p on p.id = {other}
+                          left join app.media_uploads u on u.id = p.avatar_upload_id
                          where {where} {active}
                            and (cast(:ts as timestamptz) is null
                                 or (x.created_at, p.nickname::text)
@@ -174,7 +180,17 @@ async def _people(
     )
     page = rows[:PAGE]
     return PeoplePage(
-        items=[PersonOut(**r) for r in page],
+        items=[
+            PersonOut(
+                nickname=r["nickname"],
+                account_type=r["account_type"],
+                since=r["since"],
+                avatar=None
+                if kind == "blocks"
+                else avatar_out(r["avatar_id"], r["avatar_variants"], r["avatar_blurhash"]),
+            )
+            for r in page
+        ],
         next_cursor=_encode(page[-1]["since"], page[-1]["nickname"]) if len(rows) > PAGE else None,
     )
 

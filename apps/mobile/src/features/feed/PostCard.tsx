@@ -7,9 +7,10 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { formatPrice } from "@/features/create/form";
 import { Carousel } from "@/features/feed/Carousel";
-import { initials, matchLabel, totalPrice } from "@/features/feed/format";
+import { matchLabel, totalPrice } from "@/features/feed/format";
 import { VotePanel } from "@/features/feed/VotePanel";
 import { ReportSheet } from "@/features/moderation/ReportSheet";
+import { Avatar } from "@/ui/Avatar";
 import { IconButton } from "@/ui/IconButton";
 import { IconArrowUpRight, IconCheck, IconMore, IconShield } from "@/ui/icons";
 import { track } from "@/lib/events";
@@ -31,9 +32,15 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting }: 
   return (
     <View style={styles.card} role="article" aria-label={`${name}, ${post.style.name}`}>
       <View style={styles.head}>
-        <View style={[styles.avatar, { backgroundColor: post.style.tone }]} aria-hidden>
-          <Text style={styles.avatarText}>{initials(post.author?.nickname) || "?"}</Text>
-        </View>
+        {post.author ? (
+          <View style={styles.avatarRing} aria-hidden>
+            <Avatar nickname={post.author.nickname} avatar={post.author.avatar} size={36} />
+          </View>
+        ) : (
+          <View style={[styles.avatar, { backgroundColor: post.style.tone }]} aria-hidden>
+            <Text style={styles.avatarText}>?</Text>
+          </View>
+        )}
         <View style={styles.headText}>
           {post.author && !post.is_own ? (
             <Pressable
@@ -157,6 +164,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   avatarText: { fontFamily: fonts.uiExtraBold, fontSize: 12, letterSpacing: 0.5, color: colors.text },
+  avatarRing: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: "#3A3A40", alignItems: "center", justifyContent: "center" },
   headText: { flex: 1, minWidth: 0 },
   author: { fontFamily: fonts.uiBold, fontSize: 14, color: colors.text },
   styleRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 },

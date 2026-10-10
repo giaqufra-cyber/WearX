@@ -13,6 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import CurrentAuth
+from app.avatars import AvatarOut, load_avatar, replace_avatar
 from app.config import get_settings
 from app.db import get_session
 from app.errors import ApiError
@@ -24,6 +25,7 @@ from app.profiles import (
     load_profile,
 )
 from app.ratelimit import rate_limit
+from app.storage import get_store
 from app.text_policy import clean_bio, nickname_problem
 
 router = APIRouter(prefix="/v1", tags=["account"])
@@ -83,11 +85,15 @@ class ProfileOut(BaseModel):
     status: Literal["active", "suspended", "pending_deletion"]
     styles: list[str]
     created_at: datetime
+    # Foto profilo (null = iniziali).
+    avatar: AvatarOut | None = None
 
 
 class ProfileUpdateIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     bio: str | None = Field(default=None, max_length=600)
+    # Id di un caricamento pronto (POST /v1/media/uploads); null toglie la foto profilo.
+    avatar: uuid.UUID | None = None
     hide_prices: bool | None = None
     hide_vote_count: bool | None = None
     account_type: Literal["private", "business"] | None = None
@@ -105,6 +111,7 @@ async def _profile_out(session: AsyncSession, profile: Profile) -> ProfileOut:
         status=profile.status,
         styles=await joined_style_slugs(session, profile),
         created_at=profile.created_at,
+        avatar=await load_avatar(session, profile.id),
     )
 
 
@@ -272,6 +279,16 @@ async def update_me(body: ProfileUpdateIn, profile: CurrentProfile, session: Ses
         _check_business_allowed(body.account_type, profile.is_adult)
         changes["account_type"] = body.account_type
 
+    old_photo: list[str] = []
+    if "avatar" in fields:
+        try:
+            old_photo = await replace_avatar(session, profile.id, body.avatar)
+        except ApiError:
+            await session.rollback()
+            raise
+        if not changes:
+            await session.commit()
+
     if changes:
         # Nomi di colonna presi da una lista fissa, mai dall'input.
         allowed = {"bio", "hide_prices", "hide_vote_count", "account_type"}
@@ -302,6 +319,8 @@ async def update_me(body: ProfileUpdateIn, profile: CurrentProfile, session: Ses
             )
         await session.commit()
 
+    if old_photo:
+        await get_store().delete(*old_photo)
     updated = await load_profile(session, profile.id)
     assert updated is not None
     return await _profile_out(session, updated)

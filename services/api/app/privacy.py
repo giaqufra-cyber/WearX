@@ -60,7 +60,7 @@ notifiche.json       le tue notifiche
 dispositivi.json     i dispositivi con cui hai fatto l'accesso
 segnalazioni_problemi.json  i messaggi mandati con "Segnala un problema"
 eventi.json          le azioni registrate per gli Insight (ultimi 3 mesi circa)
-foto/                le foto dei tuoi fit (la versione piu' grande)
+foto/                le foto dei tuoi fit e la foto profilo (la versione piu' grande)
 
 Domande sui tuoi dati: privacy@wearx.app
 """
@@ -253,11 +253,23 @@ async def _photos(session: AsyncSession, user_id: uuid.UUID) -> list[tuple[str, 
             {"me": user_id},
         )
     ).all()
-    return [
+    photos = [
         (f"foto/{post_id}-{position + 1}.webp", variant_key(upload_id, max(variants)))
         for post_id, position, upload_id, variants in rows
         if variants
     ]
+    avatar = (
+        await session.execute(
+            text(
+                """select u.id, u.variants from app.profiles p
+                     join app.media_uploads u on u.id = p.avatar_upload_id where p.id = :me"""
+            ),
+            {"me": user_id},
+        )
+    ).first()
+    if avatar and avatar[1]:
+        photos.append(("foto/profilo.webp", variant_key(avatar[0], max(avatar[1]))))
+    return photos
 
 
 async def build_export(session: AsyncSession, store: ObjectStore, export_id: uuid.UUID) -> bool:

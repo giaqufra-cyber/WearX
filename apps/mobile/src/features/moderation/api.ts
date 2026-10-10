@@ -88,6 +88,12 @@ export const ACTION_TITLES: Record<ModerationNotice["action"], string> = {
   limit_posting: "Pubblicazione sospesa",
 };
 
+/** Titolo dell'avviso: "rimosso" sul profilo vuol dire bio e foto tolte (seduta 27). */
+export function noticeTitle(notice: Pick<ModerationNotice, "action" | "target_type">): string {
+  if (notice.action === "remove" && notice.target_type === "profile") return "Bio e foto profilo tolte";
+  return ACTION_TITLES[notice.action];
+}
+
 export const APPEAL_STATUS: Record<Appeal["status"], string> = {
   open: "Reclamo in esame",
   upheld: "Reclamo respinto",

@@ -79,6 +79,8 @@ class NoticeOut(BaseModel):
     expires_at: datetime | None
     # Il fit coinvolto (se è ancora visibile all'autore).
     post_id: uuid.UUID | None
+    # Su cosa: un fit, il profilo (bio e foto) o l'account.
+    target_type: Literal["post", "profile", "link"] = "post"
     appeal: AppealOut | None
     can_appeal: bool
     appeal_until: datetime | None
@@ -223,6 +225,7 @@ async def my_notices(profile: CurrentProfileAnyStatus, session: Session) -> list
                 post_id=r["target_id"]
                 if r["target_type"] == "post" and r["post_status"] not in (None, "deleted")
                 else None,
+                target_type=r["target_type"],
                 appeal=AppealOut(
                     status=r["appeal_status"],
                     created_at=r["appeal_at"],

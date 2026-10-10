@@ -7,12 +7,13 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/features/auth/AuthProvider";
-import { initials } from "@/features/feed/format";
+
 import { userKey } from "@/features/portfolio/api";
 import { accountTypeLabel } from "@/features/portfolio/format";
 import { FollowButton } from "@/features/social/FollowButton";
 import { ApiError, apiGet } from "@/lib/api";
 import { nicknameHint } from "@/lib/validation";
+import { Avatar } from "@/ui/Avatar";
 import { Button } from "@/ui/Button";
 import { IconButton } from "@/ui/IconButton";
 import { IconBack } from "@/ui/icons";
@@ -90,7 +91,7 @@ function Result({ user }: { user: UserProfile }) {
     <View style={styles.card}>
       <Pressable role="link" aria-label={`Apri il profilo di @${user.nickname}`} onPress={open} style={styles.who}>
         <View style={styles.avatar} aria-hidden>
-          <Text style={styles.avatarText}>{initials(user.nickname)}</Text>
+          <Avatar nickname={user.nickname} avatar={user.avatar} size={43} />
         </View>
         <View style={styles.flex}>
           <Text style={styles.nick}>@{user.nickname}</Text>
@@ -133,7 +134,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarText: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
   nick: { fontFamily: fonts.uiBold, fontSize: 16, color: colors.text },
   meta: { fontFamily: fonts.ui, fontSize: 13, color: colors.textSecondary, marginTop: 2 },
 });

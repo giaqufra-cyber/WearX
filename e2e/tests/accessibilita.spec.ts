@@ -75,6 +75,7 @@ test("accessibilità: schermate dell'app", async ({ page }) => {
     "/moderation",
     "/data-export",
     "/change-password",
+    "/edit-profile",
     "/account-type",
     "/insights",
     "/feedback",

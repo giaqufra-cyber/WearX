@@ -828,6 +828,16 @@
             "title": "Account Type",
             "type": "string"
           },
+          "avatar": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AvatarOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "nickname": {
             "title": "Nickname",
             "type": "string"
@@ -838,6 +848,23 @@
           "account_type"
         ],
         "title": "AuthorRef",
+        "type": "object"
+      },
+      "AvatarOut": {
+        "properties": {
+          "blurhash": {
+            "title": "Blurhash",
+            "type": "string"
+          },
+          "urls": {
+            "$ref": "#/components/schemas/MediaUrls"
+          }
+        },
+        "required": [
+          "blurhash",
+          "urls"
+        ],
+        "title": "AvatarOut",
         "type": "object"
       },
       "BlockedDomainIn": {
@@ -2459,6 +2486,16 @@
           "statement": {
             "title": "Statement",
             "type": "string"
+          },
+          "target_type": {
+            "default": "post",
+            "enum": [
+              "post",
+              "profile",
+              "link"
+            ],
+            "title": "Target Type",
+            "type": "string"
           }
         },
         "required": [
@@ -2853,6 +2890,16 @@
             ],
             "title": "Account Type",
             "type": "string"
+          },
+          "avatar": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AvatarOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "nickname": {
             "title": "Nickname",
@@ -3398,6 +3445,16 @@
             "title": "Age Band",
             "type": "string"
           },
+          "avatar": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AvatarOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "bio": {
             "anyOf": [
               {
@@ -3463,6 +3520,38 @@
         "title": "ProfileOut",
         "type": "object"
       },
+      "ProfilePreview": {
+        "description": "Profilo segnalato: quello che vede chi lo apre (seduta 27).",
+        "properties": {
+          "avatar": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MediaUrls"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          }
+        },
+        "required": [
+          "bio",
+          "avatar"
+        ],
+        "title": "ProfilePreview",
+        "type": "object"
+      },
       "ProfileUpdateIn": {
         "additionalProperties": false,
         "properties": {
@@ -3480,6 +3569,18 @@
               }
             ],
             "title": "Account Type"
+          },
+          "avatar": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar"
           },
           "bio": {
             "anyOf": [
@@ -3618,6 +3719,16 @@
           "priority": {
             "title": "Priority",
             "type": "integer"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfilePreview"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "reasons": {
             "additionalProperties": {
@@ -4900,6 +5011,16 @@
             ],
             "title": "Account Type",
             "type": "string"
+          },
+          "avatar": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AvatarOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "bio": {
             "anyOf": [

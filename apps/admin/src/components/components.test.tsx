@@ -39,6 +39,7 @@ const QUEUE = [
     subject: "spammer",
     subject_status: "active",
     post: null,
+    profile: { bio: "Compra follower su sito-strano", avatar: null },
     details: [],
   },
 ];
@@ -132,14 +133,30 @@ describe("Coda", () => {
     expect(await screen.findByRole("status")).toBeTruthy();
   });
 
-  test("profilo: si archivia o si sanziona, niente nascondi/rimuovi; le lettere nella nota non sono scorciatoie", async () => {
+  test("profilo: si archivia, si sanziona o si tolgono bio e foto; le lettere nella nota non sono scorciatoie", async () => {
     render(<QueuePage />, { wrapper });
     const list = await screen.findByRole("listbox", { name: "Segnalazioni" });
     await userEvent.click(within(list).getAllByRole("option")[1]!);
     expect(await screen.findByText("Profilo @spammer")).toBeTruthy();
+    expect(screen.getByText("Compra follower su sito-strano")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /Rimuovi/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Nascondi/ })).toBeNull();
     expect((screen.getByRole("button", { name: "Sanziona" }) as HTMLButtonElement).disabled).toBe(true);
     await userEvent.type(screen.getByLabelText(/Nota interna/), "aaa rrr");
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes("decide"))).toBe(false);
+
+    // "Togli bio e foto" chiede conferma, poi manda "remove" sul profilo.
+    await userEvent.click(screen.getByRole("button", { name: "Togli bio e foto" }));
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("decide"))).toBe(false);
+    await userEvent.click(screen.getByRole("button", { name: "Conferma: togli bio e foto" }));
+    await waitFor(() => {
+      const call = fetchMock.mock.calls.find(([url]) => String(url).includes("decide"));
+      expect(call).toBeTruthy();
+      expect(JSON.parse(String((call![1] as RequestInit).body))).toMatchObject({
+        target_type: "profile",
+        target_id: "u2",
+        decision: "remove",
+      });
+    });
   });
 });

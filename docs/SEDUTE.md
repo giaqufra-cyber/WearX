@@ -1337,3 +1337,39 @@ Fatto:
 Verifiche: 415 test API (+6); 275 test app (+4); 9 percorsi Playwright (il percorso "pubblica"
 ora segna anche il capo sulla foto e controlla le coordinate inviate); demo provata nel browser a
 390×844 (logo, frecce del carosello, griglia dello stile, punto sulla foto: 0,299 / 0,6).
+
+### Seduta 27 — 2026-10-10
+
+**Obiettivo:** il profilo si può modificare, e gli stili a cui sei iscritto restano tuoi.
+
+Fatto:
+- **Modifica profilo** (nuova schermata, da "Modifica profilo" o toccando la foto): foto profilo
+  dalla galleria (ritaglio quadrato) e bio con il contatore (150 caratteri, 4 righe, le stesse
+  regole del server). Si salva tutto con "Salva"; una foto caricata e non salvata si cancella
+  uscendo. Sul proprio profilo senza bio c'è "+ Aggiungi una bio".
+- **Foto profilo nell'API**: `PATCH /v1/me` accetta `avatar` (id di un caricamento pronto, o
+  null per toglierla). Stessa strada delle foto dei fit (quarantena, scansione, varianti); una
+  foto "da rivedere" per il classificatore non può diventare foto profilo; cambiandola, la
+  precedente si cancella dal database e dall'archivio. Colonna `profiles.avatar_upload_id`
+  (migrazione 0018). La foto compare nel profilo, negli elenchi follower/seguiti/richieste (non
+  nei bloccati), sui fit quando l'autore è mostrato e nella ricerca persone; senza foto restano le
+  iniziali, su un colore scelto dal nickname. È nell'archivio dei dati (`foto/profilo.webp`) e si
+  cancella con l'account.
+- **Stili privati**: `GET /v1/users/{nickname}` restituisce gli stili solo a chi guarda il
+  proprio profilo. Lì compaiono come "I TUOI STILI · LI VEDI SOLO TU"; gli altri vedono i fit,
+  ognuno con il suo stile. Informativa privacy e regole della community aggiornate.
+- **Moderazione**: in coda, un profilo segnalato mostra bio e foto (sfocata finché non si sceglie
+  di guardarla). Nuovo pulsante "Togli bio e foto" (con conferma): le cancella, la foto entra
+  nella lista locale (non si può ricaricare), la persona riceve l'avviso "Bio e foto profilo
+  tolte" con la possibilità di reclamo. L'avviso dice ora su cosa (`target_type`).
+- Demo: 7 persone su 8 hanno foto profilo e bio.
+
+Verifiche: 422 test API (+7); 284 test app (+9); 13 test del pannello (1 esteso); 10 percorsi
+Playwright (+1 "modifica profilo", `/edit-profile` nell'audit di accessibilità) e 2 del
+pannello; demo provata nel browser a 390×844.
+
+Note:
+- Il nickname per ora non si cambia (lo dice la schermata): cambiarlo rompe link e menzioni,
+  meglio deciderlo a parte.
+- Le foto profilo esistenti non c'erano, quindi niente da migrare.
+

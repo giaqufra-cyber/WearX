@@ -138,6 +138,7 @@ function RootNavigator() {
         <Stack.Screen name="data-export" />
         <Stack.Screen name="delete-account" />
         <Stack.Screen name="change-password" />
+        <Stack.Screen name="edit-profile" />
         <Stack.Screen name="account-type" />
         <Stack.Screen name="shop-domains" />
         <Stack.Screen name="feedback" />

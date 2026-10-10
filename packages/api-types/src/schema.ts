@@ -1738,8 +1738,15 @@ export interface components {
              * @enum {string}
              */
             account_type: "private" | "business";
+            avatar?: components["schemas"]["AvatarOut"] | null;
             /** Nickname */
             nickname: string;
+        };
+        /** AvatarOut */
+        AvatarOut: {
+            /** Blurhash */
+            blurhash: string;
+            urls: components["schemas"]["MediaUrls"];
         };
         /** BlockedDomainIn */
         BlockedDomainIn: {
@@ -2271,6 +2278,12 @@ export interface components {
             reason: string;
             /** Statement */
             statement: string;
+            /**
+             * Target Type
+             * @default post
+             * @enum {string}
+             */
+            target_type: "post" | "profile" | "link";
         };
         /** NotificationActor */
         NotificationActor: {
@@ -2405,6 +2418,7 @@ export interface components {
              * @enum {string}
              */
             account_type: "private" | "business";
+            avatar?: components["schemas"]["AvatarOut"] | null;
             /** Nickname */
             nickname: string;
             /**
@@ -2573,6 +2587,7 @@ export interface components {
              * @enum {string}
              */
             age_band: "16_17" | "18_plus";
+            avatar?: components["schemas"]["AvatarOut"] | null;
             /** Bio */
             bio: string | null;
             /**
@@ -2599,10 +2614,21 @@ export interface components {
             /** Styles */
             styles: string[];
         };
+        /**
+         * ProfilePreview
+         * @description Profilo segnalato: quello che vede chi lo apre (seduta 27).
+         */
+        ProfilePreview: {
+            avatar: components["schemas"]["MediaUrls"] | null;
+            /** Bio */
+            bio: string | null;
+        };
         /** ProfileUpdateIn */
         ProfileUpdateIn: {
             /** Account Type */
             account_type?: ("private" | "business") | null;
+            /** Avatar */
+            avatar?: string | null;
             /** Bio */
             bio?: string | null;
             /** Hide Prices */
@@ -2653,6 +2679,7 @@ export interface components {
             post: components["schemas"]["PostPreview"] | null;
             /** Priority */
             priority: number;
+            profile?: components["schemas"]["ProfilePreview"] | null;
             /** Reasons */
             reasons: {
                 [key: string]: number;
@@ -3071,6 +3098,7 @@ export interface components {
              * @enum {string}
              */
             account_type: "private" | "business";
+            avatar?: components["schemas"]["AvatarOut"] | null;
             /** Bio */
             bio: string | null;
             /** Can View Posts */

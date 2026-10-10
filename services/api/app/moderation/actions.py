@@ -17,6 +17,7 @@ from typing import Literal
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.avatars import detach_avatar
 from app.notifications import notify
 from app.post_purge import purge_post
 from app.votes import CONFIRM_MIN, MATCH_THRESHOLD
@@ -61,6 +62,7 @@ def statement_for(
     caption: str | None = None,
     until: datetime | None = None,
     linked: bool = False,
+    profile: bool = False,
 ) -> str:
     """Testo che la persona legge: cosa è successo, perché, chi ha deciso, come reagire.
     `linked`: sanzione decisa insieme a un'azione su un fit (il reclamo si fa lì)."""
@@ -80,6 +82,11 @@ def statement_for(
                 f"le regole, torna visibile. {_APPEAL}"
             )
         return f"{what}. Motivo: {why}. {who}. {_APPEAL}"
+    if action == "remove" and profile:
+        return (
+            "La bio e la foto del tuo profilo sono state tolte; quella foto non si può "
+            f"ricaricare. Puoi scriverne di nuove. Motivo: {why}. {who}. {_APPEAL}"
+        )
     if action == "remove":
         return (
             f"{fit} è stato rimosso e le sue foto non si possono ripubblicare. Motivo: {why}. "
@@ -267,6 +274,44 @@ async def remove_post(
     return action_id, purged.storage_keys
 
 
+async def clear_profile(
+    session: AsyncSession, profile_id: uuid.UUID, *, ground: str, actor_id: uuid.UUID
+) -> tuple[uuid.UUID | None, list[str]]:
+    """Toglie bio e foto profilo (seduta 27); la foto entra nella lista locale come le foto dei
+    fit rimossi. Restituisce l'azione (None se non c'era niente da togliere) e le chiavi da
+    cancellare dall'archivio dopo il commit."""
+    bio = await session.scalar(
+        text("select bio from app.profiles where id = :id"), {"id": profile_id}
+    )
+    keys, hashes = await detach_avatar(session, profile_id)
+    if bio is None and hashes is None:
+        return None, []
+    await session.execute(
+        text("update app.profiles set bio = null where id = :id"), {"id": profile_id}
+    )
+    action_id = await record(
+        session,
+        target_type="profile",
+        target_id=profile_id,
+        action="remove",
+        ground=ground,
+        automated=False,
+        actor_id=actor_id,
+        subject_id=profile_id,
+        statement=statement_for("remove", ground, automated=False, profile=True),
+    )
+    if hashes is not None and any(h is not None for h in hashes):
+        await session.execute(
+            text(
+                """insert into app.blocked_hashes (sha256, phash, kind, source)
+                   values (:sha, :ph, 'removed', :source)
+                   on conflict (sha256) where sha256 is not null do nothing"""
+            ),
+            {"sha": hashes[0], "ph": hashes[1], "source": f"action:{action_id}"},
+        )
+    return action_id, keys
+
+
 async def strikes(session: AsyncSession, user_id: uuid.UUID) -> int:
     """Sanzioni ricevute negli ultimi 12 mesi (avvisi e sospensioni della pubblicazione),
     escluse quelle annullate da un reclamo. Ogni violazione confermata ne aggiunge una."""
@@ -423,7 +468,7 @@ async def _undo(
     if action == "hide" and target_type == "post":
         return await restore_post(session, target_id, ground=ground, actor_id=actor_id)
     if action == "remove":
-        # Il fit non torna (foto cancellate), ma le sue foto si possono ripubblicare.
+        # Il fit (o la bio e la foto profilo) non torna, ma le foto si possono ricaricare.
         await session.execute(
             text("delete from app.blocked_hashes where source = :s"), {"s": f"action:{action_id}"}
         )

@@ -49,6 +49,7 @@ afterEach(() => client.clear());
 const notice = (extra: Partial<ModerationNotice> = {}): ModerationNotice => ({
   id: "a1",
   action: "hide",
+  target_type: "post",
   reason: "nudità o contenuti sessuali",
   statement: "Il tuo fit «Serata» è stato nascosto. Se pensi che sia un errore puoi fare reclamo.",
   automated: false,

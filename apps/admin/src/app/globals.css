@@ -446,3 +446,19 @@ textarea.input {
   flex-direction: column;
   gap: 16px;
 }
+
+/* Profilo segnalato (seduta 27): bio e foto profilo. */
+.profile-preview {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.profile-preview > div:first-child {
+  flex: 1 1 240px;
+}
+.profile-preview .photo {
+  width: 200px;
+  aspect-ratio: 1;
+  margin-top: 6px;
+}

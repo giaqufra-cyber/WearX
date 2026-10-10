@@ -132,6 +132,8 @@ function QueueDetail({ item, onMove, onDone }: { item: QueueItem; onMove: (step:
   const decide = useStaffMutation<ModerationDecision, ModerationDecisionResult>("POST", () => "/v1/admin/reports/decide");
   const isPost = item.target_type === "post";
   const hidden = post.data?.status === "hidden_moderation";
+  // Profilo: "rimuovi" toglie bio e foto profilo (seduta 27), se ce n'è almeno una.
+  const canClearProfile = item.target_type === "profile" && Boolean(item.profile?.bio || item.profile?.avatar);
 
   const send = useCallback(
     (decision: ModerationDecision["decision"]) => {
@@ -216,6 +218,28 @@ function QueueDetail({ item, onMove, onDone }: { item: QueueItem; onMove: (step:
       ) : null}
       {isPost && post.isError ? <p className="error">{errorText(post.error)}</p> : null}
 
+      {!isPost && item.profile ? (
+        <div className="profile-preview">
+          <div>
+            <div className="mono">Bio</div>
+            <p style={{ margin: "6px 0 0", whiteSpace: "pre-line" }}>{item.profile.bio ?? "Nessuna bio"}</p>
+          </div>
+          {item.profile.avatar ? (
+            <div style={{ maxWidth: 220 }}>
+              <div className="mono">Foto profilo</div>
+              <Photo
+                media={{ urls: item.profile.avatar }}
+                revealed={revealed}
+                onReveal={() => setRevealed(true)}
+                warning={item.priority === 0 ? "Possibile materiale illegale: guarda solo se serve" : undefined}
+              />
+            </div>
+          ) : (
+            <p className="muted">Nessuna foto profilo.</p>
+          )}
+        </div>
+      ) : null}
+
       {post.data && post.data.items.length > 0 ? (
         <div>
           <div className="mono">Capi</div>
@@ -284,14 +308,24 @@ function QueueDetail({ item, onMove, onDone }: { item: QueueItem; onMove: (step:
           <button className="btn danger" type="button" disabled={decide.isPending} onClick={() => send("remove")}>
             {confirmRemove ? "Conferma rimozione" : "Rimuovi"} <kbd>R</kbd>
           </button>
-        ) : (
+        ) : null}
+        {canClearProfile ? (
+          <button className="btn danger" type="button" disabled={decide.isPending} onClick={() => send("remove")}>
+            {confirmRemove ? "Conferma: togli bio e foto" : "Togli bio e foto"}
+          </button>
+        ) : null}
+        {isPost ? null : (
           <button className="btn inverse" type="button" disabled={decide.isPending || sanction === "none"} onClick={() => send("none")}>
             Sanziona
           </button>
         )}
       </div>
       {confirmRemove ? (
-        <p className="muted">La rimozione cancella le foto e ne impedisce la ripubblicazione. Premi di nuovo per confermare.</p>
+        <p className="muted">
+          {isPost
+            ? "La rimozione cancella le foto e ne impedisce la ripubblicazione. Premi di nuovo per confermare."
+            : "Bio e foto profilo vengono cancellate; la stessa foto non si potrà ricaricare. Premi di nuovo per confermare."}
+        </p>
       ) : null}
       {decide.isError ? <p className="error">{errorText(decide.error)}</p> : null}
     </section>

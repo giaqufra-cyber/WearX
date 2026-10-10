@@ -1,7 +1,7 @@
 # Regole della community
 
 Su WearX si vota lo stile, non le persone. Queste regole valgono per fit, foto, didascalie,
-nickname, bio e link. Le applichiamo a tutti allo stesso modo.
+nickname, foto profilo, bio e link. Le applichiamo a tutti allo stesso modo.
 
 ## Si vota, non si insulta
 

@@ -213,6 +213,15 @@ PEOPLE = [
     {"nickname": "elena.conti", "email": "elena@demo.test"},
 ]
 STYLES = ["old-money", "streetwear", "jappo", "gala", "minimal", "elegant"]
+BIOS = [
+    "Cachemire, mocassini e tanta pazienza.",
+    "Sneaker prima di tutto. Milano.",
+    "Linee pulite, tre colori al massimo.",
+    "Vintage trovato nei mercatini.\nTrento → Monaco",
+    "Sartoria su misura e serate lunghe.",
+    "Tecnico in montagna, elegante in città.",
+    "Se piove, layering.",
+]
 
 # autore, stile, didascalia, look, foto, voto medio, capi (marchio, capo, prezzo €)
 POSTS: list[tuple[str, str, str, int, int, int, list[tuple[str, str, int]]]] = [
@@ -427,6 +436,26 @@ async def demo_seed(auth: Any, client: Any, store: Any) -> dict[str, Any]:
 
     def auth_header(nick: str) -> dict[str, str]:
         return {"Authorization": f"Bearer {tokens[nick]}"}
+
+    # Foto profilo (il busto di un look, quadrato) e bio per quasi tutti (seduta 27).
+    from app.media.keys import variant_key
+
+    for k, person in enumerate(PEOPLE[1:]):
+        nick = person["nickname"]
+        style = STYLES[k % len(STYLES)]
+        look = LOOKS[style][k % len(LOOKS[style])]
+        portrait = draw_look(style, look, SKIN[k % len(SKIN)]).crop((240, 160, 840, 760))
+        owner = uuid.UUID(control["people"][nick]["id"])
+        with cf.admin_conn(cf.TEST_DB) as db:
+            upload_id = cf.ready_upload(db, owner)
+        for width in (320, 640, 1080):
+            buf = io.BytesIO()
+            portrait.resize((width, width)).save(buf, "WEBP", quality=86)
+            await store.put(variant_key(upload_id, width), buf.getvalue(), "image/webp")
+        body = {"avatar": str(upload_id), "bio": BIOS[k % len(BIOS)]}
+        r = await client.patch("/v1/me", json=body, headers=auth_header(nick))
+        if r.status_code != 200:
+            raise RuntimeError(f"profilo {nick}: {r.status_code} {r.text}")
 
     posts: list[tuple[str, str, int]] = []  # (id, autore, voto medio)
     for author, style, caption, look_i, photos, score, items in POSTS:
