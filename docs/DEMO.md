@@ -21,6 +21,7 @@ Due modi di aprirla, con la stessa demo accesa sul computer:
 2. **Docker Desktop** (docker.com) → Settings → Resources → **WSL integration** → Ubuntu attivo.
 3. **Strumenti in Ubuntu** (una riga alla volta):
    ```bash
+   sudo apt install -y build-essential   # compilatore: una libreria dei test va compilata
    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt install -y nodejs
    sudo npm install -g pnpm@10
    curl -LsSf https://astral.sh/uv/install.sh | sh

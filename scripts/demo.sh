@@ -19,6 +19,7 @@ need() {
 need docker "installa Docker Desktop e attiva l'integrazione con WSL"
 need pnpm "sudo npm install -g pnpm@10"
 need uv "curl -LsSf https://astral.sh/uv/install.sh | sh"
+need cc "sudo apt install -y build-essential"
 if [ "$TUNNEL" = 1 ]; then need cloudflared "installa cloudflared (pacchetto .deb da GitHub)"; fi
 
 cd "$ROOT"
