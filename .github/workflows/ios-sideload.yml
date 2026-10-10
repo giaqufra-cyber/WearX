@@ -7,8 +7,6 @@ name: App iPhone per Sideloadly
 # "WearX-demo-iphone" (contiene WearX-demo.ipa).
 on:
   workflow_dispatch:
-  push:  # PROVVISORIO: solo per provare il workflow prima del merge
-    branches: [demo-iphone]
 
 permissions:
   contents: read
