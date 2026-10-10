@@ -417,6 +417,21 @@ def test_produzione_vieta_il_fornitore_finto(monkeypatch):
         cached.cache_clear()
 
 
+def test_origine_della_demo_ammessa_solo_fuori_da_dev_staging_produzione(monkeypatch):
+    from app.config import Settings
+
+    demo = "https://quiet-river.trycloudflare.com"
+    monkeypatch.setenv("WEARX_DEMO_WEB_ORIGIN", demo)
+    monkeypatch.setenv("WEARX_ENV", "test")
+    assert f"{demo}/" in Settings().age_return_schemes
+    for env in ("dev", "staging", "production"):
+        monkeypatch.setenv("WEARX_ENV", env)
+        assert not any(s.startswith(demo) for s in Settings().age_return_schemes)
+    monkeypatch.delenv("WEARX_DEMO_WEB_ORIGIN")
+    monkeypatch.setenv("WEARX_ENV", "test")
+    assert Settings().age_return_schemes == ("wearx://", "exp://", "http://localhost:8081/")
+
+
 async def test_pagina_di_prova_ammette_il_ritorno_all_app(client):
     # Chrome applica form-action anche al redirect verso l'app: la destinazione va ammessa.
     r = await client.get(f"/v1/dev/fake-age/abc?method=selfie_estimation&return_url={RETURN}")

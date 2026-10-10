@@ -1,4 +1,5 @@
 import type { ConfigContext, ExpoConfig } from "expo/config";
+import { withEntitlementsPlist } from "expo/config-plugins";
 
 /**
  * Configurazione dinamica sopra app.json (seduta 25): solo controlli, nessun valore nuovo.
@@ -22,5 +23,30 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       throw new Error("Chiave Supabase segreta tra le variabili dell'app: usa la chiave publishable.");
     }
   }
+  if (process.env.EXPO_PUBLIC_DEMO === "1") return demoConfig(config as ExpoConfig);
   return config as ExpoConfig;
 };
+
+/**
+ * Build demo (EXPO_PUBLIC_DEMO=1) da installare con Sideloadly e un Apple ID gratuito: un account
+ * gratuito non può firmare app con App Attest né con le notifiche push, quindi la build demo non
+ * le dichiara. Nome e identificativo diversi: non si confonde con l'app vera.
+ */
+function demoConfig(config: ExpoConfig): ExpoConfig {
+  const entitlements = { ...(config.ios?.entitlements ?? {}) };
+  delete entitlements["com.apple.developer.devicecheck.appattest-environment"];
+  const demo: ExpoConfig = {
+    ...config,
+    name: "WearX Demo",
+    ios: { ...config.ios, bundleIdentifier: "app.wearx.mobile.demo", entitlements },
+    plugins: (config.plugins ?? []).filter(
+      (plugin) => (Array.isArray(plugin) ? plugin[0] : plugin) !== "expo-notifications",
+    ),
+  };
+  // expo-notifications aggiunge comunque l'entitlement dei push ("aps-environment"): via.
+  return withEntitlementsPlist(demo, (mod) => {
+    delete mod.modResults["aps-environment"];
+    delete mod.modResults["com.apple.developer.devicecheck.appattest-environment"];
+    return mod;
+  });
+}

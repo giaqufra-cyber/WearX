@@ -12,18 +12,40 @@ const DEFAULTS = {
   apiUrl: "http://localhost:8000",
 } as const;
 
+/**
+ * Modalità demo (EXPO_PUBLIC_DEMO=1, `scripts/demo.sh` e build per Sideloadly): API e accesso finto
+ * stanno su un unico indirizzo che cambia a ogni avvio della demo.
+ * - Web: è l'indirizzo da cui è stata aperta la pagina.
+ * - Telefono: lo sceglie la persona (link incollato o QR), vedi `features/demo`.
+ */
+const demo = process.env.EXPO_PUBLIC_DEMO === "1";
+
+function webOrigin(): string | undefined {
+  const location = (globalThis as { location?: { origin?: string } }).location;
+  return typeof location?.origin === "string" && location.origin.startsWith("http") ? location.origin : undefined;
+}
+
+const demoWebOrigin = demo ? webOrigin() : undefined;
+
 export const env = {
-  supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? DEFAULTS.supabaseUrl,
+  demo,
+  supabaseUrl: demoWebOrigin ?? process.env.EXPO_PUBLIC_SUPABASE_URL ?? DEFAULTS.supabaseUrl,
   supabasePublishableKey: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? DEFAULTS.supabasePublishableKey,
-  apiUrl: process.env.EXPO_PUBLIC_API_URL ?? DEFAULTS.apiUrl,
+  apiUrl: demoWebOrigin ?? process.env.EXPO_PUBLIC_API_URL ?? DEFAULTS.apiUrl,
   /** La registrazione col telefono richiede un fornitore SMS configurato su Supabase. */
   phoneSignupEnabled: process.env.EXPO_PUBLIC_PHONE_SIGNUP === "1",
   /**
    * Conferma email con codice a 6 cifre invece del link. Richiede l'SMTP personalizzato su
    * Supabase (senza, il modello dell'email non si può modificare e contiene solo il link).
    */
-  emailOtp: process.env.EXPO_PUBLIC_EMAIL_OTP === "1",
+  emailOtp: demo || process.env.EXPO_PUBLIC_EMAIL_OTP === "1",
 };
+
+/** Solo demo: API e accesso finto passano al server indicato (stesso indirizzo per entrambi). */
+export function setDemoServer(url: string): void {
+  env.apiUrl = url;
+  env.supabaseUrl = url;
+}
 
 if (/service_role|sb_secret_/i.test(env.supabasePublishableKey)) {
   // Errore volutamente bloccante: una chiave segreta dentro l'app sarebbe leggibile da chiunque.

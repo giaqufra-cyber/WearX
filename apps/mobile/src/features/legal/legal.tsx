@@ -4,7 +4,7 @@ import { Fragment } from "react";
 import { StyleSheet, Text, type TextStyle } from "react-native";
 
 import { useAppConfig } from "@/features/styles/useAppConfig";
-import { API_URL } from "@/lib/api";
+import { apiUrl } from "@/lib/api";
 
 export type LegalDoc = "terms" | "privacy" | "community_rules" | "feed_explainer";
 
@@ -25,7 +25,7 @@ const FALLBACK_PATH: Record<LegalDoc, string> = {
 /** Indirizzi delle pagine legali: da /v1/config, oppure quelli dell'API se la config non c'è ancora. */
 export function useLegalLinks(): Record<LegalDoc, string> {
   const legal = useAppConfig().data?.legal;
-  const fallback = (doc: LegalDoc) => `${API_URL}/legal/${FALLBACK_PATH[doc]}`;
+  const fallback = (doc: LegalDoc) => `${apiUrl()}/legal/${FALLBACK_PATH[doc]}`;
   return {
     terms: legal?.terms ?? fallback("terms"),
     privacy: legal?.privacy ?? fallback("privacy"),

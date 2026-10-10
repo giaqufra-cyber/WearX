@@ -22,8 +22,13 @@ import secrets
 import sys
 import time
 import uuid
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+import httpx
+import uvicorn
 
 # Indirizzo con cui il telefono vede questo computer: "localhost" per il browser, "10.0.2.2" per
 # l'emulatore Android (seduta 25, Maestro in CI). Vale per l'API e per le foto; l'accesso finto
@@ -254,7 +259,7 @@ def auth_app(auth: FakeAuth, control: dict[str, Any]) -> Any:
     return Starlette(routes=routes, middleware=middleware)
 
 
-def static_app() -> Any:
+def static_app(dist: Path = APP_DIST) -> Any:
     """L'app web esportata, con ritorno a index.html per gli indirizzi dell'app (SPA)."""
     from starlette.applications import Starlette
     from starlette.requests import Request
@@ -263,13 +268,13 @@ def static_app() -> Any:
 
     async def serve(request: Request) -> Response:
         rel = request.path_params.get("path", "")
-        target = (APP_DIST / rel).resolve()
-        if APP_DIST in target.parents and target.is_file():
+        target = (dist / rel).resolve()
+        if dist in target.parents and target.is_file():
             return FileResponse(target)
-        html = APP_DIST / (rel.rstrip("/") + ".html")
+        html = dist / (rel.rstrip("/") + ".html")
         if rel and html.is_file():
             return FileResponse(html)
-        return FileResponse(APP_DIST / "index.html")
+        return FileResponse(dist / "index.html")
 
     return Starlette(routes=[Route("/", serve), Route("/{path:path}", serve)])
 
@@ -352,22 +357,45 @@ async def seed(auth: FakeAuth, client: Any, store: Any) -> dict[str, Any]:
     return control
 
 
-async def main() -> None:
-    import httpx
-    import uvicorn
+@dataclass
+class Booted:
+    """Ambiente acceso: accesso finto in ascolto, database con i dati di prova, worker avviato."""
+
+    api: Any
+    auth_asgi: Any
+    auth: FakeAuth
+    control: dict[str, Any]
+    store: Any
+    settings: Any
+    s3_port: int
+    servers: list[Any]
+    tasks: list[asyncio.Task[Any]]
+
+
+SeedFn = Callable[[FakeAuth, Any, Any], Awaitable[dict[str, Any]]]
+
+
+async def boot(
+    storage_public_url: str | None = None,
+    seed_fn: SeedFn | None = None,
+    worker_functions: list[Any] | None = None,
+) -> Booted:
+    """Database nuovo, archivio finto, accesso finto (porta 54321), dati di prova, worker.
+
+    Non avvia l'API su una porta: lo fa chi chiama (test end-to-end o demo, tests/demo_target.py).
+    """
+    from arq.connections import RedisSettings
     from arq.worker import Worker
     from moto.server import ThreadedMotoServer
 
     from tests.scan_target import prepare_database
 
-    if not (APP_DIST / "index.html").is_file():
-        sys.exit(f"Manca l'app web esportata in {APP_DIST} (vedi e2e/README.md)")
     prepare_database()
 
     s3_port = cf._free_port()
     ThreadedMotoServer(ip_address="127.0.0.1", port=s3_port, verbose=False).start()
     os.environ["WEARX_STORAGE_ENDPOINT_URL"] = f"http://localhost:{s3_port}"
-    os.environ["WEARX_STORAGE_PUBLIC_URL"] = f"http://{PUBLIC_HOST}:{s3_port}"
+    os.environ["WEARX_STORAGE_PUBLIC_URL"] = storage_public_url or f"http://{PUBLIC_HOST}:{s3_port}"
 
     from app.config import get_settings
     from app.main import create_app
@@ -404,10 +432,9 @@ async def main() -> None:
 
     auth = FakeAuth()
     control: dict[str, Any] = {}
+    auth_asgi = auth_app(auth, control)
     servers = [
-        uvicorn.Server(
-            uvicorn.Config(auth_app(auth, control), port=AUTH_PORT, log_level="warning")
-        ),
+        uvicorn.Server(uvicorn.Config(auth_asgi, port=AUTH_PORT, log_level="warning")),
     ]
     tasks = [asyncio.create_task(servers[0].serve())]
     while not servers[0].started:  # noqa: ASYNC110 - attesa dell'avvio, solo test
@@ -417,31 +444,38 @@ async def main() -> None:
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=api), base_url="http://e2e"
     ) as c:
-        control.update(await seed(auth, c, store))
-
-    for app, port in ((api, API_PORT), (static_app(), APP_PORT)):
-        server = uvicorn.Server(
-            uvicorn.Config(
-                app, host="127.0.0.1", port=port, log_level="warning", server_header=False
-            )
-        )
-        servers.append(server)
-        tasks.append(asyncio.create_task(server.serve()))
-
-    from arq.connections import RedisSettings
+        control.update(await (seed_fn or seed)(auth, c, store))
 
     worker = Worker(
-        functions=[process_upload],
+        functions=worker_functions or [process_upload],
         redis_settings=RedisSettings.from_dsn(settings.redis_url),
         handle_signals=False,
         poll_delay=0.2,
     )
     tasks.append(asyncio.create_task(worker.async_run()))
-    while not all(s.started for s in servers):  # noqa: ASYNC110 - attesa dell'avvio, solo test
+    return Booted(api, auth_asgi, auth, control, store, settings, s3_port, servers, tasks)
+
+
+async def serve(app: Any, port: int, booted: Booted) -> uvicorn.Server:
+    server = uvicorn.Server(
+        uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning", server_header=False)
+    )
+    booted.servers.append(server)
+    booted.tasks.append(asyncio.create_task(server.serve()))
+    return server
+
+
+async def main() -> None:
+    if not (APP_DIST / "index.html").is_file():
+        sys.exit(f"Manca l'app web esportata in {APP_DIST} (vedi e2e/README.md)")
+    booted = await boot()
+    await serve(booted.api, API_PORT, booted)
+    await serve(static_app(), APP_PORT, booted)
+    while not all(s.started for s in booted.servers):  # noqa: ASYNC110 - attesa dell'avvio
         await asyncio.sleep(0.05)
-    await asyncio.to_thread(Path("e2e-ready.json").write_text, json.dumps(control))
+    await asyncio.to_thread(Path("e2e-ready.json").write_text, json.dumps(booted.control))
     print("E2E pronto: app http://localhost:8081  API http://localhost:8000", flush=True)
-    await asyncio.gather(*tasks)
+    await asyncio.gather(*booted.tasks)
 
 
 if __name__ == "__main__":

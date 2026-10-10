@@ -9,6 +9,7 @@ import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
 import { apiRequest } from "@/lib/api";
+import { env } from "@/lib/env";
 
 export type PushStatus = "granted" | "denied" | "undetermined" | "unsupported";
 
@@ -16,7 +17,8 @@ let registeredToken: string | null = null;
 let handlerSet = false;
 
 export function pushSupported(): boolean {
-  return Platform.OS !== "web" && Device.isDevice;
+  // La build demo (Sideloadly, account Apple gratuito) non può ricevere push.
+  return Platform.OS !== "web" && Device.isDevice && !env.demo;
 }
 
 /** Come mostrare un push che arriva con l'app aperta: in alto, senza suono. */

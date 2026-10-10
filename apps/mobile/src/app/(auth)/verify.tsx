@@ -105,8 +105,16 @@ function Waiting({ contact, isEmail, withCode }: { contact: string; isEmail: boo
       </Text>
       {withCode ? (
         <Text variant="secondary">
-          Abbiamo mandato un codice di {CODE_LENGTH} cifre a <Text variant="bodyStrong">{contact}</Text>. Scade dopo
-          un'ora.
+          {env.demo ? (
+            <>
+              Nella demo non arriva nessuna mail: il codice è sempre <Text variant="bodyStrong">123456</Text>.
+            </>
+          ) : (
+            <>
+              Abbiamo mandato un codice di {CODE_LENGTH} cifre a <Text variant="bodyStrong">{contact}</Text>. Scade
+              dopo un'ora.
+            </>
+          )}
         </Text>
       ) : (
         <Text variant="secondary">
