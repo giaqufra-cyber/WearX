@@ -40,6 +40,12 @@ EXPO_PUBLIC_API_URL=http://<IP-del-computer>:8000 npx expo start
 Sul telefono si apre con Expo Go per le schermate senza moduli nativi aggiuntivi; dalla seduta
 in cui servono moduli nativi si usa una development build (`eas build --profile development`).
 
+## Demo sul telefono
+
+Per vedere e usare WearX su iPhone o Android senza account Apple né server nel cloud:
+`scripts/demo.sh` accende tutto sul computer dietro un link https (Safari, oppure l'app installata
+con Sideloadly dal workflow "App iPhone per Sideloadly"). Guida: [docs/DEMO.md](docs/DEMO.md).
+
 ## Regole del progetto
 
 - L'app non scrive mai direttamente nel database: tutto passa dall'API.

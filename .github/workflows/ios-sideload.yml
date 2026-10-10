@@ -73,8 +73,16 @@ jobs:
         run: |
           APP=$(ls -d build-ios/Build/Products/Release-iphoneos/*.app | head -1)
           test -d "$APP"
-          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist"
-          /usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" "$APP/Info.plist" || true
+          PLIST="$APP/Info.plist"
+          echo "Identificativo: $(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$PLIST")"
+          echo "Nome: $(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$PLIST")"
+          echo "iOS minimo: $(/usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$PLIST")"
+          # Controlli: è davvero la build demo, con il codice JS incluso e il link wearx://.
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$PLIST")" = "app.wearx.mobile.demo"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleURLTypes" "$PLIST" | grep -q "wearx"
+          test -s "$APP/main.jsbundle"
+          grep -a -q "Collega la demo" "$APP/main.jsbundle"
+          echo "Codice dell'app: $(du -h "$APP/main.jsbundle" | cut -f1), modalità demo inclusa"
           mkdir -p Payload
           cp -R "$APP" Payload/
           zip -qry WearX-demo.ipa Payload
