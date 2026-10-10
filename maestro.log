@@ -1,0 +1,11 @@
+
+Requested 1 shards, but it cannot be higher than the number of flows (0). Will use 1 shards instead.
+
+Waiting for flows to complete...
+[Passed] registrazione (1m 38s)
+[Passed] voto (45s)
+[Passed] pubblica (1m 28s)
+[Passed] seguire (36s)
+
+4/4 Flows Passed in 4m 26s
+

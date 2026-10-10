@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="test" tests="4" failures="0" time="266.003" timestamp="2026-10-10T21:42:18">
+    <testcase id="registrazione" name="registrazione" classname="registrazione" file="/home/runner/work/WearX/WearX/apps/mobile/.maestro/registrazione.yaml" time="98.229" timestamp="2026-10-10T21:42:18" status="SUCCESS"/>
+    <testcase id="voto" name="voto" classname="voto" file="/home/runner/work/WearX/WearX/apps/mobile/.maestro/voto.yaml" time="44.621" timestamp="2026-10-10T21:43:56" status="SUCCESS"/>
+    <testcase id="pubblica" name="pubblica" classname="pubblica" file="/home/runner/work/WearX/WearX/apps/mobile/.maestro/pubblica.yaml" time="87.569" timestamp="2026-10-10T21:44:41" status="SUCCESS"/>
+    <testcase id="seguire" name="seguire" classname="seguire" file="/home/runner/work/WearX/WearX/apps/mobile/.maestro/seguire.yaml" time="35.527" timestamp="2026-10-10T21:46:09" status="SUCCESS"/>
+  </testsuite>
+</testsuites>
