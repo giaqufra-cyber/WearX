@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { afterIdForStep, useMoveFit, usePortfolio, useUser } from "@/features/portfolio/api";
 import { CapsuleManager } from "@/features/portfolio/CapsuleManager";
+import { CapsuleShelf } from "@/features/portfolio/CapsuleShelf";
 import { FitTile } from "@/features/portfolio/FitTile";
 import { accountTypeLabel, statValue } from "@/features/portfolio/format";
 import { ReportSheet } from "@/features/moderation/ReportSheet";
@@ -69,6 +70,12 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
   const ids = useMemo(() => tiles.map((t) => t.id), [tiles]);
   const coverId = grid.data?.pages[0]?.cover_id ?? null;
   const reordering = editing && own && activeCapsule === null;
+  // Portfolio da designer (seduta 28): la copertina apre il portfolio a tutta larghezza, gli
+  // altri fit seguono in griglia. Nelle capsule e durante il riordino la griglia è uniforme.
+  const hero = !reordering && activeCapsule === null && tiles[0]?.id === coverId ? tiles[0] : undefined;
+  const gridTiles = hero ? tiles.slice(1) : tiles;
+  const offset = hero ? 1 : 0;
+  const heroWidth = contentWidth - SIDE * 2;
 
   const step = useCallback(
     (tile: PortfolioTile, index: number, direction: -1 | 1) => {
@@ -215,28 +222,45 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
       ) : null}
 
       {profile.can_view_posts && profile.capsules.length > 0 ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} role="tablist" contentContainerStyle={styles.tabs} style={styles.tabsBar}>
-          {[{ id: null, name: "Tutti" }, ...profile.capsules].map((tab) => {
-            const selected = tab.id === activeCapsule;
-            return (
-              <Pressable
-                key={tab.id ?? "all"}
-                role="tab"
-                aria-selected={selected}
-                onPress={() => {
-                  setCapsule(tab.id);
-                  if (tab.id !== null) setEditing(false);
-                }}
-                style={[styles.tab, selected && styles.tabOn]}
-              >
-                <Text style={[styles.tabText, selected && styles.tabTextOn]}>{tab.name}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        <CapsuleShelf
+          capsules={profile.capsules}
+          total={profile.stats.posts}
+          active={activeCapsule}
+          onSelect={(id) => {
+            setCapsule(id);
+            if (id !== null) setEditing(false);
+          }}
+        />
+      ) : null}
+
+      {profile.can_view_posts && tiles.length > 0 ? (
+        <Text style={styles.section}>
+          {(activeCapsule ? (profile.capsules.find((c) => c.id === activeCapsule)?.name ?? "Capsula") : "Portfolio").toUpperCase()}
+          {" · "}
+          {activeCapsule ? (profile.capsules.find((c) => c.id === activeCapsule)?.post_count ?? tiles.length) : profile.stats.posts}{" "}
+          FIT
+        </Text>
       ) : (
-        <View style={styles.tabsBar} />
+        <View style={styles.sectionGap} />
       )}
+
+      {hero ? (
+        <View style={styles.hero}>
+          <FitTile
+            tile={hero}
+            index={0}
+            width={heroWidth}
+            isCover
+            own={own}
+            editing={false}
+            canPrev={false}
+            canNext={false}
+            onOpen={onOpen}
+            onPrev={onPrev}
+            onNext={onNext}
+          />
+        </View>
+      ) : null}
     </View>
   );
 
@@ -279,7 +303,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <FlatList
-        data={profile.can_view_posts ? tiles : []}
+        data={profile.can_view_posts ? gridTiles : []}
         keyExtractor={(tile) => tile.id}
         numColumns={2}
         style={styles.list}
@@ -288,13 +312,13 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
         renderItem={({ item, index }) => (
           <FitTile
             tile={item}
-            index={index}
+            index={index + offset}
             width={tileWidth}
             isCover={activeCapsule === null && item.id === coverId}
             own={own}
             editing={reordering}
-            canPrev={index > 0}
-            canNext={index < ids.length - 1}
+            canPrev={index + offset > 0}
+            canNext={index + offset < ids.length - 1}
             onOpen={onOpen}
             onPrev={onPrev}
             onNext={onNext}
@@ -623,10 +647,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: SIDE,
     paddingTop: spacing[3],
   },
-  tabsBar: { borderBottomWidth: 1, borderBottomColor: colors.divider, marginTop: 18, marginBottom: 12 },
-  tabs: { gap: 22, paddingHorizontal: SIDE },
-  tab: { height: 40, justifyContent: "center", borderBottomWidth: 2, borderBottomColor: "transparent" },
-  tabOn: { borderBottomColor: colors.accent },
-  tabText: { fontFamily: fonts.uiBold, fontSize: 14, color: colors.textSecondary },
-  tabTextOn: { color: colors.text },
+  section: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    letterSpacing: 1.4,
+    color: colors.textTertiary,
+    paddingHorizontal: SIDE,
+    paddingTop: spacing[5],
+    paddingBottom: 10,
+    marginTop: spacing[4],
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+  },
+  sectionGap: { height: spacing[4] },
+  hero: { paddingHorizontal: SIDE, marginBottom: GAP },
 });

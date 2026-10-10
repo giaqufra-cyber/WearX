@@ -937,6 +937,16 @@
       },
       "CapsuleOut": {
         "properties": {
+          "cover": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MediaUrls"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
