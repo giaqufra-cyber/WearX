@@ -77,7 +77,7 @@ async def test_percorso_completo(client, keys, db_admin, store, queue):
     assert ready["status"] == "ready"
     assert (ready["width"], ready["height"]) == (1600, 2000)
     assert ready["blurhash"]
-    assert set(ready["urls"]["variants"]) == {"320", "640", "1080"}
+    assert set(ready["urls"]["variants"]) == {"320", "640", "1080", "1440"}
 
     # Le varianti si leggono con l'URL firmato, sono WebP e senza metadati.
     async with httpx.AsyncClient(trust_env=False) as http:
@@ -97,7 +97,7 @@ async def test_percorso_completo(client, keys, db_admin, store, queue):
         "where id = %s",
         (body["id"],),
     ).fetchone()
-    assert row == (True, True, [320, 640, 1080])
+    assert row == (True, True, [320, 640, 1080, 1440])
 
 
 async def test_file_non_immagine_rifiutato_e_cancellato(client, keys, db_admin, store, queue):

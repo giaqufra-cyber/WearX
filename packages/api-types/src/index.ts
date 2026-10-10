@@ -37,6 +37,7 @@ export type AgeMethod = Schemas["AgeSessionIn"]["method"];
 export type UserProfile = Schemas["UserOut"];
 export type PortfolioPage = Schemas["PortfolioPage"];
 export type PortfolioTile = Schemas["PortfolioTile"];
+export type StylePostsPage = Schemas["StylePostsPage"];
 export type PortfolioOrder = Schemas["OrderIn"];
 export type Capsule = Schemas["CapsuleOut"];
 export type CapsuleInput = Schemas["CapsuleIn"];

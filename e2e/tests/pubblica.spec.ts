@@ -20,8 +20,20 @@ test("pubblicare un fit: foto, stile, capo, didascalia, elaborazione, nel portfo
   await page.getByRole("textbox", { name: "Brand del capo 1" }).fill("Officina");
   await page.getByRole("textbox", { name: "Nome del capo 1" }).fill("Giacca in denim");
   await page.getByRole("textbox", { name: "Prezzo in euro del capo 1" }).fill("89");
+  // Il capo si segna sulla foto: tocco nel punto, poi "Fatto".
+  await page.getByRole("button", { name: "Segna il capo 1 sulla foto" }).click();
+  const photo = page.getByTestId("pin-photo");
+  const box = (await photo.boundingBox())!;
+  await photo.click({ position: { x: box.width * 0.3, y: box.height * 0.6 } });
+  await page.getByRole("button", { name: "Fatto" }).click();
+  await expect(page.getByText("Sulla foto 1 · Cambia")).toBeVisible();
   await page.getByRole("textbox", { name: "Didascalia" }).fill("Prova end-to-end in centro");
+  const sent = page.waitForRequest((r) => r.url().endsWith("/v1/posts") && r.method() === "POST");
   await page.getByRole("button", { name: "Pubblica" }).click();
+  const item = ((await sent).postDataJSON() as { items: Record<string, number>[] }).items[0]!;
+  expect(item.media_position).toBe(0);
+  expect(item.pin_x).toBeCloseTo(0.3, 1);
+  expect(item.pin_y).toBeCloseTo(0.6, 1);
   // Caricamento nell'archivio, elaborazione nel worker (EXIF via, varianti), pubblicazione.
   await expect(page.getByText("Fit pubblicato in Streetwear.")).toBeVisible({ timeout: 30_000 });
 

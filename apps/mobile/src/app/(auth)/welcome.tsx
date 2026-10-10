@@ -1,13 +1,15 @@
 import { colors, fonts, fontSizes, radii, spacing } from "@wearx/design-tokens";
 import { router } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { logoSize } from "@/features/auth/logo";
 import { LegalLink } from "@/features/legal/legal";
 import { Button } from "@/ui/Button";
 
 /** Benvenuto (prototipo, schermata Splash). */
 export default function WelcomeScreen() {
+  const size = logoSize(useWindowDimensions().width);
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.top}>
@@ -19,7 +21,12 @@ export default function WelcomeScreen() {
 
       <View>
         <Text style={styles.serifSmall}>il tuo stile,</Text>
-        <Text style={styles.logo} role="heading" aria-label="WearX">
+        <Text
+          style={[styles.logo, { fontSize: size, lineHeight: size * 0.92, letterSpacing: -size * 0.045 }]}
+          numberOfLines={1}
+          role="heading"
+          aria-label="WearX"
+        >
           WEAR<Text style={{ color: colors.accent }}>X</Text>
         </Text>
         <Text style={styles.serifLarge}>votato da chi{"\n"}lo capisce.</Text>

@@ -42,6 +42,7 @@ const tile = (id: string, caption: string, extra: Partial<PortfolioTile> = {}): 
   mine: null,
   average: 90,
   vote_count: 1120,
+  own: false,
   ...extra,
 });
 

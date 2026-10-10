@@ -20,6 +20,10 @@ type Props = {
   onOpen: (tile: PortfolioTile) => void;
   onPrev: (tile: PortfolioTile, index: number) => void;
   onNext: (tile: PortfolioTile, index: number) => void;
+  /** Numero "01", "02"… in alto: ha senso nel portfolio (ordine scelto), non in uno stile. */
+  numbered?: boolean;
+  /** Nome dello stile sopra il titolo: inutile nella pagina dello stile stesso. */
+  showStyle?: boolean;
 };
 
 const RATIO = 1.28; // 175 x 224 come nel prototipo
@@ -43,14 +47,17 @@ export const FitTile = memo(function FitTile({
   onOpen,
   onPrev,
   onNext,
+  numbered = true,
+  showStyle = true,
 }: Props) {
   const height = Math.round(width * RATIO);
   const url = tile.photo ? bestVariant(tile.photo.urls.variants, width * PixelRatio.get()) : undefined;
   const { score, sub } = tileScore(tile, own);
   const status = own ? tileStatus(tile) : null;
-  const title = tile.caption ?? tile.style.name;
+  // Senza didascalia niente titolo: prima ripeteva il nome dello stile due volte.
+  const title = tile.caption;
   const label = [
-    `Fit ${index + 1}`,
+    numbered ? `Fit ${index + 1}` : "Fit",
     isCover ? "copertina" : null,
     tile.style.name,
     tile.caption,
@@ -94,7 +101,7 @@ export const FitTile = memo(function FitTile({
           ))}
         </View>
 
-        <Text style={styles.pos}>{positionLabel(index)}</Text>
+        {numbered ? <Text style={styles.pos}>{positionLabel(index)}</Text> : null}
         <View style={styles.badges}>
           {isCover ? <Text style={[styles.badge, styles.cover]}>COPERTINA</Text> : null}
           {status ? <Text style={[styles.badge, styles.status]}>{status}</Text> : null}
@@ -102,12 +109,16 @@ export const FitTile = memo(function FitTile({
         {tile.media_count > 1 ? <Text style={styles.count}>1/{tile.media_count}</Text> : null}
 
         <View style={styles.bottom}>
-          <Text style={styles.style} numberOfLines={1}>
-            {tile.style.name}
-          </Text>
-          <Text style={styles.title} numberOfLines={1}>
-            {title}
-          </Text>
+          {showStyle ? (
+            <Text style={styles.style} numberOfLines={1}>
+              {tile.style.name}
+            </Text>
+          ) : null}
+          {title ? (
+            <Text style={styles.title} numberOfLines={1}>
+              {title}
+            </Text>
+          ) : null}
           <View style={styles.scoreRow}>
             <Text style={styles.score}>{score}</Text>
             <Text style={styles.sub} numberOfLines={1}>

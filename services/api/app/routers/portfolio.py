@@ -34,6 +34,7 @@ from app.post_views import MediaOut, StyleRef
 from app.profiles import VISIBLE_STYLE_SQL, CurrentProfile, Profile
 from app.ratelimit import rate_limit
 from app.routers.media import media_urls
+from app.routers.styles import _card as style_card
 from app.text_policy import clean_text
 from app.votes import voter_key
 
@@ -104,6 +105,8 @@ class PortfolioTile(BaseModel):
     mine: int | None
     average: float | None
     vote_count: int | None
+    # Fit di chi guarda (nella pagina di uno stile i fit sono di persone diverse).
+    own: bool = False
 
 
 class PortfolioPage(BaseModel):
@@ -358,6 +361,110 @@ async def get_user_posts(
     )
 
 
+# ---------- Fit di uno stile (seduta 26) ----------
+
+# Ordine "in evidenza": media prudente come nel feed (parte da 60 con 5 voti immaginari), sui
+# valori PUBBLICATI (aggiornati ogni ora): un solo 100 non porta un fit in cima.
+PRIOR_MEAN, PRIOR_VOTES = 60.0, 5.0
+_STYLE_SORT_KEY = {
+    "top": f"""((coalesce(st.shown_wsum, 0) + {PRIOR_MEAN} * {PRIOR_VOTES})
+                / (coalesce(st.shown_wcount, 0) + {PRIOR_VOTES}))""",
+    # double precision su entrambi i lati del confronto del cursore: nessun fit perso o ripetuto.
+    "new": "extract(epoch from p.published_at)::double precision",
+}
+
+
+class StylePostsPage(BaseModel):
+    items: list[PortfolioTile]
+    next_cursor: str | None
+
+
+def _encode_style_cursor(sort: str, key: float, post_id: uuid.UUID) -> str:
+    raw = f"{sort}|{key!r}|{post_id}"
+    return base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")
+
+
+def _decode_style_cursor(cursor: str, sort: str) -> tuple[float, uuid.UUID]:
+    try:
+        raw = base64.urlsafe_b64decode(cursor + "=" * (-len(cursor) % 4)).decode()
+        kind, key, post_id = raw.split("|")
+        if kind != sort:
+            raise ValueError(kind)
+        value = float(key)
+        if value != value or value in (float("inf"), float("-inf")):  # NaN o infinito
+            raise ValueError(key)
+        return value, uuid.UUID(post_id)
+    except (ValueError, binascii.Error, UnicodeDecodeError) as exc:
+        raise ApiError(400, "style.invalid_cursor", "Cursore non valido") from exc
+
+
+@router.get("/styles/{slug}/posts", response_model=StylePostsPage)
+async def get_style_posts(
+    slug: str,
+    viewer: CurrentProfile,
+    session: Session,
+    sort: Literal["top", "new"] = "top",
+    cursor: Annotated[str | None, Query(max_length=200)] = None,
+    limit: Annotated[int, Query(ge=1, le=PAGE_MAX)] = PAGE_DEFAULT,
+) -> StylePostsPage:
+    """La griglia della pagina di uno stile: i fit attivi di quello stile, anche i propri.
+
+    Stesse regole di visibilità di ogni post (età, blocchi, autori sospesi). I fit usciti dallo
+    stile per la conferma della community ("style_rejected") qui non compaiono. Le medie seguono
+    la regola di sempre: si vedono sui propri fit e su quelli già votati.
+    """
+    await style_card(session, viewer, slug)  # 404 se lo stile non esiste o non è per chi guarda
+    after = _decode_style_cursor(cursor, sort) if cursor else None
+    key_sql = _STYLE_SORT_KEY[sort]
+    rows = (
+        (
+            await session.execute(
+                text(
+                    f"""select p.id, p.author_id, p.status::text as status, p.caption,
+                               p.capsule_id, s.slug, s.name, s.tone, a.hide_vote_count,
+                               {key_sql} as sort_key,
+                               coalesce(st.shown_count, 0) as vote_count,
+                               coalesce(st.shown_wsum, 0) as vote_wsum,
+                               coalesce(st.shown_wcount, 0) as vote_wcount,
+                               v.score as mine,
+                               m.width, m.height, m.blurhash, m.upload_id, m.variants,
+                               (select count(*) from app.post_media mm
+                                 where mm.post_id = p.id) as media_count
+                          from app.posts p
+                          join app.profiles a on a.id = p.author_id
+                          join app.styles s on s.id = p.style_id
+                          left join app.post_stats st on st.post_id = p.id
+                          left join app.votes v on v.post_id = p.id and v.voter_key = :k
+                          left join app.post_media m on m.post_id = p.id and m.position = 0
+                         where s.slug = :slug and p.status = 'active' and {POST_VISIBLE_SQL}
+                           and (cast(:key as double precision) is null
+                                or ({key_sql}, p.id)
+                                   < (cast(:key as double precision), cast(:cid as uuid)))
+                         order by {key_sql} desc, p.id desc
+                         limit :limit"""
+                ),
+                {
+                    **_visible(viewer),
+                    "slug": slug,
+                    "key": after[0] if after else None,
+                    "cid": after[1] if after else None,
+                    "limit": limit + 1,
+                    "k": voter_key(viewer.id),
+                },
+            )
+        )
+        .mappings()
+        .all()
+    )
+    page = rows[:limit]
+    return StylePostsPage(
+        items=[_tile(row, row["author_id"] == viewer.id) for row in page],
+        next_cursor=_encode_style_cursor(sort, float(page[-1]["sort_key"]), page[-1]["id"])
+        if len(rows) > limit
+        else None,
+    )
+
+
 def _tile(row: Any, own: bool) -> PortfolioTile:
     reveal = own or row["mine"] is not None
     return PortfolioTile(
@@ -381,6 +488,7 @@ def _tile(row: Any, own: bool) -> PortfolioTile:
         vote_count=int(row["vote_count"])
         if own or (reveal and not row["hide_vote_count"])
         else None,
+        own=own,
     )
 
 

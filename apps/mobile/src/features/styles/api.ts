@@ -2,8 +2,8 @@
  * Stili dal server: elenco e ricerca, pagina dello stile, i tuoi stili, entrare e uscire.
  * Entrare/uscire si vede subito (aggiornamento ottimistico) e si annulla se il server dice no.
  */
-import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { StyleCard, StyleDetail, StyleList } from "@wearx/api-types";
+import { type QueryClient, useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { StyleCard, StyleDetail, StyleList, StylePostsPage } from "@wearx/api-types";
 
 import { ME_QUERY_KEY, useAuth } from "@/features/auth/AuthProvider";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
@@ -44,6 +44,28 @@ export function useStyle(slug: string) {
   return useQuery({
     queryKey: [...STYLES_KEY, "detail", uid, slug],
     queryFn: ({ signal }) => apiGet<StyleDetail>(`/v1/styles/${encodeURIComponent(slug)}`, { token, signal }),
+    enabled: Boolean(token) && slug.length > 0,
+    retry: (count, error) => count < 2 && !(error instanceof ApiError && error.status === 404),
+  });
+}
+
+export type StyleSort = "top" | "new";
+
+/**
+ * I fit di uno stile, a pagine (seduta 26). Sotto STYLES_KEY: pubblicare un fit ricarica anche
+ * questa griglia (new-post invalida gli stili).
+ */
+export function useStylePosts(slug: string, sort: StyleSort) {
+  const { token, uid } = useToken();
+  return useInfiniteQuery({
+    queryKey: [...STYLES_KEY, "posts", uid, slug, sort],
+    initialPageParam: null as string | null,
+    queryFn: ({ pageParam, signal }) => {
+      const params = new URLSearchParams({ sort, limit: "24" });
+      if (pageParam) params.set("cursor", pageParam);
+      return apiGet<StylePostsPage>(`/v1/styles/${encodeURIComponent(slug)}/posts?${params}`, { token, signal });
+    },
+    getNextPageParam: (last) => last.next_cursor ?? undefined,
     enabled: Boolean(token) && slug.length > 0,
     retry: (count, error) => count < 2 && !(error instanceof ApiError && error.status === 404),
   });

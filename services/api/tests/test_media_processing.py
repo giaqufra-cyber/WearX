@@ -39,7 +39,7 @@ def test_gps_e_dati_del_telefono_spariscono():
 
 def test_varianti_webp_senza_ingrandire():
     result = _ok(photo(1600, 2000))
-    assert sorted(result.variants) == [320, 640, 1080]
+    assert sorted(result.variants) == [320, 640, 1080, 1440]
     for width, webp in result.variants.items():
         with Image.open(io.BytesIO(webp)) as image:
             assert image.format == "WEBP"

@@ -171,7 +171,8 @@ export default function NewPostScreen() {
                 key={item.key}
                 index={index}
                 item={item}
-                canRemove={draft.items.length > 1 || Boolean(item.brand || item.name || item.price || item.link)}
+                photos={draft.photos}
+                canRemove={draft.items.length > 1 || Boolean(item.brand || item.name || item.price || item.link || item.pin)}
                 onChange={(patch) => draft.updateItem(item.key, patch)}
                 onRemove={() => draft.removeItem(item.key)}
               />
@@ -182,7 +183,7 @@ export default function NewPostScreen() {
               <RNText style={styles.addItemText}>+ Aggiungi un capo</RNText>
             </Pressable>
           ) : null}
-          <RNText style={styles.note}>Accettiamo solo link https. Ogni link viene controllato prima di essere mostrato.</RNText>
+          <RNText style={styles.note}>Segna ogni capo sulla foto: sul fit compare un punto con il brand. Accettiamo solo link https. Ogni link viene controllato prima di essere mostrato.</RNText>
 
           <Section title="4 · DIDASCALIA" aside={`${draft.caption.length}/${CAPTION_MAX}`} />
           <TextInput

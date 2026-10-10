@@ -170,3 +170,67 @@ test("togliere una foto cancella anche il suo caricamento", async () => {
   expect(deps.deleteUpload).toHaveBeenCalledWith("tok", expect.stringMatching(/^up/));
   expect(screen.getByText("1 di 10")).toBeOnTheScreen();
 });
+
+test("segna un capo sulla foto: il punto resta sulla sua foto anche riordinando", async () => {
+  request.mockResolvedValue({ id: "p1", style: { name: "Galà" } });
+  const user = userEvent.setup();
+  await render(<NewPostScreen />, { wrapper: Providers });
+  await user.press(screen.getByRole("button", { name: "Scegli le foto dalla galleria" }));
+  await waitFor(() => expect(screen.getByLabelText("Foto 2 di 2: Pronta")).toBeOnTheScreen());
+  await user.press(screen.getByRole("radio", { name: "Galà" }));
+  await fireEvent.changeText(screen.getByLabelText("Brand del capo 1"), "Armani");
+  await fireEvent.changeText(screen.getByLabelText("Nome del capo 1"), "Smoking");
+
+  // Seconda foto, punto in alto a sinistra.
+  await user.press(screen.getByRole("button", { name: "Segna il capo 1 sulla foto" }));
+  expect(screen.getByRole("button", { name: "Fatto" })).toBeDisabled();
+  await user.press(screen.getByRole("radio", { name: "Foto 2" }));
+  const photo = screen.getByTestId("pin-photo");
+  const { width, height } = photo.props.style.find((s: { width?: number }) => s && s.width);
+  await fireEvent.press(photo, { nativeEvent: { locationX: width * 0.25, locationY: height * 0.4 } });
+  expect(screen.getByText(/Punto segnato/)).toBeOnTheScreen();
+  await user.press(screen.getByRole("button", { name: "Fatto" }));
+  expect(screen.getByText("Sulla foto 2 · Cambia")).toBeOnTheScreen();
+
+  // Riordinando, il punto resta sulla stessa foto (che ora è la prima).
+  await user.press(screen.getByRole("button", { name: "Sposta la foto 2 prima" }));
+  expect(screen.getByText("Sulla foto 1 · Cambia")).toBeOnTheScreen();
+  await user.press(screen.getByRole("button", { name: "Pubblica" }));
+  expect(request).toHaveBeenCalledWith(
+    "POST",
+    "/v1/posts",
+    expect.objectContaining({
+      body: expect.objectContaining({
+        media: [expect.any(String), expect.any(String)],
+        items: [
+          {
+            brand: "Armani",
+            name: "Smoking",
+            price_cents: null,
+            currency: "EUR",
+            url: null,
+            media_position: 0,
+            pin_x: 0.25,
+            pin_y: 0.4,
+          },
+        ],
+      }),
+    }),
+  );
+});
+
+test("togliere la foto su cui è segnato un capo toglie anche il punto", async () => {
+  const user = userEvent.setup();
+  await render(<NewPostScreen />, { wrapper: Providers });
+  await user.press(screen.getByRole("button", { name: "Scegli le foto dalla galleria" }));
+  await waitFor(() => expect(screen.getByLabelText("Foto 2 di 2: Pronta")).toBeOnTheScreen());
+  const [first] = useNewPostDraft.getState().photos;
+  const key = useNewPostDraft.getState().items[0]!.key;
+  await act(async () => useNewPostDraft.getState().updateItem(key, { pin: { photo: first!.localId, x: 0.5, y: 0.5 } }));
+  expect(screen.getByText("Sulla foto 1 · Cambia")).toBeOnTheScreen();
+  await act(async () => {
+    await user.press(screen.getByRole("button", { name: "Togli la foto 1" }));
+  });
+  expect(useNewPostDraft.getState().items[0]!.pin).toBeNull();
+  expect(screen.getByText("Segna sulla foto (opz.)")).toBeOnTheScreen();
+});
