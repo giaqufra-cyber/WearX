@@ -290,6 +290,9 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
+          # Il server di prova resta acceso fino alla fine del job e la pulizia finale della
+          # cache di uv (versione 0.13) fallisce con codice 2: la cache qui non serve pulirla.
+          prune-cache: false
       - name: API di scansione (database di prova, due persone, un fit)
         working-directory: services/api
         env:
@@ -340,6 +343,9 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
+          # Il server di prova resta acceso fino alla fine del job e la pulizia finale della
+          # cache di uv (versione 0.13) fallisce con codice 2: la cache qui non serve pulirla.
+          prune-cache: false
       - uses: grafana/setup-k6-action@v1
       - name: API con 150 persone, fit e voti
         working-directory: services/api
