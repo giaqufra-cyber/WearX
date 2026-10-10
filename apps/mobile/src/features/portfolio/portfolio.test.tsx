@@ -8,6 +8,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import PostScreen from "@/app/post/[id]";
 import { afterIdForStep, moveId, reorderPages } from "@/features/portfolio/api";
 import { accountTypeLabel, positionLabel, tileScore, tileStatus } from "@/features/portfolio/format";
+import { CAPSULE_SIZES, capsuleWidth, shelfHeight } from "@/features/portfolio/CapsuleShelf";
 import { PortfolioScreen } from "@/features/portfolio/PortfolioScreen";
 import { compactNumber } from "@/features/styles/format";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
@@ -165,7 +166,7 @@ describe("Portfolio", () => {
     expect(screen.getByLabelText("voti ricevuti: 5,1k")).toBeOnTheScreen();
     expect(screen.getByText("PRIVATO")).toBeOnTheScreen();
     expect(screen.getByText("Trento, presto Monaco.")).toBeOnTheScreen();
-    expect(screen.getByRole("tab", { name: "Serate" })).toBeOnTheScreen();
+    expect(screen.getByRole("tab", { name: "Serate, 1 fit" })).toBeOnTheScreen();
     expect(screen.getByLabelText(/^Fit 2, Galà, Teatro/)).toBeOnTheScreen();
     expect(get).toHaveBeenCalledWith("/v1/users/fra.fit/posts?limit=60", expect.objectContaining({ token: "tok" }));
   });
@@ -224,13 +225,13 @@ describe("Portfolio", () => {
     serve(user(), (path) => (path.includes("capsule=c1") ? page([TILES[1]!], { cover_id: "p1" }) : page(TILES)));
     const u = userEvent.setup();
     await render(<PortfolioScreen nickname="fra.fit" />, { wrapper: Providers });
-    await u.press(await screen.findByRole("tab", { name: "Serate" }));
+    await u.press(await screen.findByRole("tab", { name: "Serate, 1 fit" }));
     expect(get).toHaveBeenCalledWith("/v1/users/fra.fit/posts?limit=60&capsule=c1", expect.anything());
     expect(await screen.findByLabelText(/^Fit 1, Galà, Teatro/)).toBeOnTheScreen(); // nessuna "copertina" qui
-    expect(screen.getByRole("tab", { name: "Serate" })).toBeSelected();
+    expect(screen.getByRole("tab", { name: "Serate, 1 fit" })).toBeSelected();
     await u.press(screen.getByRole("button", { name: "Modifica ordine" }));
     // Il riordino riporta a "Tutti".
-    expect(screen.getByRole("tab", { name: "Tutti" })).toBeSelected();
+    expect(screen.getByRole("tab", { name: /^Tutti/ })).toBeSelected();
     expect(screen.getAllByRole("button", { name: /Sposta prima/ })).toHaveLength(3);
   });
 
@@ -400,5 +401,40 @@ describe("profilo (seduta 27)", () => {
     expect(screen.queryByRole("button", { name: "Modifica profilo" })).toBeNull();
     // La foto è decorativa (nascosta ai lettori di schermo): il nome è già nel profilo.
     expect(screen.getByTestId("avatar-photo", { includeHiddenElements: true })).toBeTruthy();
+  });
+});
+
+describe("portfolio da designer (seduta 28)", () => {
+  test("capsule più grandi quanti più fit contengono", () => {
+    expect([0, 1, 2, 4, 5, 9, 10, 40].map(capsuleWidth)).toEqual([92, 92, 116, 116, 144, 144, 176, 176]);
+    expect(CAPSULE_SIZES.map((s) => s.width)).toEqual([...CAPSULE_SIZES.map((s) => s.width)].sort((a, b) => a - b));
+    expect(shelfHeight([])).toBe(115);
+    expect(shelfHeight([{ post_count: 1 }, { post_count: 12 }])).toBe(220);
+  });
+
+  test("la copertina apre il portfolio a tutta larghezza; nelle capsule la griglia è uniforme", async () => {
+    serve(user({ capsules: [{ id: "c1", name: "Serate", post_count: 6, cover: null }] }), (path) =>
+      path.includes("capsule=c1") ? page([tile("p2", "Teatro")]) : page(TILES),
+    );
+    const u = userEvent.setup();
+    await render(<PortfolioScreen nickname="fra.fit" />, { wrapper: Providers });
+    const cover = await screen.findByLabelText(/^Fit 1, copertina, Galà, Capodanno/);
+    const second = screen.getByLabelText(/^Fit 2, Galà, Teatro/);
+    // Finestra di prova larga 750: contenuto al massimo 560, meno 2 x 16 di margine = 528 per la
+    // copertina; gli altri in due colonne da 260.
+    const widthOf = (el: typeof cover) => {
+      let node: typeof cover | null = el;
+      while (node && !(node.props.style && [node.props.style].flat().some((st: { width?: number }) => st?.width))) node = node.parent;
+      return [node!.props.style].flat().find((st: { width?: number }) => st?.width)!.width as number;
+    };
+    expect(widthOf(cover)).toBe(528);
+    expect(widthOf(second)).toBe(260);
+    expect(screen.getByText("PORTFOLIO · 3 FIT")).toBeOnTheScreen();
+
+    const shelfTab = screen.getByRole("tab", { name: "Serate, 6 fit" });
+    expect(shelfTab).toHaveStyle({ width: 144 });
+    await u.press(shelfTab);
+    expect(await screen.findByText("SERATE · 6 FIT")).toBeOnTheScreen();
+    expect(widthOf(await screen.findByLabelText(/^Fit 1, Galà, Teatro/))).toBe(260);
   });
 });

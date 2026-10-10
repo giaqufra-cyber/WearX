@@ -1373,3 +1373,24 @@ Note:
   meglio deciderlo a parte.
 - Le foto profilo esistenti non c'erano, quindi niente da migrare.
 
+### Seduta 28 — 2026-10-10
+
+**Obiettivo:** il profilo come il portfolio di un designer; le capsule si vedono di più quando
+contengono più fit.
+
+Fatto:
+- **Copertina in apertura**: nella vista "Tutti" il primo fit del portfolio (la copertina) è a
+  tutta larghezza; gli altri seguono nella griglia a due colonne, numerati da 02. Durante il
+  riordino e dentro una capsula la griglia torna uniforme (le frecce restano dove servono).
+- **Capsule come collezioni**: al posto delle linguette, una fila di schede con la copertina della
+  capsula (la prima foto del primo fit, nell'ordine del portfolio), il nome e il numero di fit.
+  Quattro misure: 92 punti di larghezza fino a 1 fit, 116 da 2, 144 da 5, 176 da 10. Prima c'è
+  la scheda "Tutti" con il totale. La scheda scelta ha il bordo verde.
+- **Titolo della sezione**: "PORTFOLIO · N FIT" o "NOME CAPSULA · N FIT" sopra la griglia.
+- API: `CapsuleOut.cover` (URL firmati della copertina, null se vuota), in `GET /v1/users/{nick}`
+  e `GET /v1/me/capsules`; rispetta le stesse regole di visibilità dei fit.
+- Demo: ogni persona ha una capsula per stile in cui ha almeno due fit, più "Preferiti".
+
+Verifiche: 423 test API (+1); 286 test app (+2, misure delle capsule e copertina a tutta
+larghezza); 10 percorsi Playwright invariati; demo provata nel browser a 390×844.
+

@@ -454,3 +454,36 @@ async def test_capsule_altrui(client, keys, db_admin):
     assert [c["id"] for c in own] == [mine["id"], empty["id"]]
     # Il campo capsula del post è solo per l'autore.
     assert (await client.get(f"/v1/posts/{post}", headers=other_h)).json()["capsule_id"] is None
+
+
+async def test_copertina_della_capsula_segue_l_ordine_del_portfolio(client, keys, db_admin):
+    uid, h, nick = await _person(client, keys, db_admin, business=True)
+    first = await _post(client, db_admin, uid, h, caption="Primo")
+    second = await _post(client, db_admin, uid, h, caption="Secondo")  # il più recente va in testa
+    capsule = (await _capsule(client, h, "Serate")).json()
+    empty = (await _capsule(client, h, "Vuota")).json()
+    for post in (first, second):
+        await client.patch(f"/v1/posts/{post}", json={"capsule_id": capsule["id"]}, headers=h)
+
+    def cover_upload(capsules, capsule_id):
+        """URL della copertina (contengono l'id del caricamento), o None."""
+        found = next(c for c in capsules if c["id"] == capsule_id)
+        return " ".join(found["cover"]["variants"].values()) if found["cover"] else None
+
+    def upload_of(post_id):
+        return str(
+            db_admin.execute(
+                "select upload_id from app.post_media where post_id = %s and position = 0",
+                (post_id,),
+            ).fetchone()[0]
+        )
+
+    mine = (await client.get("/v1/me/capsules", headers=h)).json()
+    assert upload_of(second) in cover_upload(mine, capsule["id"])
+    assert cover_upload(mine, empty["id"]) is None
+    # Spostando il primo in testa al portfolio, cambia anche la copertina della capsula.
+    await _move(client, h, first, None)
+    _, other, _ = await _person(client, keys, db_admin)
+    seen = (await client.get(f"/v1/users/{nick}", headers=other)).json()["capsules"]
+    assert [c["name"] for c in seen] == ["Serate"]  # le vuote non si vedono da fuori
+    assert upload_of(first) in cover_upload(seen, capsule["id"])

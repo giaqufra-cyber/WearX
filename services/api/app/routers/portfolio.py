@@ -35,7 +35,7 @@ from app.post_access import POST_VISIBLE_SQL
 from app.post_views import MediaOut, StyleRef
 from app.profiles import VISIBLE_STYLE_SQL, CurrentProfile, Profile
 from app.ratelimit import rate_limit
-from app.routers.media import media_urls
+from app.routers.media import MediaUrls, media_urls
 from app.routers.styles import _card as style_card
 from app.text_policy import clean_text
 from app.votes import voter_key
@@ -60,6 +60,9 @@ class CapsuleOut(BaseModel):
     id: uuid.UUID
     name: str
     post_count: int
+    # Prima foto del primo fit della capsula (nell'ordine del portfolio), per la copertina della
+    # capsula nel profilo (seduta 28). Null se è vuota.
+    cover: MediaUrls | None = None
 
 
 class UserStats(BaseModel):
@@ -264,10 +267,34 @@ async def _capsules(
             {**_visible(viewer), "owner": owner},
         )
     ).mappings()
+    capsules = [r for r in rows if include_empty or r["post_count"] > 0]
+    covers: dict[uuid.UUID, MediaUrls] = {}
+    with_posts = [r["id"] for r in capsules if r["post_count"] > 0]
+    if with_posts:
+        for capsule_id, upload_id, variants in (
+            await session.execute(
+                text(
+                    f"""select distinct on (p.capsule_id) p.capsule_id, m.upload_id, m.variants
+                          from app.posts p
+                          join app.profiles a on a.id = p.author_id
+                          join app.styles s on s.id = p.style_id
+                          join app.post_media m on m.post_id = p.id and m.position = 0
+                         where p.capsule_id = any(:ids) and {POST_VISIBLE_SQL}
+                         order by p.capsule_id, p.portfolio_rank desc, p.id desc"""
+                ),
+                {**_visible(viewer), "ids": with_posts},
+            )
+        ).all():
+            if upload_id is not None and variants:
+                covers[capsule_id] = media_urls(upload_id, list(variants))
     return [
-        CapsuleOut(id=r["id"], name=r["name"], post_count=int(r["post_count"]))
-        for r in rows
-        if include_empty or r["post_count"] > 0
+        CapsuleOut(
+            id=r["id"],
+            name=r["name"],
+            post_count=int(r["post_count"]),
+            cover=covers.get(r["id"]),
+        )
+        for r in capsules
     ]
 
 

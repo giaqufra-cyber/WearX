@@ -213,6 +213,14 @@ PEOPLE = [
     {"nickname": "elena.conti", "email": "elena@demo.test"},
 ]
 STYLES = ["old-money", "streetwear", "jappo", "gala", "minimal", "elegant"]
+CAPSULE_NAMES = {
+    "old-money": "Weekend al lago",
+    "streetwear": "In città",
+    "jappo": "Tokyo mood",
+    "gala": "Serate",
+    "minimal": "Ufficio",
+    "elegant": "Cerimonie",
+}
 BIOS = [
     "Cachemire, mocassini e tanta pazienza.",
     "Sneaker prima di tutto. Milano.",
@@ -490,6 +498,37 @@ async def demo_seed(auth: Any, client: Any, store: Any) -> dict[str, Any]:
         if r.status_code != 201:
             raise RuntimeError(f"post {caption}: {r.status_code} {r.text}")
         posts.append((r.json()["id"], author, score))
+
+    # Capsule (seduta 28): per ogni persona una capsula per stile in cui ha almeno due fit, e una
+    # "Preferiti" con un fit rimasto fuori: nel profilo si vedono schede di misure diverse.
+    by_author: dict[str, list[tuple[str, str]]] = {}
+    for (post_id, author, _), spec in zip(posts, POSTS, strict=True):
+        by_author.setdefault(author, []).append((post_id, spec[1]))
+    for author, owned in by_author.items():
+        groups: dict[str, list[str]] = {}
+        for post_id, style in owned:
+            groups.setdefault(style, []).append(post_id)
+        named = [
+            (CAPSULE_NAMES.get(st, st.title()), ids) for st, ids in groups.items() if len(ids) > 1
+        ]
+        # Un fit sta in una sola capsula: "Preferiti" prende un fit rimasto fuori, se c'è.
+        grouped = {post_id for _, ids in named for post_id in ids}
+        loose = [post_id for post_id, _ in owned if post_id not in grouped]
+        if loose:
+            named.append(("Preferiti", loose[:1]))
+        for name, ids in named:
+            r = await client.post(
+                "/v1/me/capsules", json={"name": name}, headers=auth_header(author)
+            )
+            r.raise_for_status()
+            capsule_id = r.json()["id"]
+            for post_id in ids:
+                r = await client.patch(
+                    f"/v1/posts/{post_id}",
+                    json={"capsule_id": capsule_id},
+                    headers=auth_header(author),
+                )
+                r.raise_for_status()
 
     # Voti: tutti tranne l'autore e l'ospite (così il feed dell'ospite è pieno di fit da votare).
     voters = [p["nickname"] for p in PEOPLE if p is not GUEST]

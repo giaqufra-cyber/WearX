@@ -1776,6 +1776,7 @@ export interface components {
         };
         /** CapsuleOut */
         CapsuleOut: {
+            cover?: components["schemas"]["MediaUrls"] | null;
             /**
              * Id
              * Format: uuid
