@@ -47,6 +47,13 @@ class PostPreview(BaseModel):
     photo: MediaUrls | None
 
 
+class ProfilePreview(BaseModel):
+    """Profilo segnalato: quello che vede chi lo apre (seduta 27)."""
+
+    bio: str | None
+    avatar: MediaUrls | None
+
+
 class QueueItem(BaseModel):
     target_type: Literal["post", "profile", "link"]
     target_id: uuid.UUID
@@ -60,6 +67,7 @@ class QueueItem(BaseModel):
     subject: str | None
     subject_status: str | None
     post: PostPreview | None
+    profile: ProfilePreview | None = None
     details: list[str]
 
 
@@ -184,8 +192,11 @@ async def queue(
         for p in (
             await session.execute(
                 text(
-                    """select id, nickname::text as nickname, status::text as status
-                         from app.profiles where id = any(:ids)"""
+                    """select p.id, p.nickname::text as nickname, p.status::text as status,
+                              p.bio, u.id as avatar_id, u.variants as avatar_variants
+                         from app.profiles p
+                         left join app.media_uploads u on u.id = p.avatar_upload_id
+                        where p.id = any(:ids)"""
                 ),
                 {"ids": profiles},
             )
@@ -199,7 +210,7 @@ async def queue(
         for reason in r["reasons"]:
             reasons[reason] = reasons.get(reason, 0) + 1
         due = r["first_at"] + SLA[r["priority"]]
-        preview, subject, subject_status = None, None, None
+        preview, subject, subject_status, profile = None, None, None, None
         if r["target_type"] == "post" and r["target_id"] in previews:
             p = previews[r["target_id"]]
             # Foto mostrate sfocate dall'interfaccia: qui solo l'URL firmato della più piccola.
@@ -213,8 +224,14 @@ async def queue(
             )
             subject, subject_status = p["nickname"], p["author_status"]
         elif r["target_type"] == "profile" and r["target_id"] in people:
-            subject = people[r["target_id"]]["nickname"]
-            subject_status = people[r["target_id"]]["status"]
+            person = people[r["target_id"]]
+            subject, subject_status = person["nickname"], person["status"]
+            profile = ProfilePreview(
+                bio=person["bio"],
+                avatar=media_urls(person["avatar_id"], [min(person["avatar_variants"])])
+                if person["avatar_id"] and person["avatar_variants"]
+                else None,
+            )
         out.append(
             QueueItem(
                 target_type=r["target_type"],
@@ -229,6 +246,7 @@ async def queue(
                 subject=subject,
                 subject_status=subject_status,
                 post=preview,
+                profile=profile,
                 details=list(r["details"] or []),
             )
         )
@@ -276,7 +294,10 @@ async def _last_automatic(
 async def decide(body: DecisionIn, staff: CurrentStaff, session: Session) -> DecisionOut:
     if body.ground not in actions.GROUNDS:
         raise ApiError(422, "moderation.bad_ground", "Motivo non valido")
-    if body.target_type != "post" and body.decision in ("hide", "remove", "restore"):
+    # Sul profilo "remove" toglie bio e foto profilo (seduta 27).
+    if (body.target_type != "post" and body.decision in ("hide", "restore")) or (
+        body.target_type == "link" and body.decision == "remove"
+    ):
         raise ApiError(422, "moderation.bad_decision", "Decisione non valida per questo contenuto")
     subject = await _subject(session, body.target_type, body.target_id)
     # Le decisioni precedenti contano prima di registrare quella di adesso.
@@ -288,6 +309,11 @@ async def decide(body: DecisionIn, staff: CurrentStaff, session: Session) -> Dec
         if body.decision == "hide":
             action_id = await actions.hide_post(
                 session, body.target_id, ground=body.ground, automated=False, actor_id=staff.id
+            )
+            created += [action_id] if action_id else []
+        elif body.decision == "remove" and body.target_type == "profile":
+            action_id, storage_keys = await actions.clear_profile(
+                session, subject, ground=body.ground, actor_id=staff.id
             )
             created += [action_id] if action_id else []
         elif body.decision == "remove":

@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { ACTION_TITLES, APPEAL_STATUS, appealError, useAppeal, useNotices } from "@/features/moderation/api";
+import { APPEAL_STATUS, appealError, noticeTitle, useAppeal, useNotices } from "@/features/moderation/api";
 import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { ErrorNotice, Loading } from "@/ui/LoadState";
@@ -38,9 +38,9 @@ function NoticeCard({ notice, canOpenPost }: { notice: ModerationNotice; canOpen
   const restored = notice.action === "restore";
 
   return (
-    <View style={[styles.card, restored && styles.cardOk]} role="article" aria-label={ACTION_TITLES[notice.action]}>
+    <View style={[styles.card, restored && styles.cardOk]} role="article" aria-label={noticeTitle(notice)}>
       <View style={styles.head}>
-        <Text style={[styles.title, restored && styles.titleOk]}>{ACTION_TITLES[notice.action]}</Text>
+        <Text style={[styles.title, restored && styles.titleOk]}>{noticeTitle(notice)}</Text>
         <Text style={styles.date}>{dateLabel(notice.created_at)}</Text>
       </View>
       <Text style={styles.meta}>

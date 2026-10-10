@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.avatars import AvatarOut, avatar_out
 from app.links import go_url
 from app.post_access import AUTHOR_SHOWN_SQL, POST_VISIBLE_SQL
 from app.profiles import Profile
@@ -36,6 +37,8 @@ class StyleRef(BaseModel):
 class AuthorRef(BaseModel):
     nickname: str
     account_type: Literal["private", "business"]
+    # Foto profilo (seduta 27), solo quando l'autore è mostrato.
+    avatar: AvatarOut | None = None
 
 
 class LinkOut(BaseModel):
@@ -154,6 +157,8 @@ async def posts_out(
                                a.nickname::text as nickname,
                                a.account_type::text as account_type, a.hide_prices,
                                a.hide_vote_count,
+                               au.id as avatar_id, au.variants as avatar_variants,
+                               au.blurhash as avatar_blurhash,
                                {AUTHOR_SHOWN_SQL} as author_shown,
                                coalesce(st.shown_count, 0) as shown_count,
                                coalesce(st.shown_wsum, 0) as shown_wsum,
@@ -166,6 +171,7 @@ async def posts_out(
                                v.score as mine, v.style_confirm as my_confirm
                           from app.posts p
                           join app.profiles a on a.id = p.author_id
+                          left join app.media_uploads au on au.id = a.avatar_upload_id
                           join app.styles s on s.id = p.style_id
                           left join app.post_stats st on st.post_id = p.id
                           left join app.votes v on v.post_id = p.id and v.voter_key = :k
@@ -227,7 +233,11 @@ async def posts_out(
             id=row["id"],
             status=row["status"],
             style=StyleRef(slug=row["slug"], name=row["name"], tone=row["tone"]),
-            author=AuthorRef(nickname=row["nickname"], account_type=row["account_type"])
+            author=AuthorRef(
+                nickname=row["nickname"],
+                account_type=row["account_type"],
+                avatar=avatar_out(row["avatar_id"], row["avatar_variants"], row["avatar_blurhash"]),
+            )
             if row["author_shown"]
             else None,
             is_own=own,

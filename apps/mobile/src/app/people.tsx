@@ -5,8 +5,8 @@ import { useMemo, useState } from "react";
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { initials } from "@/features/feed/format";
 import { type PeopleKind, usePeople, usePeopleAction } from "@/features/social/api";
+import { Avatar } from "@/ui/Avatar";
 import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { IconButton } from "@/ui/IconButton";
@@ -123,9 +123,7 @@ function PersonRow({
         disabled={kind === "blocks"}
         style={styles.who}
       >
-        <View style={styles.avatar} aria-hidden>
-          <Text style={styles.avatarText}>{initials(person.nickname)}</Text>
-        </View>
+        <Avatar nickname={person.nickname} avatar={person.avatar} size={40} />
         <View style={styles.flex}>
           <Text style={styles.nick} numberOfLines={1}>
             @{person.nickname}
@@ -177,17 +175,6 @@ const styles = StyleSheet.create({
   },
   who: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, minWidth: 0 },
   flex: { flex: 1, minWidth: 0 },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: { fontFamily: fonts.uiExtraBold, fontSize: 12, color: colors.text },
   nick: { fontFamily: fonts.uiBold, fontSize: 15, color: colors.text },
   meta: { fontFamily: fonts.mono, fontSize: 10, letterSpacing: 1.2, color: colors.textSecondary, marginTop: 2 },
   actions: { flexDirection: "row", alignItems: "center", gap: 2 },

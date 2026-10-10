@@ -370,3 +370,35 @@ describe("Dettaglio del proprio fit", () => {
     expect(await screen.findByText("Fit non disponibile")).toBeOnTheScreen();
   });
 });
+
+describe("profilo (seduta 27)", () => {
+  test("il proprio: stili visibili solo a sé, Modifica profilo, invito alla bio", async () => {
+    serve(user({ bio: null }));
+    const u = userEvent.setup();
+    await render(<PortfolioScreen nickname="fra.fit" />, { wrapper: Providers });
+    expect(await screen.findByText("I TUOI STILI · LI VEDI SOLO TU")).toBeOnTheScreen();
+    expect(screen.getByLabelText("I tuoi stili, li vedi solo tu: Galà")).toBeOnTheScreen();
+    await u.press(screen.getByRole("link", { name: "+ Aggiungi una bio" }));
+    expect(router.push).toHaveBeenLastCalledWith("/edit-profile");
+    await u.press(screen.getByRole("button", { name: "Modifica profilo" }));
+    await u.press(screen.getByRole("button", { name: "Modifica la foto profilo" }));
+    expect(router.push).toHaveBeenCalledTimes(3);
+  });
+
+  test("quello di un altro: niente stili né modifica, la foto profilo se c'è", async () => {
+    serve(
+      user({
+        nickname: "altro",
+        is_self: false,
+        styles: [],
+        avatar: { blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj", urls: { variants: { "320": "https://cdn/a-320.webp" }, expires_at: "2026-10-10T20:00:00Z" } },
+      }),
+    );
+    await render(<PortfolioScreen nickname="altro" />, { wrapper: Providers });
+    expect(await screen.findByText("@altro")).toBeOnTheScreen();
+    expect(screen.queryByText("I TUOI STILI · LI VEDI SOLO TU")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Modifica profilo" })).toBeNull();
+    // La foto è decorativa (nascosta ai lettori di schermo): il nome è già nel profilo.
+    expect(screen.getByTestId("avatar-photo", { includeHiddenElements: true })).toBeTruthy();
+  });
+});

@@ -3,8 +3,9 @@
 Chi vede cosa:
 - il proprio portfolio sempre, compresi i fit fuori stile o nascosti dalla moderazione;
 - quello di un account Business, o di un account privato che segui (richiesta accettata);
-- altrimenti l'intestazione dice solo nickname, tipo, bio, numero di fit e di follower, e la
-  griglia risponde 403 `profile.private`;
+- altrimenti l'intestazione dice solo nickname, foto, tipo, bio, numero di fit e di follower, e
+  la griglia risponde 403 `profile.private`;
+- gli stili a cui una persona è iscritta li vede solo lei (seduta 27);
 - con un blocco, o se è un 16-17 e tu sei maggiorenne, la persona "non esiste" (404):
   regole in `app/people.py`.
 Le medie seguono la regola dei post: un fit altrui mostra la media solo se l'hai votato.
@@ -25,6 +26,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.avatars import AvatarOut, load_avatar
 from app.db import get_session
 from app.errors import ApiError
 from app.people import FollowState, find_person
@@ -90,6 +92,8 @@ class UserOut(BaseModel):
     pending_requests: int | None = None
     # Account Business: i siti del negozio verificati.
     verified_domains: list[str] = []
+    # Foto profilo (null = iniziali): la vede chi può vedere il profilo.
+    avatar: AvatarOut | None = None
 
 
 class PortfolioTile(BaseModel):
@@ -175,7 +179,9 @@ async def get_user(nickname: str, viewer: CurrentProfile, session: Session) -> U
 
     styles: list[StyleRef] = []
     capsules: list[CapsuleOut] = []
-    if can_view:
+    if own:
+        # Gli stili a cui sei iscritto sono una scelta privata (cosa vuoi vedere nel feed):
+        # dalla seduta 27 non si mostrano agli altri (ogni fit dice comunque il suo stile).
         styles = [
             StyleRef(slug=r["slug"], name=r["name"], tone=r["tone"])
             for r in (
@@ -190,6 +196,7 @@ async def get_user(nickname: str, viewer: CurrentProfile, session: Session) -> U
                 )
             ).mappings()
         ]
+    if can_view:
         capsules = await _capsules(session, viewer, target.id, include_empty=own)
     counts = (
         await session.execute(
@@ -228,6 +235,7 @@ async def get_user(nickname: str, viewer: CurrentProfile, session: Session) -> U
         relationship=Relationship(following=target.following, follows_you=target.follows_you),
         nickname=target.nickname,
         bio=target.bio,
+        avatar=await load_avatar(session, target.id),
         account_type=target.account_type,
         is_self=own,
         can_view_posts=can_view,

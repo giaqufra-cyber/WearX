@@ -16,7 +16,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/features/auth/AuthProvider";
-import { initials } from "@/features/feed/format";
 import { afterIdForStep, useMoveFit, usePortfolio, useUser } from "@/features/portfolio/api";
 import { CapsuleManager } from "@/features/portfolio/CapsuleManager";
 import { FitTile } from "@/features/portfolio/FitTile";
@@ -26,6 +25,7 @@ import { FollowButton } from "@/features/social/FollowButton";
 import { PersonMenu } from "@/features/social/PersonMenu";
 import { useAppConfig } from "@/features/styles/useAppConfig";
 import { ApiError } from "@/lib/api";
+import { Avatar } from "@/ui/Avatar";
 import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { IconButton } from "@/ui/IconButton";
@@ -39,6 +39,8 @@ const MAX_WIDTH = 560;
 const GAP = 8;
 const SIDE = spacing[4];
 const MAX_STYLE_CHIPS = 6;
+// Foto dentro l'anello: 86 - 2 x (bordo 2 + spazio 3).
+const AVATAR = 76;
 
 /** Profilo come portfolio (prototipo, schermata Profilo): statistiche, stili, capsule, griglia. */
 export function PortfolioScreen({ nickname }: { nickname: string }) {
@@ -170,6 +172,19 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
 
       {own ? (
         <View style={styles.buttons}>
+          <View style={styles.flex}>
+            <Button
+              label="Modifica profilo"
+              variant="secondary"
+              size="md"
+              fullWidth
+              onPress={() => router.push("/edit-profile")}
+            />
+          </View>
+        </View>
+      ) : null}
+      {own ? (
+        <View style={[styles.buttons, styles.buttonsTight]}>
           <View style={styles.flex}>
             <Button
               label={reordering ? "Fatto" : "Modifica ordine"}
@@ -336,11 +351,20 @@ function ProfileHead({ profile }: { profile: UserProfile }) {
   return (
     <View>
       <View style={styles.head}>
-        <View style={styles.ring} aria-hidden>
-          <View style={[styles.avatar, { backgroundColor: profile.styles[0]?.tone ?? "#2F3A2B" }]}>
-            <Text style={styles.avatarText}>{initials(profile.nickname)}</Text>
+        {profile.is_self ? (
+          <Pressable
+            role="button"
+            aria-label="Modifica la foto profilo"
+            onPress={() => router.push("/edit-profile")}
+            style={styles.ring}
+          >
+            <Avatar nickname={profile.nickname} avatar={profile.avatar} size={AVATAR} />
+          </Pressable>
+        ) : (
+          <View style={styles.ring} aria-hidden>
+            <Avatar nickname={profile.nickname} avatar={profile.avatar} size={AVATAR} />
           </View>
-        </View>
+        )}
         <View style={styles.stats}>
           <Stat value={statValue(stats.posts, "count")} label="outfit" />
           <Stat value={statValue(stats.average, "average")} label="voto medio" accent />
@@ -367,6 +391,11 @@ function ProfileHead({ profile }: { profile: UserProfile }) {
           />
         </View>
         {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
+        {!profile.bio && profile.is_self ? (
+          <Pressable role="link" onPress={() => router.push("/edit-profile")} hitSlop={8} style={styles.addBio}>
+            <Text style={styles.addBioText}>+ Aggiungi una bio</Text>
+          </Pressable>
+        ) : null}
         {(profile.verified_domains ?? []).length > 0 ? (
           <View style={styles.shops}>
             {profile.verified_domains.map((domain) => (
@@ -379,8 +408,14 @@ function ProfileHead({ profile }: { profile: UserProfile }) {
             ))}
           </View>
         ) : null}
-        {profile.styles.length > 0 ? (
-          <View style={styles.styleChips} aria-label={`Stili: ${profile.styles.map((s) => s.name).join(", ")}`}>
+        {profile.is_self && profile.styles.length > 0 ? (
+          <Text style={styles.stylesLabel}>I TUOI STILI · LI VEDI SOLO TU</Text>
+        ) : null}
+        {profile.is_self && profile.styles.length > 0 ? (
+          <View
+            style={styles.styleChips}
+            aria-label={`I tuoi stili, li vedi solo tu: ${profile.styles.map((s) => s.name).join(", ")}`}
+          >
             {profile.styles.slice(0, MAX_STYLE_CHIPS).map((style) => (
               <Text key={style.slug} style={[styles.styleChip, { backgroundColor: style.tone }]}>
                 {style.name}
@@ -537,8 +572,9 @@ const styles = StyleSheet.create({
   topNick: { fontFamily: fonts.uiExtraBold, fontSize: 18, color: colors.text },
   head: { flexDirection: "row", alignItems: "center", gap: 18, paddingHorizontal: SIDE, paddingTop: 6 },
   ring: { width: 86, height: 86, borderRadius: 43, borderWidth: 2, borderColor: colors.accent, padding: 3 },
-  avatar: { flex: 1, borderRadius: 40, alignItems: "center", justifyContent: "center" },
-  avatarText: { fontFamily: fonts.display, fontSize: 28, color: colors.text },
+  addBio: { alignSelf: "flex-start", marginTop: 6 },
+  addBioText: { fontFamily: fonts.uiBold, fontSize: 13, color: colors.textSecondary },
+  stylesLabel: { fontFamily: fonts.mono, fontSize: 10, letterSpacing: 1.4, color: colors.textTertiary, marginTop: 14 },
   stats: { flex: 1, flexDirection: "row" },
   stat: { flex: 1, alignItems: "center" },
   statValue: { fontFamily: fonts.numeric, fontSize: 22, color: colors.text, fontVariant: ["tabular-nums"] },
@@ -559,7 +595,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   bio: { fontFamily: fonts.ui, fontSize: 14, lineHeight: 20, color: colors.textMuted, marginTop: 6 },
-  styleChips: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 12 },
+  styleChips: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 8 },
   styleChip: {
     fontFamily: fonts.display,
     fontSize: 14,
@@ -578,6 +614,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   buttons: { flexDirection: "row", gap: GAP, paddingHorizontal: SIDE, paddingTop: spacing[4] },
+  buttonsTight: { paddingTop: GAP },
   hint: {
     fontFamily: fonts.ui,
     fontSize: 12,

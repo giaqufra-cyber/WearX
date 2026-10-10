@@ -35,6 +35,7 @@ export type AgeSession = Schemas["AgeSessionOut"];
 export type AgeSessionRequest = Schemas["AgeSessionIn"];
 export type AgeMethod = Schemas["AgeSessionIn"]["method"];
 export type UserProfile = Schemas["UserOut"];
+export type Avatar = Schemas["AvatarOut"];
 export type PortfolioPage = Schemas["PortfolioPage"];
 export type PortfolioTile = Schemas["PortfolioTile"];
 export type StylePostsPage = Schemas["StylePostsPage"];

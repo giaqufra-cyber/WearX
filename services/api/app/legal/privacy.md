@@ -15,8 +15,8 @@ Per tutto ciò che riguarda i tuoi dati: **privacy@wearx.app**.
 
 - Non vendiamo i tuoi dati e non mostriamo pubblicità. Nell'app non ci sono cookie, né
   strumenti di tracciamento di terze parti.
-- Gli altri vedono il tuo nickname, la bio, i fit e gli stili. Email e numero di telefono
-  restano privati.
+- Gli altri vedono il tuo nickname, la foto profilo, la bio e i fit (ognuno con il suo stile).
+  Gli stili a cui sei iscritto li vedi solo tu. Email e numero di telefono restano privati.
 - I voti sono anonimi: chi riceve un voto non sa chi l'ha dato. Nel nostro database i voti
   sono salvati con uno pseudonimo, non con il tuo account.
 - La data di nascita la usiamo solo per calcolare la fascia d'età e non la conserviamo.
@@ -29,9 +29,9 @@ accesso e nessuno di WearX può leggerla. Quando scegli la password, l'app contr
 tra quelle finite in fughe di dati note: al servizio Have I Been Pwned arrivano solo i primi 5
 caratteri di un'impronta (hash) della password, mai la password.
 
-**Profilo.** Nickname, bio, tipo di account (privato o Business), stili scelti, impostazioni
-(prezzi nascosti, numero di voti nascosto, notifiche), versione dei Termini accettata e data
-dell'accettazione.
+**Profilo.** Nickname, foto profilo (se la metti), bio, tipo di account (privato o Business),
+stili scelti (li vedi solo tu), impostazioni (prezzi nascosti, numero di voti nascosto,
+notifiche), versione dei Termini accettata e data dell'accettazione.
 
 **Età.** Ci servono la tua fascia d'età (16-17 anni oppure 18 e più) e la data in cui compirai 18
 anni. La data di nascita che inserisci serve a calcolarle e poi la cancelliamo. Se l'età viene

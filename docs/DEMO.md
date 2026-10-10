@@ -48,7 +48,7 @@ La prima volta ci mette qualche minuto (prepara l'app web). Poi stampa:
 Lascia la finestra aperta: chiuderla (o Ctrl+C) spegne la demo. Il computer deve restare acceso
 e collegato a internet.
 
-Cosa trovi dentro: 8 persone, 18 fit disegnati in 6 stili con capi e prezzi, voti già dati (le
+Cosa trovi dentro: 8 persone (quasi tutte con foto profilo e bio), 18 fit disegnati in 6 stili con capi e prezzi, voti già dati (le
 medie si aggiornano ogni minuto invece che ogni ora), un follow accettato, una richiesta inviata e
 una ricevuta. Puoi registrarti con un account nuovo (verifica dell'età di prova inclusa),
 pubblicare fit dalla galleria, votare, seguire, segnalare.
