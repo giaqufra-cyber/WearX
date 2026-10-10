@@ -7,6 +7,7 @@ import { PixelRatio, Pressable, StyleSheet, Text, View } from "react-native";
 import { bestVariant } from "@/features/feed/format";
 import { positionLabel, tileScore, tileStatus } from "@/features/portfolio/format";
 import { IconChevronLeft, IconChevronRight } from "@/ui/icons";
+import { Shade } from "@/ui/Shade";
 
 type Props = {
   tile: PortfolioTile;
@@ -27,12 +28,6 @@ type Props = {
 };
 
 const RATIO = 1.28; // 175 x 224 come nel prototipo
-// Sfumature fatte di strisce sottili (curva morbida: niente bande visibili). In basso fino al
-// quasi nero per leggere titolo e voto; in alto leggera, per la posizione e i badge.
-const shade = (steps: number, max: number) =>
-  Array.from({ length: steps }, (_, i) => Math.round(max * ((i + 1) / steps) ** 1.6 * 1000) / 1000);
-const SHADE = shade(28, 0.88);
-const SHADE_TOP = shade(8, 0.35).reverse();
 
 /** Fit nella griglia del portfolio: foto, posizione, copertina, stile, titolo, voto. */
 export const FitTile = memo(function FitTile({
@@ -90,16 +85,10 @@ export const FitTile = memo(function FitTile({
           />
         ) : null}
         {/* Sfumatura in basso per leggere il testo sopra la foto. */}
-        <View style={styles.shadeTop} pointerEvents="none">
-          {SHADE_TOP.map((opacity) => (
-            <View key={opacity} style={[styles.band, { opacity }]} />
-          ))}
-        </View>
-        <View style={[styles.shade, { height: height * 0.62 }]} pointerEvents="none">
-          {SHADE.map((opacity) => (
-            <View key={opacity} style={[styles.band, { opacity }]} />
-          ))}
-        </View>
+        {/* In basso fino al quasi nero per leggere titolo e voto; in alto leggera, per la
+            posizione e i badge. */}
+        <Shade from="top" max={0.35} style={styles.shadeTop} />
+        <Shade from="bottom" max={0.88} style={{ ...styles.shade, height: height * 0.62 }} />
 
         {numbered ? <Text style={styles.pos}>{positionLabel(index)}</Text> : null}
         <View style={styles.badges}>
@@ -160,9 +149,8 @@ export const FitTile = memo(function FitTile({
 
 const styles = StyleSheet.create({
   tile: { borderRadius: radii.lg, overflow: "hidden" },
-  shadeTop: { position: "absolute", left: 0, right: 0, top: 0, height: 56 },
-  shade: { position: "absolute", left: 0, right: 0, bottom: 0 },
-  band: { flex: 1, backgroundColor: "#0A0A0B" },
+  shadeTop: { top: 0, height: 56 },
+  shade: { bottom: 0 },
   pos: {
     position: "absolute",
     left: 12,

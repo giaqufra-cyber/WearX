@@ -93,7 +93,7 @@ const post = (id: string, extra: Partial<Post> = {}): Post => ({
 const page = (items: Post[], extra: Partial<FeedPage> = {}): FeedPage => ({ items, next_cursor: null, ...extra });
 
 const MY_STYLES = {
-  items: [{ slug: "gala", name: "Galà", tagline: "", tone: "#3A1418", min_age_band: "16_17", seasonal: false, active_until: null, member_count: 3, joined: true }],
+  items: [{ slug: "gala", name: "Galà", tagline: "", tone: "#3A1418", min_age_band: "16_17", seasonal: false, active_until: null, member_count: 3, joined: true, category: "stili" }],
   total: 1,
 };
 

@@ -64,7 +64,7 @@ async def test_ricerca(client, keys, db_admin, query, expected_first):
 
 async def test_ricerca_senza_risultati_e_caratteri_speciali(client, keys, db_admin):
     _, headers, _ = await onboard(client, keys, db_admin)
-    for query in ("zzzzqqq", "%", "_", "\\", "' or 1=1 --"):
+    for query in ("zzzzqqq", "%", "_", "\\", "' qq=1 --"):
         assert _slugs(await client.get("/v1/styles", params={"q": query}, headers=headers)) == []
     r = await client.get("/v1/styles", params={"q": "x" * 41}, headers=headers)
     assert r.status_code == 422
@@ -229,3 +229,29 @@ def test_promote_adults_in_blocco(db_admin):
     assert promoted is not None and promoted[0] >= 1
     row = db_admin.execute("select age_band::text from app.profiles where id = %s", (user_id,))
     assert row.fetchone() == ("18_plus",)
+
+
+async def test_catalogo_ampio_con_categorie_e_i_piu_seguiti_per_primi(client, keys, db_admin):
+    _, headers, _ = await onboard(client, keys, db_admin)
+    assert (await client.put("/v1/styles/surf/membership", headers=headers)).status_code == 200
+    body = (await client.get("/v1/styles", headers=headers)).json()
+    by_slug = {s["slug"]: s for s in body["items"]}
+    assert body["total"] >= 50
+    assert {"surf", "gioielli", "make-up", "emo", "sci-snowboard", "cosplay"} <= set(by_slug)
+    assert (by_slug["surf"]["category"], by_slug["gala"]["category"]) == ("sport", "occasioni")
+    counts = [s["member_count"] for s in body["items"]]
+    assert counts == sorted(counts, reverse=True)
+
+    sport = (await client.get("/v1/styles", params={"category": "sport"}, headers=headers)).json()
+    assert sport["items"] and {s["category"] for s in sport["items"]} == {"sport"}
+    found = await client.get(
+        "/v1/styles", params={"q": "snow", "category": "sport"}, headers=headers
+    )
+    assert _slugs(found)[0] == "sci-snowboard"
+    bad = await client.get("/v1/styles", params={"category": "auto"}, headers=headers)
+    assert bad.status_code == 422
+
+    config = (await client.get("/v1/config")).json()["styles"]
+    assert {s["slug"]: s["category"] for s in config}["make-up"] == "beauty"
+    config_counts = [by_slug[s["slug"]]["member_count"] for s in config if s["slug"] in by_slug]
+    assert config_counts == sorted(config_counts, reverse=True)

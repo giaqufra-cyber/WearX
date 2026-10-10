@@ -199,10 +199,6 @@ export default function EditProfileScreen() {
             <Text style={styles.hint}>Per ora il nickname non si può cambiare.</Text>
           </View>
 
-          <Text style={styles.note}>
-            Gli stili a cui sei iscritto li vedi solo tu: servono a scegliere cosa vedi nel feed. Chi apre il tuo
-            profilo vede i tuoi fit, ognuno con il suo stile.
-          </Text>
 
           {error ? (
             <Text style={[styles.status, styles.error]} role="alert">

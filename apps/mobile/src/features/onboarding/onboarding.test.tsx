@@ -74,6 +74,7 @@ const style = (slug: string, name: string, min_age_band = "16_plus") => ({
   min_age_band,
   seasonal: false,
   active_until: null,
+  category: "stili",
 });
 
 const config: AppConfig = {

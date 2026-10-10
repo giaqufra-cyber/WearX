@@ -7,7 +7,6 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -433,12 +432,9 @@ function ProfileHead({ profile }: { profile: UserProfile }) {
           </View>
         ) : null}
         {profile.is_self && profile.styles.length > 0 ? (
-          <Text style={styles.stylesLabel}>I TUOI STILI · LI VEDI SOLO TU</Text>
-        ) : null}
-        {profile.is_self && profile.styles.length > 0 ? (
           <View
             style={styles.styleChips}
-            aria-label={`I tuoi stili, li vedi solo tu: ${profile.styles.map((s) => s.name).join(", ")}`}
+            aria-label={`I tuoi stili: ${profile.styles.map((s) => s.name).join(", ")}`}
           >
             {profile.styles.slice(0, MAX_STYLE_CHIPS).map((style) => (
               <Text key={style.slug} style={[styles.styleChip, { backgroundColor: style.tone }]}>

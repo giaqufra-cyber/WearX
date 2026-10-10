@@ -373,12 +373,11 @@ describe("Dettaglio del proprio fit", () => {
 });
 
 describe("profilo (seduta 27)", () => {
-  test("il proprio: stili visibili solo a sé, Modifica profilo, invito alla bio", async () => {
+  test("il proprio: i suoi stili, Modifica profilo, invito alla bio", async () => {
     serve(user({ bio: null }));
     const u = userEvent.setup();
     await render(<PortfolioScreen nickname="fra.fit" />, { wrapper: Providers });
-    expect(await screen.findByText("I TUOI STILI · LI VEDI SOLO TU")).toBeOnTheScreen();
-    expect(screen.getByLabelText("I tuoi stili, li vedi solo tu: Galà")).toBeOnTheScreen();
+    expect(await screen.findByLabelText("I tuoi stili: Galà")).toBeOnTheScreen();
     await u.press(screen.getByRole("link", { name: "+ Aggiungi una bio" }));
     expect(router.push).toHaveBeenLastCalledWith("/edit-profile");
     await u.press(screen.getByRole("button", { name: "Modifica profilo" }));
@@ -397,7 +396,7 @@ describe("profilo (seduta 27)", () => {
     );
     await render(<PortfolioScreen nickname="altro" />, { wrapper: Providers });
     expect(await screen.findByText("@altro")).toBeOnTheScreen();
-    expect(screen.queryByText("I TUOI STILI · LI VEDI SOLO TU")).toBeNull();
+    expect(screen.queryByLabelText(/^I tuoi stili/)).toBeNull();
     expect(screen.queryByRole("button", { name: "Modifica profilo" })).toBeNull();
     // La foto è decorativa (nascosta ai lettori di schermo): il nome è già nel profilo.
     expect(screen.getByTestId("avatar-photo", { includeHiddenElements: true })).toBeTruthy();

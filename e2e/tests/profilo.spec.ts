@@ -4,11 +4,11 @@ import { expect, test } from "@playwright/test";
 
 import { login, state } from "./helpers";
 
-test("modifica profilo: bio e foto profilo, gli stili li vedi solo tu", async ({ page }) => {
+test("modifica profilo: bio e foto profilo, i tuoi stili", async ({ page }) => {
   const { people } = await state();
   await login(page, people["marco.e2e"]!);
   await page.getByRole("tab", { name: "Il tuo profilo" }).click();
-  await expect(page.getByText("I TUOI STILI · LI VEDI SOLO TU")).toBeVisible();
+  await expect(page.getByLabel(/^I tuoi stili:/)).toBeVisible();
   await page.getByRole("button", { name: "Modifica profilo" }).click();
   await expect(page.getByRole("heading", { name: "Modifica profilo" })).toBeVisible();
 

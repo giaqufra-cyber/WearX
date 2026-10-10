@@ -49,6 +49,7 @@ const style = (slug: string, name: string) => ({
   tagline: "",
   tone: "#3D1018",
   min_age_band: "16_17",
+  category: "stili",
   seasonal: false,
   active_until: null,
   member_count: 1,
@@ -233,4 +234,17 @@ test("togliere la foto su cui è segnato un capo toglie anche il punto", async (
   });
   expect(useNewPostDraft.getState().items[0]!.pin).toBeNull();
   expect(screen.getByText("Segna sulla foto (opz.)")).toBeOnTheScreen();
+});
+
+test("stile: si cerca in tutto il catalogo, i tuoi per primi", async () => {
+  const user = userEvent.setup();
+  await render(<NewPostScreen />, { wrapper: Providers });
+  const radios = await screen.findAllByRole("radio");
+  expect(radios.map((r) => r.props.accessibilityLabel ?? r.props["aria-label"])).toEqual(["Galà", "Jappo"]);
+  await fireEvent.changeText(screen.getByLabelText("Cerca lo stile del fit"), "jap");
+  expect(screen.getAllByRole("radio")).toHaveLength(1);
+  await user.press(screen.getByRole("radio", { name: "Jappo" }));
+  await fireEvent.changeText(screen.getByLabelText("Cerca lo stile del fit"), "nessuno");
+  expect(screen.getByText(/Nessuno stile con questo nome/)).toBeOnTheScreen();
+  expect(useNewPostDraft.getState().style).toBe("jappo");
 });

@@ -10,7 +10,7 @@ import { type StyleSort, useMembership, useStyle, useStylePosts } from "@/featur
 import { membersLabel, seasonEndLabel } from "@/features/styles/format";
 import { ApiError } from "@/lib/api";
 import { EmptyState } from "@/ui/EmptyState";
-import { IconBack, IconCheck, IconShield } from "@/ui/icons";
+import { IconBack, IconCheck } from "@/ui/icons";
 import { IconButton } from "@/ui/IconButton";
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { SegmentedControl } from "@/ui/SegmentedControl";
@@ -126,15 +126,6 @@ export default function StylePage() {
       </View>
 
       <View style={styles.body}>
-        <View style={styles.rule}>
-          <IconShield color={colors.accent} size={18} />
-          <RNText style={styles.ruleText}>
-            <RNText style={styles.ruleStrong}>Stile verificato dalla community. </RNText>
-            Chi vota conferma anche se il fit è davvero {data.name}. Sotto il 70% di match il post esce da questa
-            pagina.
-          </RNText>
-        </View>
-
         <View style={styles.sectionRow}>
           <Text variant="label" style={styles.section}>
             {data.posts_last_7_days === 1 ? "1 FIT QUESTA SETTIMANA" : `${data.posts_last_7_days} FIT QUESTA SETTIMANA`}

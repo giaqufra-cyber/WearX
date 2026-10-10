@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { PixelRatio, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { bestVariant } from "@/features/feed/format";
+import { Shade } from "@/ui/Shade";
 
 /**
  * Capsule come "collezioni" di un portfolio (seduta 28): una copertina per capsula, più grande
@@ -17,8 +18,6 @@ export const CAPSULE_SIZES = [
   { min: 10, width: 176 },
 ] as const;
 const RATIO = 1.25; // 4:5, come le foto dei fit
-// Sfumatura in basso per leggere nome e numero sopra la foto.
-const SHADE = [0.05, 0.15, 0.3, 0.48, 0.66, 0.82];
 
 export function capsuleWidth(postCount: number): number {
   let width: number = CAPSULE_SIZES[0].width;
@@ -84,11 +83,7 @@ export function CapsuleShelf({ capsules, total, active, onSelect }: Props) {
                   accessible={false}
                 />
               ) : null}
-              <View style={styles.shade} pointerEvents="none">
-                {SHADE.map((opacity) => (
-                  <View key={opacity} style={[styles.band, { opacity }]} />
-                ))}
-              </View>
+              <Shade from="bottom" max={0.85} color="#000" style={styles.shade} />
               <View style={styles.caption} pointerEvents="none">
                 <Text style={styles.name} numberOfLines={2}>
                   {capsule.name}
@@ -128,8 +123,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   selected: { borderColor: colors.accent, borderWidth: 2 },
-  shade: { position: "absolute", left: 0, right: 0, bottom: 0, height: "65%" },
-  band: { flex: 1, backgroundColor: "#000" },
+  shade: { top: "35%", bottom: 0 },
   caption: { padding: 10, gap: 2 },
   name: { fontFamily: fonts.display, fontSize: 16, lineHeight: 19, color: colors.text },
   count: { fontFamily: fonts.mono, fontSize: 10, letterSpacing: 1.2, color: colors.textSecondary },

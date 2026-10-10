@@ -24,6 +24,12 @@ export default function WelcomeScreen() {
         <Text
           style={[styles.logo, { fontSize: size, lineHeight: size * 0.92, letterSpacing: -size * 0.045 }]}
           numberOfLines={1}
+          // Il logo non segue la dimensione del testo di sistema (con "Testo più grande" su
+          // iPhone usciva dallo schermo e finiva con "…"); se proprio non entra, si rimpicciolisce.
+          allowFontScaling={false}
+          adjustsFontSizeToFit
+          minimumFontScale={0.6}
+          ellipsizeMode="clip"
           role="heading"
           aria-label="WearX"
         >

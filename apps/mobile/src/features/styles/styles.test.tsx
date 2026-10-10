@@ -31,6 +31,7 @@ const card = (slug: string, name: string, extra: Partial<StyleCard> = {}): Style
   tagline: `${name} tagline`,
   tone: "#2A2A2E",
   min_age_band: "16_17",
+  category: "stili",
   seasonal: false,
   active_until: null,
   member_count: 10,
