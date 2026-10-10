@@ -1236,10 +1236,12 @@ voto, pubblicazione con foto dalla galleria e richiesta di follow. Esito, scherm
 finiscono sul ramo `ci/android-results`. **Tutti e 4 i percorsi passano.**
 
 Trovato e corretto grazie a questo (non si vedeva sul web):
-- **L'app si chiudeva su Android** quando un avviso compariva mentre si cambiava schermata (il
-  "Benvenuto" dopo la registrazione, "Fit pubblicato"). Gli avvisi ora nascono in un contenitore
-  fisso. Spento anche il taglio delle viste fuori schermo nelle liste, che su Android con la
-  nuova architettura è fragile.
+- **L'app si chiudeva su Android** alla fine di "Entra in WearX" e di "Pubblica". Il registro
+  dell'emulatore indicava le viste coinvolte: il pulsante con il caricamento. Quando lo spinner
+  spariva, React Native su Android riorganizzava le viste del pulsante nell'ordine sbagliato e
+  l'app si chiudeva. Corretto nel componente Button (vale per tutti i pulsanti); dopo la
+  correzione tutti i percorsi passano, più volte di fila. Gli avvisi ora nascono in un
+  contenitore fisso (più robusto, non era la causa).
 - La pagina di prova della verifica dell'età non riportava all'app (Chrome bloccava il ritorno a
   `wearx://`): corretta, con test.
 - Toccare l'etichetta di un campo ora porta nel campo, come sul web.
