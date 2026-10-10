@@ -21,7 +21,7 @@ import { NotificationBell } from "@/features/notifications/NotificationBell";
 import { useMyStyles } from "@/features/styles/api";
 import { track } from "@/lib/events";
 import { EmptyState } from "@/ui/EmptyState";
-import { IconChat, IconPlus } from "@/ui/icons";
+import { IconPlus } from "@/ui/icons";
 import { ErrorNotice } from "@/ui/LoadState";
 import { Skeleton } from "@/ui/Skeleton";
 import { Text } from "@/ui/Text";
@@ -66,11 +66,20 @@ export default function FeedScreen() {
   const header = (
     <View>
       <View style={styles.header}>
-        <Text variant="logo" role="heading" aria-label="WearX" style={styles.logo} numberOfLines={1}>
+        <Text
+          variant="logo"
+          role="heading"
+          aria-label="WearX"
+          style={styles.logo}
+          numberOfLines={1}
+          allowFontScaling={false}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          ellipsizeMode="clip"
+        >
           WEAR<Text variant="logo" color={colors.accent} style={styles.logo}>X</Text>
         </Text>
         <View style={styles.headerRight}>
-          <Text variant="secondary" style={styles.subtitle} numberOfLines={1}>i tuoi stili</Text>
           <NotificationBell />
         </View>
       </View>
@@ -98,12 +107,6 @@ export default function FeedScreen() {
           </Pressable>
         </ScrollView>
       ) : null}
-      <View style={styles.rule}>
-        <IconChat color={colors.textSecondary} size={16} />
-        <Text variant="secondary" style={styles.ruleText}>
-          Qui non si commenta. Si vota da 1 a 100, in forma anonima.
-        </Text>
-      </View>
       {mine.isError ? <ErrorNotice error={mine.error} onRetry={() => void mine.refetch()} /> : null}
     </View>
   );

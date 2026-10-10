@@ -16,12 +16,17 @@ import { ItemCard } from "@/features/create/ItemCard";
 import { PhotoStrip } from "@/features/create/PhotoStrip";
 import { PORTFOLIO_KEY } from "@/features/portfolio/api";
 import { STYLES_KEY, useMyStyles, useStyles } from "@/features/styles/api";
+import { styleChoices } from "@/features/styles/catalog";
 import { ApiError, apiRequest } from "@/lib/api";
 import { Button } from "@/ui/Button";
 import { IconClose, IconLock } from "@/ui/icons";
 import { IconButton } from "@/ui/IconButton";
+import { SearchField } from "@/ui/SearchField";
 import { Sheet } from "@/ui/Sheet";
 import { useToast } from "@/ui/Toast";
+
+/** Stili mostrati senza ricerca, prima di "Tutti gli stili". */
+const STYLE_CHOICES = 14;
 
 const PUBLISH_ERRORS: Record<string, string> = {
   "link.invalid": "Uno dei link ai negozi non è valido: usa un indirizzo https del sito.",
@@ -49,12 +54,21 @@ export default function NewPostScreen() {
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // I tuoi stili per primi, poi gli altri.
-  const styleOptions = useMemo(() => {
-    const own = mine.data?.items ?? [];
-    const others = (all.data?.items ?? []).filter((s) => !own.some((o) => o.slug === s.slug));
-    return [...own, ...others];
-  }, [mine.data, all.data]);
+  const [styleQuery, setStyleQuery] = useState("");
+  const [allStyles, setAllStyles] = useState(false);
+  // Senza ricerca: lo stile scelto, i tuoi, poi i più seguiti (seduta 29). Con la ricerca: tutti
+  // quelli che corrispondono, in tutto il catalogo.
+  const choices = useMemo(
+    () =>
+      styleChoices(
+        all.data?.items ?? [],
+        mine.data?.items ?? [],
+        styleQuery,
+        draft.style,
+        allStyles ? Number.MAX_SAFE_INTEGER : STYLE_CHOICES,
+      ),
+    [all.data, mine.data, styleQuery, draft.style, allStyles],
+  );
 
   const check = canPublish(draft);
 
@@ -142,11 +156,16 @@ export default function NewPostScreen() {
             onMove={draft.movePhoto}
             onRetry={retryPhoto}
           />
-          <RNText style={styles.note}>L'ordine qui è l'ordine del carosello. Fino a 10 foto.</RNText>
 
           <Section title="2 · STILE DEL FIT" />
+          <SearchField
+            value={styleQuery}
+            onChangeText={setStyleQuery}
+            label="Cerca lo stile del fit"
+            placeholder="Cerca: surf, gioielli, galà…"
+          />
           <View style={styles.styles} role="radiogroup" aria-label="Stile del fit">
-            {styleOptions.map((style: StyleCard) => {
+            {choices.items.map((style: StyleCard) => {
               const selected = draft.style === style.slug;
               return (
                 <Pressable
@@ -161,8 +180,19 @@ export default function NewPostScreen() {
                 </Pressable>
               );
             })}
+            {choices.more > 0 ? (
+              <Pressable
+                role="button"
+                onPress={() => setAllStyles(true)}
+                style={({ pressed }) => [styles.styleChip, styles.moreChip, pressed ? styles.pressed : null]}
+              >
+                <RNText style={styles.moreText}>Tutti gli stili (+{choices.more})</RNText>
+              </Pressable>
+            ) : null}
           </View>
-          <RNText style={styles.note}>Un solo stile per post. I primi votanti confermano se è davvero quello.</RNText>
+          {styleQuery.trim() && choices.items.length === 0 ? (
+            <RNText style={styles.note}>Nessuno stile con questo nome. Prova un&apos;altra parola.</RNText>
+          ) : null}
 
           <Section title="3 · I CAPI" />
           <View style={styles.items}>
@@ -183,7 +213,6 @@ export default function NewPostScreen() {
               <RNText style={styles.addItemText}>+ Aggiungi un capo</RNText>
             </Pressable>
           ) : null}
-          <RNText style={styles.note}>Segna ogni capo sulla foto: sul fit compare un punto con il brand. Accettiamo solo link https. Ogni link viene controllato prima di essere mostrato.</RNText>
 
           <Section title="4 · DIDASCALIA" aside={`${draft.caption.length}/${CAPTION_MAX}`} />
           <TextInput
@@ -265,7 +294,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 11 * 0.14, color: colors.textSecondary },
   sectionAside: { fontFamily: fonts.ui, fontSize: 12, color: colors.textTertiary },
   note: { fontFamily: fonts.ui, fontSize: 12, lineHeight: 17, color: colors.textTertiary, marginTop: spacing[2] },
-  styles: { flexDirection: "row", flexWrap: "wrap", gap: spacing[2] },
+  styles: { flexDirection: "row", flexWrap: "wrap", gap: spacing[2], marginTop: spacing[3] },
   styleChip: {
     height: 36,
     paddingHorizontal: 14,
@@ -275,6 +304,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   styleText: { fontFamily: fonts.display, fontSize: 15, color: colors.text },
+  moreChip: { borderStyle: "dashed" },
+  moreText: { fontFamily: fonts.uiBold, fontSize: 13, color: colors.textSecondary },
   items: { gap: 10 },
   addItem: {
     height: 46,

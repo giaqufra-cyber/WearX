@@ -1394,3 +1394,42 @@ Fatto:
 Verifiche: 423 test API (+1); 286 test app (+2, misure delle capsule e copertina a tutta
 larghezza); 10 percorsi Playwright invariati; demo provata nel browser a 390×844.
 
+### Seduta 29 — 2026-10-11
+
+**Obiettivo:** catalogo stili ampio, i più seguiti per primi, ricerca dello stile quando
+pubblichi. In più, le correzioni segnalate dopo la prova delle sedute 26-28.
+
+Fatto:
+- **Catalogo** (migrazione 0019): 41 stili nuovi, 53 in tutto, in sei categorie: stili
+  (casual, preppy, vintage, workwear, coquette, dark academia…), sport (surf, skate, basket,
+  calcio, running, sci e snowboard, ciclismo, tennis, golf, gym, arrampicata), accessori
+  (gioielli, orologi, sneaker, borse, occhiali, cappelli), beauty (make-up, capelli),
+  sottoculture (emo, goth, punk, grunge, metal, rockabilly, hip hop, rave, cosplay), occasioni
+  (galà, beach party, Halloween, matrimonio, festival, laurea). Colonna `styles.category`.
+- **I più seguiti per primi**: `GET /v1/styles` e gli stili di `/v1/config` sono ordinati per
+  numero di iscritti, poi per l'ordine dello staff; nella ricerca, a parità di somiglianza,
+  vince il più seguito. Filtro `?category=`.
+- **App**: filtro per categoria (Più seguiti · Stili · Sport · Accessori · Beauty ·
+  Sottoculture · Occasioni) in Esplora e nella scelta degli stili alla registrazione. In
+  "Nuovo fit" lo stile si cerca in tutto il catalogo (nome, descrizione, categoria, senza
+  accenti); senza ricerca compaiono lo stile scelto, i tuoi e poi i più seguiti (14), con
+  "Tutti gli stili (+N)".
+
+Correzioni dalla prova:
+- **Prezzo**: era già facoltativo, ma non si capiva: ora il campo dice "Prezzo € (opz.)".
+- **Riquadri degli stili** (registrazione ed Esplora): altezza minima invece che fissa, nome su
+  due righe se serve, descrizione su due righe alla registrazione; niente più testi tagliati,
+  anche con il testo di sistema più grande.
+- **Logo con "…"**: il logo seguiva la dimensione del testo dell'iPhone e con "Testo più grande"
+  usciva dallo schermo. Ora ha una dimensione fissa e, se non entra, si rimpicciolisce.
+- **Righe orizzontali sulle foto**: le sfumature sopra le foto erano fatte di 28 strisce; sul
+  telefono tra una striscia e l'altra comparivano righe più chiare. Ora sono un gradiente vero
+  (`ui/Shade.tsx`, SVG). Anche le foto disegnate della demo avevano righe apposta: tolte.
+- **Testi superflui tolti**: "Qui non si commenta…" e "i tuoi stili" nel feed, "I TUOI STILI · LI
+  VEDI SOLO TU" nel profilo, il riquadro "Stile verificato dalla community" nella pagina dello
+  stile, le note sotto foto, stile e capi in "Nuovo fit", la nota sugli stili in "Modifica
+  profilo".
+
+Verifiche: 424 test API (+1); 291 test app (+5); 12 percorsi Playwright (app e pannello);
+registrazione, feed, Esplora e "Nuovo fit" provati nel browser a 390×844.
+

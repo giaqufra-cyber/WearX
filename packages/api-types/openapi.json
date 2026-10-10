@@ -4328,6 +4328,19 @@
             ],
             "title": "Active Until"
           },
+          "category": {
+            "default": "stili",
+            "enum": [
+              "stili",
+              "sport",
+              "accessori",
+              "beauty",
+              "sottoculture",
+              "occasioni"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
           "joined": {
             "title": "Joined",
             "type": "boolean"
@@ -4488,6 +4501,19 @@
               }
             ],
             "title": "Active Until"
+          },
+          "category": {
+            "default": "stili",
+            "enum": [
+              "stili",
+              "sport",
+              "accessori",
+              "beauty",
+              "sottoculture",
+              "occasioni"
+            ],
+            "title": "Category",
+            "type": "string"
           },
           "joined": {
             "title": "Joined",
@@ -4686,6 +4712,11 @@
               }
             ],
             "title": "Active Until"
+          },
+          "category": {
+            "default": "stili",
+            "title": "Category",
+            "type": "string"
           },
           "min_age_band": {
             "title": "Min Age Band",
@@ -8720,6 +8751,30 @@
                 }
               ],
               "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "stili",
+                    "sport",
+                    "accessori",
+                    "beauty",
+                    "sottoculture",
+                    "occasioni"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
             }
           }
         ],

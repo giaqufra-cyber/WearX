@@ -73,7 +73,7 @@ export function ItemCard({ index, item, photos, canRemove, onChange, onRemove }:
         <View style={styles.cell}>
           <Field
             aria-label={`Prezzo in euro del capo ${index + 1}`}
-            placeholder="Prezzo €"
+            placeholder="Prezzo € (opz.)"
             value={item.price}
             onChangeText={(price) => onChange({ price })}
             keyboardType="decimal-pad"

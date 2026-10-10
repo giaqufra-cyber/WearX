@@ -122,9 +122,7 @@ def draw_look(style: str, look: Look, skin: str, *, shade: float = 0.0, shift: i
     d = ImageDraw.Draw(img)
     for y in range(h):
         d.line([(0, y), (w, y)], fill=_mix(top_color, bottom_color, y / h))
-    # Righe orizzontali leggere (come le schermate del prototipo).
-    for y in range(0, h, 9):
-        d.line([(0, y), (w, y)], fill=_mix(_mix(top_color, bottom_color, y / h), (0, 0, 0), 0.08))
+    # Niente righe orizzontali: sul telefono sembravano un difetto della foto (seduta 29).
 
     cx = 540 + shift
     # Ombra a terra.
@@ -213,6 +211,7 @@ PEOPLE = [
     {"nickname": "elena.conti", "email": "elena@demo.test"},
 ]
 STYLES = ["old-money", "streetwear", "jappo", "gala", "minimal", "elegant"]
+EXTRA_STYLES = ["surf", "gioielli", "sneaker", "make-up", "skate", "vintage", "tennis", "emo"]
 CAPSULE_NAMES = {
     "old-money": "Weekend al lago",
     "streetwear": "In città",
@@ -425,7 +424,8 @@ async def demo_seed(auth: Any, client: Any, store: Any) -> dict[str, Any]:
         with cf.admin_conn(cf.TEST_DB) as db:
             cf.pass_age_check(db, uuid.UUID(user["id"]))
         token = auth.session(user)["access_token"]
-        styles = STYLES if person is GUEST else rng.sample(STYLES, 3)
+        # Anche qualche stile del catalogo nuovo (seduta 29): così "i più seguiti" si mescolano.
+        styles = STYLES if person is GUEST else rng.sample(STYLES, 3) + rng.sample(EXTRA_STYLES, 2)
         r = await client.post(
             "/v1/onboarding/profile",
             json=onboarding_body(person["nickname"], styles=styles),

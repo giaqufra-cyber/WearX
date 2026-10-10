@@ -2888,6 +2888,12 @@ export interface components {
         StyleCard: {
             /** Active Until */
             active_until: string | null;
+            /**
+             * Category
+             * @default stili
+             * @enum {string}
+             */
+            category: "stili" | "sport" | "accessori" | "beauty" | "sottoculture" | "occasioni";
             /** Joined */
             joined: boolean;
             /** Member Count */
@@ -2936,6 +2942,12 @@ export interface components {
         StyleDetail: {
             /** Active Until */
             active_until: string | null;
+            /**
+             * Category
+             * @default stili
+             * @enum {string}
+             */
+            category: "stili" | "sport" | "accessori" | "beauty" | "sottoculture" | "occasioni";
             /** Joined */
             joined: boolean;
             /** Member Count */
@@ -2988,6 +3000,11 @@ export interface components {
         StyleOut: {
             /** Active Until */
             active_until: string | null;
+            /**
+             * Category
+             * @default stili
+             */
+            category: string;
             /** Min Age Band */
             min_age_band: string;
             /** Name */
@@ -5696,6 +5713,7 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string | null;
+                category?: ("stili" | "sport" | "accessori" | "beauty" | "sottoculture" | "occasioni") | null;
             };
             header?: never;
             path?: never;

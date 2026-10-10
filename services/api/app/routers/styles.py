@@ -31,6 +31,9 @@ SEARCH_MAX_LENGTH = 40
 WORD_SIMILARITY = 0.35
 
 
+StyleCategory = Literal["stili", "sport", "accessori", "beauty", "sottoculture", "occasioni"]
+
+
 class StyleCard(BaseModel):
     slug: str
     name: str
@@ -41,6 +44,7 @@ class StyleCard(BaseModel):
     active_until: date | None
     member_count: int
     joined: bool
+    category: StyleCategory = "stili"
 
 
 class StyleDetail(StyleCard):
@@ -58,8 +62,11 @@ _CARD_COLUMNS = """
     (s.active_until is not null) as seasonal, s.active_until,
     (select count(*) from app.style_memberships c where c.style_id = s.id)::int as member_count,
     exists(select 1 from app.style_memberships j
-            where j.style_id = s.id and j.user_id = :uid) as joined
+            where j.style_id = s.id and j.user_id = :uid) as joined,
+    s.category
 """
+# I più seguiti per primi (seduta 29), poi l'ordine scelto dallo staff.
+_POPULAR = "(select count(*) from app.style_memberships c where c.style_id = s.id) desc"
 
 
 def _params(profile: Profile, **extra: Any) -> dict[str, Any]:
@@ -96,20 +103,23 @@ async def list_styles(
     profile: CurrentProfile,
     session: Session,
     q: Annotated[str | None, Query(max_length=SEARCH_MAX_LENGTH)] = None,
+    category: StyleCategory | None = None,
 ) -> StyleList:
     query = " ".join((q or "").split())  # spazi multipli e a capo -> uno spazio
+    # Filtro per categoria: valore controllato dal Literal, passato come parametro.
+    in_category = "and (cast(:category as text) is null or s.category = :category)"
     if not query:
         sql = (
-            f"select {_CARD_COLUMNS} from app.styles s where {VISIBLE_STYLE_SQL} "
-            "order by s.sort_order, s.id"
+            f"select {_CARD_COLUMNS} from app.styles s where {VISIBLE_STYLE_SQL} {in_category} "
+            f"order by {_POPULAR}, s.sort_order, s.id"
         )
-        params = _params(profile)
+        params = _params(profile, category=category)
     else:
         # Prima chi contiene il testo (anche senza accenti: "gala" trova "Galà"),
         # poi le somiglianze per refusi ("jppo" trova "Jappo").
         sql = f"""
             select {_CARD_COLUMNS} from app.styles s
-             where {VISIBLE_STYLE_SQL}
+             where {VISIBLE_STYLE_SQL} {in_category}
                and (app.fold(s.name || ' ' || s.tagline) like app.fold(:pattern) escape '\\'
                     or word_similarity(app.fold(:q), app.fold(s.name || ' ' || s.tagline))
                        >= :threshold)
@@ -117,10 +127,11 @@ async def list_styles(
                       (app.fold(s.name || ' ' || s.tagline) like app.fold(:pattern) escape '\\')
                         desc,
                       word_similarity(app.fold(:q), app.fold(s.name || ' ' || s.tagline)) desc,
-                      s.sort_order, s.id
+                      {_POPULAR}, s.sort_order, s.id
         """
         params = _params(
             profile,
+            category=category,
             q=query,
             pattern=_like_pattern(query),
             prefix=_like_pattern(query)[1:],

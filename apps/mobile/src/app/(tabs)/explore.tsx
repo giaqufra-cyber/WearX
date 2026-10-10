@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text as RNText, View } from "react-native";
 
 import { useStyles } from "@/features/styles/api";
+import { inCategory, type StyleCategory } from "@/features/styles/catalog";
+import { CategoryChips } from "@/features/styles/CategoryChips";
 import { membersLabel, seasonEndLabel, stylesCountLabel } from "@/features/styles/format";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { Badge } from "@/ui/Badge";
@@ -24,9 +26,11 @@ const openStyle = (slug: string) => router.push({ pathname: "/style/[slug]", par
 export default function ExploreScreen() {
   const [query, setQuery] = useState("");
   const debounced = useDebouncedValue(query.trim(), SEARCH_DEBOUNCE_MS);
+  const [category, setCategory] = useState<StyleCategory | null>(null);
   const styles_ = useStyles(debounced);
-  const items = styles_.data?.items ?? [];
-  const featured = !debounced ? items.find((s) => s.seasonal) : undefined;
+  // Il server li manda già dai più seguiti (seduta 29); la categoria si filtra qui.
+  const items = inCategory(styles_.data?.items ?? [], category);
+  const featured = !debounced && !category ? items.find((s) => s.seasonal) : undefined;
 
   const rows: StyleCard[][] = [];
   for (let i = 0; i < items.length; i += 2) rows.push(items.slice(i, i + 2));
@@ -40,16 +44,18 @@ export default function ExploreScreen() {
         value={query}
         onChangeText={setQuery}
         label="Cerca uno stile"
-        placeholder="Cerca uno stile: old money, galà…"
+        placeholder="Cerca: surf, gioielli, emo, galà…"
       />
+
+      <CategoryChips value={category} onChange={setCategory} />
 
       {featured ? <FeaturedStyle style={featured} /> : null}
 
       <View style={styles.sectionHead}>
-        <RNText style={styles.section}>{debounced ? "RISULTATI" : "TUTTI GLI STILI"}</RNText>
+        <RNText style={styles.section}>{debounced ? "RISULTATI" : category ? "I PIÙ SEGUITI" : "TUTTI, DAI PIÙ SEGUITI"}</RNText>
         {styles_.data ? (
           <RNText style={styles.count} aria-live="polite">
-            {stylesCountLabel(styles_.data.total)}
+            {stylesCountLabel(items.length)}
           </RNText>
         ) : null}
       </View>

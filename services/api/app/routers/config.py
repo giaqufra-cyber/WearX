@@ -22,6 +22,8 @@ class StyleOut(BaseModel):
     min_age_band: str
     seasonal: bool
     active_until: date | None
+    # Gruppo nel catalogo (seduta 29): stili, sport, accessori, beauty, sottoculture, occasioni.
+    category: str = "stili"
 
 
 class LegalLinks(BaseModel):
@@ -74,12 +76,14 @@ async def get_config(
         text(
             """
             select slug, name, tagline, tone, min_age_band::text as min_age_band,
-                   (active_until is not null) as seasonal, active_until
-              from app.styles
+                   (active_until is not null) as seasonal, active_until, category
+              from app.styles s
              where is_active
                and (active_from is null or active_from <= current_date)
                and (active_until is null or active_until >= current_date)
-             order by sort_order, id
+             -- I più seguiti per primi (seduta 29), poi l'ordine scelto dallo staff.
+             order by (select count(*) from app.style_memberships m where m.style_id = s.id) desc,
+                      sort_order, id
             """
         )
     )

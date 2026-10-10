@@ -10,6 +10,8 @@ import { ME_QUERY_KEY, useAuth } from "@/features/auth/AuthProvider";
 import { useSignupDraft } from "@/features/auth/signupDraft";
 import { useNicknameAvailability } from "@/features/auth/useNicknameAvailability";
 import { createProfile, useAgeStatus } from "@/features/onboarding/api";
+import { inCategory, type StyleCategory } from "@/features/styles/catalog";
+import { CategoryChips } from "@/features/styles/CategoryChips";
 import { useAppConfig } from "@/features/styles/useAppConfig";
 import { ApiError } from "@/lib/api";
 import { Button } from "@/ui/Button";
@@ -41,6 +43,7 @@ export default function PickStylesScreen() {
   const [nickError, setNickError] = useState<string | null>(null);
   const [editNick, setEditNick] = useState(nickname === "");
   const [selected, setSelected] = useState<string[]>([]);
+  const [category, setCategory] = useState<StyleCategory | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const availability = useNicknameAvailability(editNick ? nickname : "");
@@ -109,8 +112,10 @@ export default function PickStylesScreen() {
   };
 
   const nickBlocked = editNick && (availability === "taken" || availability === "reserved" || nickname.length < 3);
+  // Dai più seguiti (ordine del server), filtrati per categoria.
+  const shown = inCategory(styles_, category as StyleCategory | null);
   const rows: (typeof styles_)[] = [];
-  for (let i = 0; i < styles_.length; i += 2) rows.push(styles_.slice(i, i + 2));
+  for (let i = 0; i < shown.length; i += 2) rows.push(shown.slice(i, i + 2));
 
   return (
     <View style={styles.root}>
@@ -143,6 +148,8 @@ export default function PickStylesScreen() {
           />
         ) : null}
 
+        <CategoryChips value={category} onChange={setCategory} />
+
         <View style={styles.grid}>
           {rows.map((row) => (
             <View key={row.map((s) => s.slug).join("|")} style={styles.row}>
@@ -152,6 +159,7 @@ export default function PickStylesScreen() {
                   name={style.name}
                   tagline={style.tagline}
                   tone={style.tone}
+                  taglineLines={2}
                   selectable
                   selected={selected.includes(style.slug)}
                   onPress={() => toggle(style.slug)}

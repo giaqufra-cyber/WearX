@@ -48,7 +48,9 @@ export function StyleTile({
       onPress={onPress}
       style={({ pressed }) => [
         styles.tile,
-        { backgroundColor: tone, height },
+        // Altezza minima, non fissa: con nomi lunghi su due righe (o il testo di sistema più
+        // grande) il riquadro cresce invece di tagliare le scritte (seduta 29).
+        { backgroundColor: tone, minHeight: height },
         selected ? styles.selected : null,
         pressed ? styles.pressed : null,
       ]}
@@ -71,10 +73,10 @@ export function StyleTile({
         ) : null}
       </View>
       <View>
-        <Text style={styles.name} numberOfLines={2}>
+        <Text style={styles.name} numberOfLines={2} maxFontSizeMultiplier={1.3}>
           {name}
         </Text>
-        <Text style={styles.tagline} numberOfLines={taglineLines}>
+        <Text style={styles.tagline} numberOfLines={taglineLines} maxFontSizeMultiplier={1.3}>
           {tagline}
         </Text>
       </View>
@@ -88,6 +90,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     padding: 14,
     justifyContent: "space-between",
+    gap: 6,
     borderWidth: 2,
     borderColor: "transparent",
     overflow: "hidden",
@@ -107,6 +110,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   dotOn: { backgroundColor: colors.accent, borderColor: colors.accent },
-  name: { fontFamily: fonts.display, fontSize: 24, lineHeight: 26, color: colors.text },
+  name: { fontFamily: fonts.display, fontSize: 22, lineHeight: 25, color: colors.text, marginTop: 10 },
   tagline: { fontFamily: fonts.ui, fontSize: 11, marginTop: 5, color: "rgba(242,239,233,0.78)" },
 });
