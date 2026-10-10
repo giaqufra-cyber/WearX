@@ -62,7 +62,12 @@ export const useNewPostDraft = create<Draft>((set) => ({
     })),
   updatePhoto: (localId, patch) =>
     set((state) => ({ photos: state.photos.map((p) => (p.localId === localId ? { ...p, ...patch } : p)) })),
-  removePhoto: (localId) => set((state) => ({ photos: state.photos.filter((p) => p.localId !== localId) })),
+  // Togliendo una foto si tolgono anche i punti dei capi segnati su quella foto.
+  removePhoto: (localId) =>
+    set((state) => ({
+      photos: state.photos.filter((p) => p.localId !== localId),
+      items: state.items.map((i) => (i.pin?.photo === localId ? { ...i, pin: null } : i)),
+    })),
   movePhoto: (localId, delta) =>
     set((state) => {
       const photos = [...state.photos];
@@ -89,6 +94,6 @@ export function draftHasContent(draft: Pick<Draft, "photos" | "items" | "caption
   return (
     draft.photos.length > 0 ||
     draft.caption.trim() !== "" ||
-    draft.items.some((i) => i.brand || i.name || i.price || i.link)
+    draft.items.some((i) => i.brand || i.name || i.price || i.link || i.pin)
   );
 }

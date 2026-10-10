@@ -1325,6 +1325,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/styles/{slug}/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Style Posts
+         * @description La griglia della pagina di uno stile: i fit attivi di quello stile, anche i propri.
+         *
+         *     Stesse regole di visibilità di ogni post (età, blocchi, autori sospesi). I fit usciti dallo
+         *     stile per la conferma della community ("style_rejected") qui non compaiono. Le medie seguono
+         *     la regola di sempre: si vedono sui propri fit e su quelli già votati.
+         */
+        get: operations["get_style_posts_v1_styles__slug__posts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/users/{nickname}": {
         parameters: {
             query?: never;
@@ -2415,6 +2439,11 @@ export interface components {
             media_count: number;
             /** Mine */
             mine: number | null;
+            /**
+             * Own
+             * @default false
+             */
+            own: boolean;
             photo: components["schemas"]["MediaOut"] | null;
             /**
              * Status
@@ -2943,6 +2972,13 @@ export interface components {
             tagline: string;
             /** Tone */
             tone: string;
+        };
+        /** StylePostsPage */
+        StylePostsPage: {
+            /** Items */
+            items: components["schemas"]["PortfolioTile"][];
+            /** Next Cursor */
+            next_cursor: string | null;
         };
         /** StyleRef */
         StyleRef: {
@@ -5738,6 +5774,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StyleCard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_style_posts_v1_styles__slug__posts_get: {
+        parameters: {
+            query?: {
+                sort?: "top" | "new";
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StylePostsPage"];
                 };
             };
             /** @description Validation Error */

@@ -66,11 +66,11 @@ export default function FeedScreen() {
   const header = (
     <View>
       <View style={styles.header}>
-        <Text variant="logo" role="heading" aria-label="WearX" style={styles.logo}>
+        <Text variant="logo" role="heading" aria-label="WearX" style={styles.logo} numberOfLines={1}>
           WEAR<Text variant="logo" color={colors.accent} style={styles.logo}>X</Text>
         </Text>
         <View style={styles.headerRight}>
-          <Text variant="secondary" style={styles.subtitle}>i tuoi stili</Text>
+          <Text variant="secondary" style={styles.subtitle} numberOfLines={1}>i tuoi stili</Text>
           <NotificationBell />
         </View>
       </View>
@@ -185,8 +185,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing[2],
     paddingBottom: spacing[1],
   },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: 2 },
-  logo: { fontSize: 26, lineHeight: 30 },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 2, flexShrink: 1 },
+  // Mai a capo (seduta 26): il logo non si restringe, al limite si accorcia il sottotitolo.
+  logo: { fontSize: 26, lineHeight: 30, flexShrink: 0 },
   subtitle: { fontFamily: fonts.displayRegular, fontSize: 16 },
   chips: {
     gap: spacing[2],

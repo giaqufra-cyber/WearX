@@ -25,8 +25,10 @@ ALLOWED_FORMATS = frozenset({"JPEG", "PNG", "WEBP"})
 MAX_PIXELS = 40_000_000  # 40 megapixel: più di qualsiasi foto da telefono
 MIN_SIDE = 320
 MIN_ASPECT, MAX_ASPECT = 0.5, 2.0  # da 1:2 (verticale) a 2:1 (orizzontale)
-VARIANT_WIDTHS = (1080, 640, 320)
-WEBP_QUALITY = 82
+# 1440: gli iPhone recenti mostrano la foto larga ~1180 pixel reali (390 pt x 3): con la sola
+# 1080 la foto veniva ingrandita e si vedeva sgranata (seduta 26).
+VARIANT_WIDTHS = (1440, 1080, 640, 320)
+WEBP_QUALITY = 88
 
 # Limite anche per Pillow: oltre il doppio solleva un errore prima di decodificare.
 Image.MAX_IMAGE_PIXELS = MAX_PIXELS

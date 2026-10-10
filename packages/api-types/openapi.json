@@ -2969,6 +2969,11 @@
             ],
             "title": "Mine"
           },
+          "own": {
+            "default": false,
+            "title": "Own",
+            "type": "boolean"
+          },
           "photo": {
             "anyOf": [
               {
@@ -4597,6 +4602,34 @@
           "active_until"
         ],
         "title": "StyleOut",
+        "type": "object"
+      },
+      "StylePostsPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioTile"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "StylePostsPage",
         "type": "object"
       },
       "StyleRef": {
@@ -8708,6 +8741,92 @@
         "summary": "Join Style",
         "tags": [
           "styles"
+        ]
+      }
+    },
+    "/v1/styles/{slug}/posts": {
+      "get": {
+        "description": "La griglia della pagina di uno stile: i fit attivi di quello stile, anche i propri.\n\nStesse regole di visibilità di ogni post (età, blocchi, autori sospesi). I fit usciti dallo\nstile per la conferma della community (\"style_rejected\") qui non compaiono. Le medie seguono\nla regola di sempre: si vedono sui propri fit e su quelli già votati.",
+        "operationId": "get_style_posts_v1_styles__slug__posts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "top",
+              "enum": [
+                "top",
+                "new"
+              ],
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 60,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StylePostsPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Style Posts",
+        "tags": [
+          "portfolio"
         ]
       }
     },

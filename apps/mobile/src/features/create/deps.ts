@@ -12,8 +12,10 @@ async function prepare(uri: string, width: number, height: number): Promise<Prep
     context.resize(width >= height ? { width: MAX_SIDE } : { height: MAX_SIDE });
   }
   const image = await context.renderAsync();
-  // Ricodifica in JPEG: niente HEIC, peso contenuto. Il server toglie comunque ogni metadato.
-  const saved = await image.saveAsync({ format: SaveFormat.JPEG, compress: 0.85 });
+  // Ricodifica in JPEG: niente HEIC, peso contenuto (~1-2 MB). Il server toglie comunque ogni
+  // metadato. 0,92 e non meno: la foto viene ricompressa una seconda volta in WebP sul server, e
+  // con due compressioni forti la qualità si vedeva calare (seduta 26).
+  const saved = await image.saveAsync({ format: SaveFormat.JPEG, compress: 0.92 });
   const blob = await (await fetch(saved.uri)).blob();
   return { uri: saved.uri, size: blob.size, blob: Platform.OS === "web" ? blob : undefined };
 }

@@ -8,7 +8,9 @@ export const BRAND_MAX = 60;
 export const NAME_MAX = 80;
 const MAX_PRICE_CENTS = 10_000_000;
 
-export type ItemDraft = { key: string; brand: string; name: string; price: string; link: string };
+/** Dove si vede il capo: la foto (per id locale, così resta giusta se riordini le foto) e il punto (0-1). */
+export type ItemPin = { photo: string; x: number; y: number };
+export type ItemDraft = { key: string; brand: string; name: string; price: string; link: string; pin?: ItemPin | null };
 export type ItemErrors = Partial<Record<"brand" | "name" | "price" | "link", string>>;
 
 /** "89" · "89,90" · "1.250,50" · "€ 1250.5" -> centesimi. null se vuoto, NaN se non è un prezzo. */
@@ -49,7 +51,7 @@ export function linkProblem(raw: string): string | null {
 }
 
 export function isItemEmpty(item: ItemDraft): boolean {
-  return !item.brand.trim() && !item.name.trim() && !item.price.trim() && !item.link.trim();
+  return !item.brand.trim() && !item.name.trim() && !item.price.trim() && !item.link.trim() && !item.pin;
 }
 
 export function itemErrors(item: ItemDraft): ItemErrors {
@@ -68,7 +70,7 @@ export function itemErrors(item: ItemDraft): ItemErrors {
 export type PhotoState = "queued" | "preparing" | "uploading" | "processing" | "ready" | "error" | "rejected";
 
 export type DraftForCheck = {
-  photos: { status: PhotoState; uploadId?: string }[];
+  photos: { status: PhotoState; uploadId?: string; localId?: string }[];
   style: string | null;
   items: ItemDraft[];
   caption: string;
@@ -96,18 +98,30 @@ export function canPublish(draft: DraftForCheck): PublishCheck {
   return { ok: true };
 }
 
+/** Il punto si salva con 3 decimali, sempre dentro la foto. */
+export function roundPin(value: number): number {
+  return Math.round(Math.min(1, Math.max(0, value)) * 1000) / 1000;
+}
+
 export function buildPostRequest(draft: DraftForCheck): PostCreate {
   const items: PostItemInput[] = draft.items
     .filter((i) => !isItemEmpty(i))
     .map((i) => {
       const price = parsePrice(i.price);
-      return {
+      const item: PostItemInput = {
         brand: i.brand.trim(),
         name: i.name.trim(),
         price_cents: price === null || Number.isNaN(price) ? null : price,
         currency: "EUR",
         url: i.link.trim() || null,
       };
+      const photo = i.pin ? draft.photos.findIndex((p) => p.localId === i.pin!.photo) : -1;
+      if (i.pin && photo >= 0) {
+        item.media_position = photo;
+        item.pin_x = roundPin(i.pin.x);
+        item.pin_y = roundPin(i.pin.y);
+      }
+      return item;
     });
   return {
     style: draft.style ?? "",

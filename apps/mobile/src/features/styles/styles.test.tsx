@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { StyleCard, StyleDetail } from "@wearx/api-types";
+import type { PortfolioTile, StyleCard, StyleDetail, StylePostsPage } from "@wearx/api-types";
 import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -136,8 +136,56 @@ describe("Pagina dello stile", () => {
     ...extra,
   });
 
+  const tile = (id: string, caption: string | null, extra: Partial<PortfolioTile> = {}): PortfolioTile => ({
+    id,
+    status: "active",
+    style: { slug: "gala", name: "Galà", tone: "#3A1418" },
+    caption,
+    capsule_id: null,
+    media_count: 1,
+    photo: null,
+    mine: null,
+    average: null,
+    vote_count: 0,
+    own: false,
+    ...extra,
+  });
+  /** Dettaglio dello stile e griglia dei fit (una pagina per ordine). */
+  const serve = (value: StyleDetail, pages: Partial<Record<"top" | "new", StylePostsPage>> = {}) =>
+    get.mockImplementation((path: string) => {
+      if (!path.includes("/posts?")) return Promise.resolve(value);
+      const sort = new URLSearchParams(path.split("?")[1]).get("sort") as "top" | "new";
+      return Promise.resolve(pages[sort] ?? { items: [], next_cursor: null });
+    });
+
+  test("griglia dei fit: in evidenza o recenti, i propri con il proprio stato", async () => {
+    serve(detail({ posts_last_7_days: 2 }), {
+      top: { items: [tile("p1", "Teatro", { average: 91, vote_count: 40 }), tile("p2", null)], next_cursor: null },
+      new: { items: [tile("p3", "Il mio", { own: true })], next_cursor: null },
+    });
+    const user = userEvent.setup();
+    await render(<StylePage />, { wrapper: Providers });
+    expect(await screen.findByRole("button", { name: "Fit, Galà, Teatro, media 91" })).toBeOnTheScreen();
+    // Senza didascalia non ripete il nome dello stile come titolo.
+    expect(screen.getByRole("button", { name: "Fit, Galà" })).toBeOnTheScreen();
+    expect(get).toHaveBeenCalledWith("/v1/styles/gala/posts?sort=top&limit=24", expect.objectContaining({ token: "tok" }));
+
+    await user.press(screen.getByRole("radio", { name: "Recenti" }));
+    await user.press(await screen.findByRole("button", { name: /^Fit, Galà, Il mio/ }));
+    expect(router.push).toHaveBeenCalledWith(expect.stringContaining("p3"));
+  });
+
+  test("stile senza fit: invito a pubblicare", async () => {
+    serve(detail());
+    const user = userEvent.setup();
+    await render(<StylePage />, { wrapper: Providers });
+    expect(await screen.findByText("Ancora nessun fit in questo stile")).toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Pubblica un fit" }));
+    expect(router.push).toHaveBeenCalledWith("/new-post");
+  });
+
   test("Entra: si vede subito, poi conferma del server", async () => {
-    get.mockResolvedValue(detail());
+    serve(detail());
     let resolve: (value: StyleCard) => void = () => undefined;
     request.mockReturnValue(new Promise<StyleCard>((r) => (resolve = r)));
     const user = userEvent.setup();
@@ -150,13 +198,13 @@ describe("Pagina dello stile", () => {
     expect(screen.getByText("STILE · 42 MEMBRI")).toBeOnTheScreen();
     expect(request).toHaveBeenCalledWith("PUT", "/v1/styles/gala/membership", { token: "tok" });
 
-    get.mockResolvedValue(detail({ joined: true, member_count: 42 }));
+    serve(detail({ joined: true, member_count: 42 }));
     await act(async () => resolve({ ...card("gala", "Galà"), joined: true, member_count: 42 }));
     expect(screen.getByText("Sei entrato in Galà. Lo trovi nel feed.")).toBeOnTheScreen();
   });
 
   test("ultimo stile: il server rifiuta, si torna come prima con il messaggio", async () => {
-    get.mockResolvedValue(detail({ joined: true, member_count: 5 }));
+    serve(detail({ joined: true, member_count: 5 }));
     request.mockRejectedValue(new ApiError(409, "style.last_membership", "Ultimo"));
     const user = userEvent.setup();
     await render(<StylePage />, { wrapper: Providers });
@@ -175,7 +223,7 @@ describe("Pagina dello stile", () => {
   });
 
   test("stagionale: mostra la fine della stagione", async () => {
-    get.mockResolvedValue(detail({ seasonal: true, active_until: "2026-11-01", posts_last_7_days: 1 }));
+    serve(detail({ seasonal: true, active_until: "2026-11-01", posts_last_7_days: 1 }));
     await render(<StylePage />, { wrapper: Providers });
     expect(await screen.findByText("STAGIONALE · FINO AL 1 NOV")).toBeOnTheScreen();
     expect(screen.getByText("1 FIT QUESTA SETTIMANA")).toBeOnTheScreen();

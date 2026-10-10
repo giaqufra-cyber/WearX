@@ -32,6 +32,21 @@ fondatore (account, pagamenti, documenti legali) lo dicono nella colonna "Serve 
 | 24 | Qualità | Test E2E Maestro, test di carico k6, audit accessibilità, testi completi | — |
 | 25 | Beta | Build EAS, TestFlight e Play test interno, runbook | Account Apple (99 $/anno) e Google Play (25 $) |
 
+**Seconda parte: correzioni dopo la prova sul telefono (2026-10-10).** Dalla lista del fondatore;
+per ora fuori: impostazioni più ricche, filtro uomo/donna, commenti, WearX Plus.
+
+| # | Seduta | Risultato verificabile | Serve da te |
+|---|--------|------------------------|-------------|
+| 26 | Correzioni dalla prova | Foto più nitide, carosello che scorre bene, logo su una riga, fit nella pagina dello stile, capi segnati sulla foto | — |
+| 27 | Profilo (1) | Modifica bio e foto profilo; stili a cui sei iscritto non più pubblici | — |
+| 28 | Profilo (2) | Profilo come un portfolio da designer; capsule più grandi se hanno più fit | — |
+| 29 | Stili (1) | Catalogo ampio (sport, accessori, sottoculture); ordinati per iscritti; ricerca mentre pubblichi | — |
+| 30 | Stili (2) | Proposte di nuovi stili dagli utenti, approvate dopo N richieste | — |
+| 31 | Cerca persone | Ricerca account intelligente con suggerimenti | — |
+| 32 | Salvati e archivio | Salvare i fit degli altri; archiviare i propri | — |
+| 33-34 | Inglese | App in italiano e inglese, lingua del telefono, testi del server | — |
+| 35 | Luogo | Luogo del fit come su Maps (facoltativo) | — |
+
 ## Prima di far provare l'app ad altri (obbligatorio)
 
 Promemoria fissi: senza questi punti l'app funziona solo per il fondatore.
@@ -1295,3 +1310,30 @@ Note:
   di uv (la nuova versione 0.13): passati al secondo giro. Se si ripete, `prune-cache: false` in
   `setup-uv` per quei due job.
 
+### Seduta 26 — 2026-10-10
+
+**Obiettivo:** i problemi più visibili della prima prova sull'iPhone.
+
+Fatto:
+- **Foto più nitide.** Prima la foto passava due volte per la compressione (JPEG 0,8 sul telefono,
+  WebP 82 sul server) e la variante più grande era 1080 pixel, mentre un iPhone recente mostra la
+  foto larga circa 1180 pixel reali. Ora: JPEG 0,92 sul telefono, nuova variante **1440**, WebP
+  qualità 88. L'app sceglie già da sola la variante giusta per lo schermo.
+- **Carosello.** Le zone di tocco a destra e sinistra (30% della foto) "rubavano" lo
+  scorrimento: tolte. Si scorre con il dito; sul web compaiono le frecce; per VoiceOver il
+  carosello è un elemento regolabile (scorri su/giù per cambiare foto).
+- **Logo su una riga.** "WEARX" a 84 punti era più largo dello schermo (andava a capo in
+  "WEA / RX"): ora la dimensione si adatta alla larghezza (`features/auth/logo.ts`), anche
+  nell'intestazione del feed.
+- **I fit nella pagina dello stile** (il tuo post in Old Money non si vedeva). Nuova API
+  `GET /v1/styles/{slug}/posts` (ordine "In evidenza" con la stessa media prudente del feed, o
+  "Recenti"; a pagine con cursore; regole di età, blocchi e visibilità come nel resto) e
+  griglia a due colonne nella pagina dello stile. I tuoi fit compaiono sempre, con il tuo stato.
+  Nelle schede senza didascalia non si ripete più il nome dello stile.
+- **Capi segnati sulla foto** in "Nuovo fit": "Segna sulla foto" sotto ogni capo, scegli la foto
+  e tocca il punto. Il punto resta legato alla foto anche se riordini; togliendo la foto si toglie
+  il punto. Sul fit pubblicato compare il punto con il brand (c'era già, ma non si poteva creare).
+
+Verifiche: 415 test API (+6); 275 test app (+4); 9 percorsi Playwright (il percorso "pubblica"
+ora segna anche il capo sulla foto e controlla le coordinate inviate); demo provata nel browser a
+390×844 (logo, frecce del carosello, griglia dello stile, punto sulla foto: 0,299 / 0,6).

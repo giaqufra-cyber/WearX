@@ -7,6 +7,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   PixelRatio,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -14,7 +15,7 @@ import {
 } from "react-native";
 
 import { bestVariant } from "@/features/feed/format";
-import { IconTag } from "@/ui/icons";
+import { IconChevronLeft, IconChevronRight, IconTag } from "@/ui/icons";
 
 type Props = { post: Post; width: number; authorLabel: string };
 
@@ -24,7 +25,12 @@ export function photoLabel(index: number, count: number, author: string): string
   return count > 1 ? `Foto ${index + 1} di ${count}, ${who}` : `Foto del ${who}`;
 }
 
-/** Carosello delle foto (prototipo): scorrimento, tocco a sinistra/destra, contatore, capi sulla foto. */
+/**
+ * Carosello delle foto: scorrimento orizzontale, contatore, capi sulla foto.
+ * Niente zone toccabili sopra le foto (seduta 26): coprivano il 60% dell'immagine e "rubavano" il
+ * dito, così scorrere era difficile. Sul telefono si scorre; con VoiceOver/TalkBack si cambia foto
+ * con i gesti su/giù (azioni di regolazione); sul web, dove col mouse non si scorre, due frecce.
+ */
 export function Carousel({ post, width, authorLabel }: Props) {
   const height = Math.round(width * 1.25); // 4:5, il formato verticale dei fit
   const [index, setIndex] = useState(0);
@@ -47,7 +53,14 @@ export function Carousel({ post, width, authorLabel }: Props) {
 
   return (
     <View>
-      <View style={{ width, height }}>
+      <View
+        style={{ width, height }}
+        accessible={count > 1 && Platform.OS !== "web"}
+        accessibilityRole={count > 1 ? "adjustable" : undefined}
+        accessibilityLabel={count > 1 ? photoLabel(index, count, authorLabel) : undefined}
+        accessibilityActions={count > 1 ? [{ name: "increment" }, { name: "decrement" }] : undefined}
+        onAccessibilityAction={(event) => go(event.nativeEvent.actionName === "increment" ? index + 1 : index - 1)}
+      >
         <FlatList
           ref={list}
           data={post.media}
@@ -73,8 +86,20 @@ export function Carousel({ post, width, authorLabel }: Props) {
         <View pointerEvents="none" style={[styles.corner, styles.cornerBR]} />
         {count > 1 ? (
           <>
-            <Pressable role="button" aria-label="Foto precedente" onPress={() => go(index - 1)} style={[styles.zone, styles.zoneLeft]} />
-            <Pressable role="button" aria-label="Foto successiva" onPress={() => go(index + 1)} style={[styles.zone, styles.zoneRight]} />
+            {Platform.OS === "web" ? (
+              <>
+                {index > 0 ? (
+                  <Pressable role="button" aria-label="Foto precedente" onPress={() => go(index - 1)} style={[styles.arrow, styles.arrowLeft]}>
+                    <IconChevronLeft color={colors.text} size={18} />
+                  </Pressable>
+                ) : null}
+                {index < count - 1 ? (
+                  <Pressable role="button" aria-label="Foto successiva" onPress={() => go(index + 1)} style={[styles.arrow, styles.arrowRight]}>
+                    <IconChevronRight color={colors.text} size={18} />
+                  </Pressable>
+                ) : null}
+              </>
+            ) : null}
             <View pointerEvents="none" style={styles.counter}>
               <Text style={styles.counterText}>
                 {index + 1}/{count}
@@ -124,9 +149,19 @@ const styles = StyleSheet.create({
   corner: { position: "absolute", width: 22, height: 22, borderColor: "rgba(242,239,233,0.5)" },
   cornerTL: { left: 16, top: 16, borderLeftWidth: 1.5, borderTopWidth: 1.5 },
   cornerBR: { right: 16, bottom: 16, borderRightWidth: 1.5, borderBottomWidth: 1.5 },
-  zone: { position: "absolute", top: 0, bottom: 56, width: "30%" },
-  zoneLeft: { left: 0 },
-  zoneRight: { right: 0 },
+  arrow: {
+    position: "absolute",
+    top: "50%",
+    marginTop: -18,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(10,10,11,0.6)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  arrowLeft: { left: 10 },
+  arrowRight: { right: 10 },
   counter: {
     position: "absolute",
     right: 14,
