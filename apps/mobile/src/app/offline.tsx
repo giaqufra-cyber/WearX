@@ -1,7 +1,9 @@
 import { spacing } from "@wearx/design-tokens";
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 
 import { useAuth } from "@/features/auth/AuthProvider";
+import { changeDemoServer } from "@/features/demo/demoStore";
+import { env } from "@/lib/env";
 import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { Screen } from "@/ui/Screen";
@@ -17,6 +19,9 @@ export default function OfflineScreen() {
           body="Controlla la connessione. I tuoi dati sono al sicuro: riprova tra poco."
           action={{ label: "Riprova", onPress: retry }}
         />
+        {env.demo && Platform.OS !== "web" ? (
+          <Button label="Cambia server della demo" variant="secondary" size="md" onPress={changeDemoServer} fullWidth />
+        ) : null}
         <Button label="Esci dall'account" variant="ghost" size="md" onPress={() => void signOut()} fullWidth />
       </View>
     </Screen>

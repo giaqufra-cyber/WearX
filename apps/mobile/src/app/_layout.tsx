@@ -21,6 +21,7 @@ import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { AuthProvider, useAuth } from "@/features/auth/AuthProvider";
+import { DemoGate } from "@/features/demo/DemoGate";
 import { AppBridges } from "@/features/notifications/AppBridges";
 import type { AppRoute } from "@/features/auth/routing";
 import { useAppConfig } from "@/features/styles/useAppConfig";
@@ -81,7 +82,10 @@ export default function RootLayout() {
           {/* Un'unica zona "principale": sul web i lettori di schermo la trovano subito (audit
               di accessibilità, seduta 24); su iOS e Android non cambia niente. */}
           <View role="main" style={styles.main}>
-            <AuthProvider>{fontsReady ? <RootNavigator /> : null}</AuthProvider>
+            {/* Solo nella build demo per telefono: prima si sceglie il server (vedi DemoGate). */}
+            <DemoGate ready={fontsReady} onServerChange={() => queryClient.clear()}>
+              <AuthProvider>{fontsReady ? <RootNavigator /> : null}</AuthProvider>
+            </DemoGate>
           </View>
         </ToastProvider>
       </ThemeProvider>

@@ -1,0 +1,99 @@
+name: App iPhone per Sideloadly
+
+# Build della DEMO per iPhone, NON firmata: la firma la mette Sideloadly sul tuo computer con un
+# Apple ID gratuito (l'app vale 7 giorni, poi si reinstalla). Niente account Apple a pagamento.
+# L'app chiede al primo avvio il link della demo (scripts/demo.sh). Guida: docs/DEMO.md.
+# Actions → "App iPhone per Sideloadly" → Run workflow; a fine build scarica l'artefatto
+# "WearX-demo-iphone" (contiene WearX-demo.ipa).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-sideload
+  cancel-in-progress: true
+
+jobs:
+  ipa:
+    name: WearX Demo (.ipa non firmato)
+    runs-on: macos-26
+    timeout-minutes: 75
+    env:
+      EXPO_PUBLIC_DEMO: "1"
+      EXPO_NO_TELEMETRY: "1"
+      # Build di prova: niente invio delle mappe del codice a Sentry.
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Strumenti
+        run: |
+          xcodebuild -version
+          pod --version
+      - name: Progetto iOS (prebuild, configurazione demo)
+        working-directory: apps/mobile
+        run: |
+          npx expo prebuild --platform ios --clean
+          echo "Entitlements della build demo (niente App Attest, niente push):"
+          cat ios/*/*.entitlements || true
+          if grep -R -E "appattest|aps-environment" ios/*/*.entitlements; then
+            echo "::error::La build demo non deve chiedere App Attest né push (account Apple gratuito)"
+            exit 1
+          fi
+      - name: Compilazione per iPhone (senza firma)
+        working-directory: apps/mobile/ios
+        run: |
+          WORKSPACE=$(ls -d *.xcworkspace | head -1)
+          SCHEME="${WORKSPACE%.xcworkspace}"
+          echo "Workspace $WORKSPACE, schema $SCHEME"
+          if ! xcodebuild \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            -derivedDataPath ../build-ios \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build > ../xcodebuild.log 2>&1; then
+            grep -n -E "error:|fatal error|FAILED" ../xcodebuild.log | tail -n 60
+            exit 1
+          fi
+          grep -E "^\*\* BUILD" ../xcodebuild.log
+      - name: Pacchetto .ipa
+        working-directory: apps/mobile
+        run: |
+          APP=$(ls -d build-ios/Build/Products/Release-iphoneos/*.app | head -1)
+          test -d "$APP"
+          PLIST="$APP/Info.plist"
+          echo "Identificativo: $(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$PLIST")"
+          echo "Nome: $(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$PLIST")"
+          echo "iOS minimo: $(/usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$PLIST")"
+          # Controlli: è davvero la build demo, con il codice JS incluso e il link wearx://.
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$PLIST")" = "app.wearx.mobile.demo"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleURLTypes" "$PLIST" | grep -q "wearx"
+          test -s "$APP/main.jsbundle"
+          grep -a -q "Collega la demo" "$APP/main.jsbundle"
+          echo "Codice dell'app: $(du -h "$APP/main.jsbundle" | cut -f1), modalità demo inclusa"
+          mkdir -p Payload
+          cp -R "$APP" Payload/
+          zip -qry WearX-demo.ipa Payload
+          ls -lh WearX-demo.ipa
+          echo "::notice title=WearX Demo::Pronto: scarica l'artefatto WearX-demo-iphone e aprilo con Sideloadly (docs/DEMO.md)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WearX-demo-iphone
+          path: apps/mobile/WearX-demo.ipa
+          retention-days: 30
+      - name: Registro di Xcode (se qualcosa va storto)
+        if: failure()
+        working-directory: apps/mobile
+        run: |
+          grep -n -E "error:|fatal|FAILED" xcodebuild.log | tail -n 60 || true
+          tail -n 80 xcodebuild.log || true

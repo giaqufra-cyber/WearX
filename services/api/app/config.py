@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     staff_require_mfa: bool = True
     # Origini del pannello web dello staff ammesse da CORS (es. https://admin.wearx.app).
     admin_origins: list[str] = Field(default_factory=list)
+    # Solo per la demo da telefono (env "local"/"test"): origine https dell'app web della demo,
+    # ammessa come ritorno dalla verifica dell'età. Ignorata in dev, staging e produzione.
+    demo_web_origin: str = ""
 
     # Da dove leggere l'IP di chi chiama (serve ai limiti per IP):
     # - "none": la connessione (sviluppo);
@@ -152,7 +155,9 @@ class Settings(BaseSettings):
         # exp:// è Expo Go; localhost:8081 l'anteprima web: solo per lo sviluppo.
         if self.env == "dev":
             return ("wearx://", "exp://")
-        return ("wearx://", "exp://", "http://localhost:8081/")
+        # Demo da telefono (scripts/demo.sh): l'app web sta sull'indirizzo pubblico della demo.
+        demo = (f"{self.demo_web_origin.rstrip('/')}/",) if self.demo_web_origin else ()
+        return ("wearx://", "exp://", "http://localhost:8081/", *demo)
 
     @property
     def jwt_issuer(self) -> str:

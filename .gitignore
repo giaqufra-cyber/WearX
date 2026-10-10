@@ -38,9 +38,11 @@ dump.rdb
 services/api/scan-token.txt
 services/api/scan-post.txt
 dist-e2e/
+dist-demo/
 e2e-ready.json
 e2e/test-results/
 e2e/playwright-report/
 services/api/load-users.json
 loadtest/results/
 e2e/android-results/
+demo-ready.json

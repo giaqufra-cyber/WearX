@@ -10,7 +10,10 @@ import Constants from "expo-constants";
 import { env } from "@/lib/env";
 import { markUpdateRequired } from "@/lib/updateGate";
 
-export const API_URL = env.apiUrl;
+/** Indirizzo dell'API. Letto a ogni chiamata: nella demo cambia quando si sceglie il server. */
+export function apiUrl(): string {
+  return env.apiUrl;
+}
 export const APP_VERSION = Constants.expoConfig?.version ?? "0.0.0";
 
 export class ApiError extends Error {
@@ -62,7 +65,7 @@ export async function apiRequest<T>(method: Method, path: string, options: Reque
   if (options.token) headers.Authorization = `Bearer ${options.token}`;
   if (options.idempotencyKey) headers["Idempotency-Key"] = options.idempotencyKey;
 
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(`${env.apiUrl}${path}`, {
     method,
     headers,
     body: options.body === undefined ? undefined : JSON.stringify(options.body),

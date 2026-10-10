@@ -13,6 +13,7 @@ import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
+import { env } from "@/lib/env";
 
 type AttestationConfig = Schemas["AttestationConfig"];
 type Challenge = Schemas["ChallengeOut"];
@@ -71,7 +72,8 @@ async function verifyAndroid(token: string, project: string | null | undefined):
 
 /** Verifica il dispositivo se serve. Restituisce true se l'accesso risulta verificato. */
 export async function verifyDevice(token: string, config: AttestationConfig | undefined): Promise<boolean> {
-  if (!config || config.mode === "off" || Platform.OS === "web") return false;
+  // La build demo (Sideloadly, account Apple gratuito) non ha App Attest.
+  if (!config || config.mode === "off" || Platform.OS === "web" || env.demo) return false;
   const status = await apiGet<Status>("/v1/me/attest", { token });
   if (status.attested) return true;
   if (Platform.OS === "ios") await verifyIos(token);

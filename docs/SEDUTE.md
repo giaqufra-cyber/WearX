@@ -1256,3 +1256,42 @@ Note e decisioni da confermare:
 - Le 25 sedute del piano sono finite. Restano i punti della lista "Prima di far provare l'app ad
   altri", quasi tutti account e scelte tue.
 
+### Fuori piano: demo da telefono — 2026-10-10
+
+**Obiettivo:** vedere e usare WearX su iPhone senza account Apple a pagamento, senza store e
+senza server nel cloud. Guida: `docs/DEMO.md`.
+
+Fatto:
+- **`scripts/demo.sh`**: accende Postgres e Redis (Docker), prepara l'app web della demo, apre un
+  tunnel Cloudflare gratuito e avvia l'ambiente; stampa il link https, un QR per l'app e uno per
+  Safari, e l'accesso pronto (`ospite@demo.test`).
+- **`tests/demo_target.py`**: riusa l'ambiente E2E (ora diviso in `boot` e `serve`, test E2E
+  invariati) e mette **tutto dietro un solo indirizzo** (porta 8090): accesso finto, foto
+  (caricamenti firmati compresi), API e app web. Dati da vetrina: 8 persone, 18 fit disegnati in 6
+  stili con capi e prezzi, voti, follow e richieste; medie pubblicate ogni minuto.
+- **App in modalità demo (`EXPO_PUBLIC_DEMO=1`)**: sul web usa l'indirizzo della pagina; sul
+  telefono il server si sceglie all'avvio (schermata "Collega la demo", link incollato o QR
+  `wearx://demo?server=…`), si cambia dalla schermata offline; niente App Attest né push; il
+  codice di conferma (sempre 123456) è scritto sulla schermata. Nome "WearX Demo", identificativo
+  `app.wearx.mobile.demo`, entitlement a pagamento tolti in `app.config.ts`.
+- **Workflow "App iPhone per Sideloadly"** (a mano): `.ipa` non firmato costruito su un Mac di
+  GitHub (gratis per i repository pubblici), con controlli sul pacchetto. Sideloadly sul computer
+  lo firma con un Apple ID gratuito (vale 7 giorni).
+- API: `WEARX_DEMO_WEB_ORIGIN` ammesso come ritorno della verifica dell'età, solo in local/test.
+
+Verifiche: 409 test API (+1); 271 test app (+11); 9 percorsi Playwright invariati; demo provata
+nel browser a 390×844 (accesso, feed, profilo, Esplora, registrazione completa con verifica
+dell'età, caricamento di una foto attraverso l'unico indirizzo); build iOS verde due volte.
+
+Trovato strada facendo: `expo export` riusa la cache del bundler anche se cambiano le variabili
+`EXPO_PUBLIC_*` (un'app web E2E esportata dopo quella demo restava in modalità demo). La demo
+esporta sempre con `--clear`.
+
+Note:
+- Da correggere prima della beta (non toccato qui): `eas.json` imposta `EXPO_PUBLIC_EMAIL_OTP=1`
+  per tutti i profili, anche `preview`; senza SMTP Supabase manda solo il link, quindi l'app
+  aspetterebbe un codice che non arriva.
+- Nella CI i job "Test di carico" e "ZAP" sono falliti una volta nella pulizia finale della cache
+  di uv (la nuova versione 0.13): passati al secondo giro. Se si ripete, `prune-cache: false` in
+  `setup-uv` per quei due job.
+
