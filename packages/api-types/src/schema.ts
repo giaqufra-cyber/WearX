@@ -244,6 +244,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/style-proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List */
+        get: operations["admin_list_v1_admin_style_proposals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/style-proposals/{proposal_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin Reject */
+        post: operations["admin_reject_v1_admin_style_proposals__proposal_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/styles": {
         parameters: {
             query?: never;
@@ -1273,6 +1307,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/style-proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Proposals
+         * @description Proposte aperte, dalle più richieste.
+         */
+        get: operations["list_proposals_v1_style_proposals_get"];
+        put?: never;
+        /** Propose */
+        post: operations["propose_v1_style_proposals_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/style-proposals/{proposal_id}/support": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Support */
+        put: operations["support_v1_style_proposals__proposal_id__support_put"];
+        post?: never;
+        /** Withdraw */
+        delete: operations["withdraw_v1_style_proposals__proposal_id__support_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/styles": {
         parameters: {
             query?: never;
@@ -1550,12 +1623,49 @@ export interface components {
             /** Vote Count */
             vote_count: number;
         };
+        /** AdminProposal */
+        AdminProposal: {
+            /** Category */
+            category: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Proposer */
+            proposer: string | null;
+            /** Staff Note */
+            staff_note: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "approved" | "rejected";
+            /** Style */
+            style: string | null;
+            /** Supports */
+            supports: number;
+            /** Tagline */
+            tagline: string | null;
+        };
         /** AdminStyle */
         AdminStyle: {
             /** Active From */
             active_from: string | null;
             /** Active Until */
             active_until: string | null;
+            /**
+             * Category
+             * @default stili
+             */
+            category: string;
             /** Is Active */
             is_active: boolean;
             /** Members */
@@ -2649,6 +2759,68 @@ export interface components {
             /** Nickname */
             nickname: string;
         };
+        /** ProposalCreated */
+        ProposalCreated: {
+            /** Created */
+            created: boolean;
+            proposal: components["schemas"]["ProposalOut"];
+        };
+        /** ProposalIn */
+        ProposalIn: {
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "stili" | "sport" | "accessori" | "beauty" | "sottoculture" | "occasioni";
+            /** Name */
+            name: string;
+            /** Tagline */
+            tagline?: string | null;
+        };
+        /** ProposalList */
+        ProposalList: {
+            /** Items */
+            items: components["schemas"]["ProposalOut"][];
+            /** Threshold */
+            threshold: number;
+        };
+        /** ProposalOut */
+        ProposalOut: {
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "stili" | "sport" | "accessori" | "beauty" | "sottoculture" | "occasioni";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Mine */
+            mine: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "approved" | "rejected";
+            /** Style */
+            style: string | null;
+            /** Supported */
+            supported: boolean;
+            /** Supports */
+            supports: number;
+            /** Tagline */
+            tagline: string | null;
+            /** Threshold */
+            threshold: number;
+        };
         /** PushTokenIn */
         PushTokenIn: {
             /**
@@ -2706,6 +2878,11 @@ export interface components {
         ReinstateIn: {
             /** Note */
             note: string;
+        };
+        /** RejectIn */
+        RejectIn: {
+            /** Note */
+            note?: string | null;
         };
         /** Relationship */
         Relationship: {
@@ -2920,6 +3097,8 @@ export interface components {
             active_from?: string | null;
             /** Active Until */
             active_until?: string | null;
+            /** Category */
+            category?: ("stili" | "sport" | "accessori" | "beauty" | "sottoculture" | "occasioni") | null;
             /** Is Active */
             is_active?: boolean | null;
             /** Min Age Band */
@@ -2976,6 +3155,8 @@ export interface components {
             active_from?: string | null;
             /** Active Until */
             active_until?: string | null;
+            /** Category */
+            category?: ("stili" | "sport" | "accessori" | "beauty" | "sottoculture" | "occasioni") | null;
             /** Is Active */
             is_active?: boolean | null;
             /** Min Age Band */
@@ -3704,6 +3885,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Stats"];
+                };
+            };
+        };
+    };
+    admin_list_v1_admin_style_proposals_get: {
+        parameters: {
+            query?: {
+                status?: "open" | "approved" | "rejected";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProposal"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_reject_v1_admin_style_proposals__proposal_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProposal"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -5696,6 +5943,132 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_proposals_v1_style_proposals_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    propose_v1_style_proposals_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalCreated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    support_v1_style_proposals__proposal_id__support_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_v1_style_proposals__proposal_id__support_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalOut"];
                 };
             };
             /** @description Validation Error */

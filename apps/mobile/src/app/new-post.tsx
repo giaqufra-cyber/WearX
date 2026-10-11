@@ -17,6 +17,7 @@ import { PhotoStrip } from "@/features/create/PhotoStrip";
 import { PORTFOLIO_KEY } from "@/features/portfolio/api";
 import { STYLES_KEY, useMyStyles, useStyles } from "@/features/styles/api";
 import { styleChoices } from "@/features/styles/catalog";
+import { ProposeSheet } from "@/features/styles/ProposeSheet";
 import { ApiError, apiRequest } from "@/lib/api";
 import { Button } from "@/ui/Button";
 import { IconClose, IconLock } from "@/ui/icons";
@@ -56,6 +57,7 @@ export default function NewPostScreen() {
 
   const [styleQuery, setStyleQuery] = useState("");
   const [allStyles, setAllStyles] = useState(false);
+  const [proposing, setProposing] = useState(false);
   // Senza ricerca: lo stile scelto, i tuoi, poi i più seguiti (seduta 29). Con la ricerca: tutti
   // quelli che corrispondono, in tutto il catalogo.
   const choices = useMemo(
@@ -191,7 +193,11 @@ export default function NewPostScreen() {
             ) : null}
           </View>
           {styleQuery.trim() && choices.items.length === 0 ? (
-            <RNText style={styles.note}>Nessuno stile con questo nome. Prova un&apos;altra parola.</RNText>
+            <Pressable role="button" onPress={() => setProposing(true)} hitSlop={6}>
+              <RNText style={styles.note}>
+                Nessuno stile con questo nome. <RNText style={styles.noteLink}>Proponi «{styleQuery.trim()}»</RNText>
+              </RNText>
+            </Pressable>
           ) : null}
 
           <Section title="3 · I CAPI" />
@@ -243,6 +249,15 @@ export default function NewPostScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
+      <ProposeSheet
+        visible={proposing}
+        initialName={styleQuery.trim()}
+        onClose={() => setProposing(false)}
+        onExisting={(slug) => {
+          draft.setStyle(slug);
+          setStyleQuery("");
+        }}
+      />
       <Sheet visible={confirmDiscard} title="Scartare il fit?" onClose={() => setConfirmDiscard(false)}>
         <RNText style={styles.sheetText}>Foto, capi e didascalia andranno persi.</RNText>
         <Button label="Scarta" variant="danger" onPress={discard} fullWidth />
@@ -305,6 +320,7 @@ const styles = StyleSheet.create({
   },
   styleText: { fontFamily: fonts.display, fontSize: 15, color: colors.text },
   moreChip: { borderStyle: "dashed" },
+  noteLink: { fontFamily: fonts.uiBold, color: colors.text, textDecorationLine: "underline" },
   moreText: { fontFamily: fonts.uiBold, fontSize: 13, color: colors.textSecondary },
   items: { gap: 10 },
   addItem: {

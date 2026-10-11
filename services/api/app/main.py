@@ -34,6 +34,7 @@ from app.routers import (
     privacy,
     reports,
     social,
+    style_proposals,
     styles,
     votes,
 )
@@ -84,6 +85,7 @@ def create_app() -> FastAPI:
     app.include_router(accounts.router)
     app.include_router(age.router)
     app.include_router(styles.router)
+    app.include_router(style_proposals.router)
     app.include_router(media.router)
     app.include_router(posts.router)
     app.include_router(votes.router)

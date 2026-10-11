@@ -1433,3 +1433,31 @@ Correzioni dalla prova:
 Verifiche: 424 test API (+1); 291 test app (+5); 12 percorsi Playwright (app e pannello);
 registrazione, feed, Esplora e "Nuovo fit" provati nel browser a 390×844.
 
+### Seduta 30 — 2026-10-11
+
+**Obiettivo:** gli stili che mancano li propongono gli utenti; nascono quando li chiedono in
+abbastanza.
+
+Fatto:
+- **Proposte** (migrazione 0020, tabelle `style_proposals` e `style_proposal_supports`):
+  nome (max 30), categoria, descrizione facoltativa (max 60). Il nome passa dalle regole dei
+  testi (caratteri, parole offensive). Se esiste già uno stile con quel nome: 409 `style.exists`
+  con lo slug (l'app offre "Apri lo stile", o in "Nuovo fit" "Scegli questo stile"). Se esiste
+  già una proposta aperta con quel nome (anche scritto diverso: "Avant-Garde" = "avant garde"),
+  la richiesta va su quella. Al massimo 3 proposte aperte a testa, 10 al giorno.
+- **"Lo voglio"**: una richiesta a testa, si ritira. Alla soglia (`WEARX_STYLE_PROPOSAL_THRESHOLD`,
+  25; 5 nella demo) lo stile si attiva subito nella categoria scelta e chi l'ha chiesto ci entra
+  (se non segue già 30 stili). Le richieste contemporanee alla soglia creano un solo stile
+  (lucchetto sulla proposta, con test).
+- **API**: `GET/POST /v1/style-proposals`, `PUT/DELETE /v1/style-proposals/{id}/support`; staff:
+  `GET /v1/admin/style-proposals?status=`, `POST /v1/admin/style-proposals/{id}/reject`.
+- **App**: schermata "Stili proposti" (barra "12 su 25", "Lo voglio" / "Lo vuoi", ricerca,
+  "Proponi uno stile"); da Esplora con "Manca il tuo stile?" in fondo e dalla ricerca senza
+  risultati; in "Nuovo fit" la ricerca senza risultati apre la proposta sul posto.
+- **Pannello**: pagina "Stili proposti" (aperte, diventate stili, respinte; respingi con motivo,
+  nel registro). Nella pagina Stili si sceglie anche la categoria.
+- Archivio dei dati: `stili_proposti.json`. Demo: 4 proposte, "Avant-garde" a 4 su 5.
+
+Verifiche: 430 test API (+6); 297 test app (+6); 14 test del pannello (+1); 12 percorsi
+Playwright (app e pannello); proposta, richiesta e nascita dello stile provate nel browser.
+

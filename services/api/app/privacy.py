@@ -59,6 +59,7 @@ moderazione.json     le decisioni di moderazione che ti riguardano e i tuoi recl
 notifiche.json       le tue notifiche
 dispositivi.json     i dispositivi con cui hai fatto l'accesso
 segnalazioni_problemi.json  i messaggi mandati con "Segnala un problema"
+stili_proposti.json  gli stili che hai proposto o chiesto
 eventi.json          le azioni registrate per gli Insight (ultimi 3 mesi circa)
 foto/                le foto dei tuoi fit e la foto profilo (la versione piu' grande)
 
@@ -229,6 +230,22 @@ async def collect(session: AsyncSession, user_id: uuid.UUID) -> dict[str, Any]:
                       platform as sistema, os_version as versione_sistema, screen as schermata,
                       status as stato, created_at as quando
                  from app.feedback where author_id = :me order by created_at""",
+            **me,
+        ),
+        "stili_proposti.json": await _rows(
+            session,
+            """select p.name as stile, p.category as categoria, p.status::text as stato,
+                      (p.created_by = :me) as proposto_da_te, x.created_at as richiesto_il
+                 from app.style_proposal_supports x
+                 join app.style_proposals p on p.id = x.proposal_id
+                where x.user_id = :me
+               union all
+               select p.name, p.category, p.status::text, true, p.created_at
+                 from app.style_proposals p
+                where p.created_by = :me and not exists (
+                  select 1 from app.style_proposal_supports x
+                   where x.proposal_id = p.id and x.user_id = :me)
+                order by 5""",
             **me,
         ),
         "eventi.json": await _rows(
