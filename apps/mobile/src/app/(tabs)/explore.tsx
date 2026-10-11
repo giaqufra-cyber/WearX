@@ -76,7 +76,14 @@ export default function ExploreScreen() {
       ) : null}
       {styles_.isError ? <ErrorNotice error={styles_.error} onRetry={() => void styles_.refetch()} /> : null}
       {styles_.isSuccess && items.length === 0 ? (
-        <EmptyState title="Nessuno stile trovato" body="Prova con un'altra parola, anche senza accenti." />
+        <EmptyState
+          title="Nessuno stile trovato"
+          body="Non c'è? Proponilo: se lo chiedono in tanti, nasce."
+          action={{
+            label: `Proponi «${debounced}»`,
+            onPress: () => router.push({ pathname: "/style-proposals", params: { name: debounced } }),
+          }}
+        />
       ) : null}
 
       <View style={styles.grid}>
@@ -99,6 +106,17 @@ export default function ExploreScreen() {
           </View>
         ))}
       </View>
+
+      {styles_.isSuccess && items.length > 0 ? (
+        <Pressable
+          role="link"
+          onPress={() => router.push("/style-proposals")}
+          style={({ pressed }) => [styles.propose, pressed ? styles.pressed : null]}
+        >
+          <RNText style={styles.proposeTitle}>Manca il tuo stile?</RNText>
+          <RNText style={styles.proposeText}>Proponilo o chiedi quelli proposti dagli altri →</RNText>
+        </Pressable>
+      ) : null}
     </Screen>
   );
 }
@@ -150,6 +168,17 @@ const styles = StyleSheet.create({
     marginTop: spacing[2],
   },
   pressed: { opacity: 0.88 },
+  propose: {
+    marginTop: spacing[3],
+    padding: spacing[4],
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: colors.border,
+    gap: 4,
+  },
+  proposeTitle: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
+  proposeText: { fontFamily: fonts.ui, fontSize: 13, color: colors.textSecondary },
   watermark: {
     position: "absolute",
     right: -6,

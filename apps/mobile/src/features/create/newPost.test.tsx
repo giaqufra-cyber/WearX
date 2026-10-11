@@ -248,3 +248,18 @@ test("stile: si cerca in tutto il catalogo, i tuoi per primi", async () => {
   expect(screen.getByText(/Nessuno stile con questo nome/)).toBeOnTheScreen();
   expect(useNewPostDraft.getState().style).toBe("jappo");
 });
+
+test("stile che non c'è: si propone da qui; se c'è già lo si sceglie", async () => {
+  const { ApiError } = jest.requireActual("@/lib/api");
+  request.mockRejectedValue(new ApiError(409, "style.exists", "x", undefined, { slug: "jappo" }));
+  const user = userEvent.setup();
+  await render(<NewPostScreen />, { wrapper: Providers });
+  await screen.findAllByRole("radio");
+  await fireEvent.changeText(screen.getByLabelText("Cerca lo stile del fit"), "Japponese");
+  await user.press(screen.getByRole("button", { name: /Proponi «Japponese»/ }));
+  expect(screen.getByLabelText("Nome dello stile")).toHaveDisplayValue("Japponese");
+  await user.press(screen.getByRole("radio", { name: "Stili" }));
+  await user.press(screen.getByRole("button", { name: "Proponi" }));
+  await user.press(await screen.findByRole("button", { name: "Scegli questo stile" }));
+  expect(useNewPostDraft.getState().style).toBe("jappo");
+});

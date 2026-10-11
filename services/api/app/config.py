@@ -125,6 +125,9 @@ class Settings(BaseSettings):
     ios_store_url: str | None = None
     android_store_url: str | None = None
 
+    # Richieste che servono perché uno stile proposto dagli utenti si attivi (seduta 30).
+    style_proposal_threshold: int = Field(default=25, ge=2, le=10_000)
+
     # Versione dei termini che l'app mostra in registrazione.
     terms_version: str = "2026-10"
     # Pagine legali (seduta 24): servite dall'API su /legal/... finché non c'è il sito.

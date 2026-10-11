@@ -31,6 +31,8 @@ DEMO_PORT = int(os.environ.get("DEMO_PORT", "8090"))
 # di prova) e ritorno ammesso per l'app web della demo.
 os.environ.setdefault("WEARX_PUBLIC_API_URL", PUBLIC_URL)
 os.environ.setdefault("WEARX_DEMO_WEB_ORIGIN", PUBLIC_URL)
+# Nella demo bastano 5 richieste perché uno stile proposto nasca (in produzione 25).
+os.environ.setdefault("WEARX_STYLE_PROPOSAL_THRESHOLD", "5")
 
 import tests.e2e_target as e2e  # noqa: E402 - dopo le variabili d'ambiente qui sopra
 from tests import conftest as cf  # noqa: E402
@@ -211,6 +213,12 @@ PEOPLE = [
     {"nickname": "elena.conti", "email": "elena@demo.test"},
 ]
 STYLES = ["old-money", "streetwear", "jappo", "gala", "minimal", "elegant"]
+DEMO_PROPOSALS = [
+    ("Avant-garde", "sottoculture", "Volumi estremi, nero, asimmetrie", 4),
+    ("Kawaii", "stili", "Pastello, peluche, Harajuku", 3),
+    ("Equitazione", "sport", "Stivali alti, giacche da maneggio", 2),
+    ("Nail art", "beauty", None, 1),
+]
 EXTRA_STYLES = ["surf", "gioielli", "sneaker", "make-up", "skate", "vintage", "tennis", "emo"]
 CAPSULE_NAMES = {
     "old-money": "Weekend al lago",
@@ -498,6 +506,25 @@ async def demo_seed(auth: Any, client: Any, store: Any) -> dict[str, Any]:
         if r.status_code != 201:
             raise RuntimeError(f"post {caption}: {r.status_code} {r.text}")
         posts.append((r.json()["id"], author, score))
+
+    # Stili proposti (seduta 30): "Avant-garde" è a 4 richieste su 5, quella dell'ospite lo
+    # fa nascere.
+    others = [p["nickname"] for p in PEOPLE[1:]]
+    for i, (name, category, tagline, fans) in enumerate(DEMO_PROPOSALS):
+        # Proponente diverso per ogni proposta (al massimo 3 proposte aperte a testa).
+        first, *rest = (others[i:] + others[:i])[:fans]
+        r = await client.post(
+            "/v1/style-proposals",
+            json={"name": name, "category": category, "tagline": tagline},
+            headers=auth_header(first),
+        )
+        r.raise_for_status()
+        proposal_id = r.json()["proposal"]["id"]
+        for nick in rest:
+            r = await client.put(
+                f"/v1/style-proposals/{proposal_id}/support", headers=auth_header(nick)
+            )
+            r.raise_for_status()
 
     # Capsule (seduta 28): per ogni persona una capsula per stile in cui ha almeno due fit, e una
     # "Preferiti" con un fit rimasto fuori: nel profilo si vedono schede di misure diverse.

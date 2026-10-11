@@ -17,7 +17,17 @@ type Draft = {
   active_until: string;
   sort_order: string;
   is_active: boolean;
+  category: NonNullable<AdminStyleUpdate["category"]>;
 };
+
+const CATEGORIES: { value: Draft["category"]; label: string }[] = [
+  { value: "stili", label: "Stili" },
+  { value: "sport", label: "Sport" },
+  { value: "accessori", label: "Accessori" },
+  { value: "beauty", label: "Beauty" },
+  { value: "sottoculture", label: "Sottoculture" },
+  { value: "occasioni", label: "Occasioni" },
+];
 
 const EMPTY: Draft = {
   slug: "",
@@ -29,6 +39,7 @@ const EMPTY: Draft = {
   active_until: "",
   sort_order: "100",
   is_active: true,
+  category: "stili",
 };
 
 function toDraft(s: AdminStyle): Draft {
@@ -42,6 +53,7 @@ function toDraft(s: AdminStyle): Draft {
     active_until: s.active_until ?? "",
     sort_order: String(s.sort_order),
     is_active: s.is_active,
+    category: (s.category ?? "stili") as Draft["category"],
   };
 }
 
@@ -55,6 +67,7 @@ function fields(d: Draft): AdminStyleUpdate {
     active_until: d.active_until || null,
     sort_order: Number(d.sort_order) || 0,
     is_active: d.is_active,
+    category: d.category,
   };
 }
 
@@ -127,6 +140,16 @@ export default function StylesPage() {
             <label className="field">
               <span>Colore</span>
               <input className="input" type="color" value={editing.tone} onChange={(e) => setEditing({ ...editing, tone: e.target.value.toUpperCase() })} />
+            </label>
+            <label className="field">
+              <span>Categoria</span>
+              <select className="input" value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value as Draft["category"] })}>
+                {CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="field">
               <span>Età minima</span>

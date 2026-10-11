@@ -278,6 +278,99 @@
         "title": "AdminPost",
         "type": "object"
       },
+      "AdminProposal": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "proposer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposer"
+          },
+          "staff_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Note"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "approved",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "style": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style"
+          },
+          "supports": {
+            "title": "Supports",
+            "type": "integer"
+          },
+          "tagline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tagline"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "tagline",
+          "category",
+          "status",
+          "supports",
+          "proposer",
+          "style",
+          "staff_note",
+          "created_at"
+        ],
+        "title": "AdminProposal",
+        "type": "object"
+      },
       "AdminStyle": {
         "properties": {
           "active_from": {
@@ -303,6 +396,11 @@
               }
             ],
             "title": "Active Until"
+          },
+          "category": {
+            "default": "stili",
+            "title": "Category",
+            "type": "string"
           },
           "is_active": {
             "title": "Is Active",
@@ -3664,6 +3762,177 @@
         "title": "ProfileView",
         "type": "object"
       },
+      "ProposalCreated": {
+        "properties": {
+          "created": {
+            "title": "Created",
+            "type": "boolean"
+          },
+          "proposal": {
+            "$ref": "#/components/schemas/ProposalOut"
+          }
+        },
+        "required": [
+          "proposal",
+          "created"
+        ],
+        "title": "ProposalCreated",
+        "type": "object"
+      },
+      "ProposalIn": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "enum": [
+              "stili",
+              "sport",
+              "accessori",
+              "beauty",
+              "sottoculture",
+              "occasioni"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "tagline": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tagline"
+          }
+        },
+        "required": [
+          "name",
+          "category"
+        ],
+        "title": "ProposalIn",
+        "type": "object"
+      },
+      "ProposalList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProposalOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "threshold": {
+            "title": "Threshold",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "threshold"
+        ],
+        "title": "ProposalList",
+        "type": "object"
+      },
+      "ProposalOut": {
+        "properties": {
+          "category": {
+            "enum": [
+              "stili",
+              "sport",
+              "accessori",
+              "beauty",
+              "sottoculture",
+              "occasioni"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "mine": {
+            "title": "Mine",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "approved",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "style": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style"
+          },
+          "supported": {
+            "title": "Supported",
+            "type": "boolean"
+          },
+          "supports": {
+            "title": "Supports",
+            "type": "integer"
+          },
+          "tagline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tagline"
+          },
+          "threshold": {
+            "title": "Threshold",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "tagline",
+          "category",
+          "supports",
+          "threshold",
+          "supported",
+          "mine",
+          "status",
+          "style",
+          "created_at"
+        ],
+        "title": "ProposalOut",
+        "type": "object"
+      },
       "PushTokenIn": {
         "additionalProperties": false,
         "properties": {
@@ -3820,6 +4089,25 @@
           "note"
         ],
         "title": "ReinstateIn",
+        "type": "object"
+      },
+      "RejectIn": {
+        "additionalProperties": false,
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "title": "RejectIn",
         "type": "object"
       },
       "Relationship": {
@@ -4419,6 +4707,25 @@
             ],
             "title": "Active Until"
           },
+          "category": {
+            "anyOf": [
+              {
+                "enum": [
+                  "stili",
+                  "sport",
+                  "accessori",
+                  "beauty",
+                  "sottoculture",
+                  "occasioni"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
           "is_active": {
             "anyOf": [
               {
@@ -4597,6 +4904,25 @@
               }
             ],
             "title": "Active Until"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "enum": [
+                  "stili",
+                  "sport",
+                  "accessori",
+                  "beauty",
+                  "sottoculture",
+                  "occasioni"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "is_active": {
             "anyOf": [
@@ -6142,6 +6468,111 @@
         "summary": "Stats",
         "tags": [
           "admin"
+        ]
+      }
+    },
+    "/v1/admin/style-proposals": {
+      "get": {
+        "operationId": "admin_list_v1_admin_style_proposals_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "default": "open",
+              "enum": [
+                "open",
+                "approved",
+                "rejected"
+              ],
+              "title": "Status",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminProposal"
+                  },
+                  "title": "Response Admin List V1 Admin Style Proposals Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admin List",
+        "tags": [
+          "styles"
+        ]
+      }
+    },
+    "/v1/admin/style-proposals/{proposal_id}/reject": {
+      "post": {
+        "operationId": "admin_reject_v1_admin_style_proposals__proposal_id__reject_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminProposal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admin Reject",
+        "tags": [
+          "styles"
         ]
       }
     },
@@ -8729,6 +9160,180 @@
         "summary": "Report",
         "tags": [
           "moderation"
+        ]
+      }
+    },
+    "/v1/style-proposals": {
+      "get": {
+        "description": "Proposte aperte, dalle più richieste.",
+        "operationId": "list_proposals_v1_style_proposals_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Proposals",
+        "tags": [
+          "styles"
+        ]
+      },
+      "post": {
+        "operationId": "propose_v1_style_proposals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalCreated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Propose",
+        "tags": [
+          "styles"
+        ]
+      }
+    },
+    "/v1/style-proposals/{proposal_id}/support": {
+      "delete": {
+        "operationId": "withdraw_v1_style_proposals__proposal_id__support_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Withdraw",
+        "tags": [
+          "styles"
+        ]
+      },
+      "put": {
+        "operationId": "support_v1_style_proposals__proposal_id__support_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Support",
+        "tags": [
+          "styles"
         ]
       }
     },

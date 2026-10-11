@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import AppealsPage from "@/app/appeals/page";
 import DomainsPage from "@/app/domains/page";
 import FeedbackPage from "@/app/feedback/page";
+import ProposalsPage from "@/app/proposals/page";
 import VotesPage from "@/app/votes/page";
 import StaffPage from "@/app/staff/page";
 import StylesPage from "@/app/styles/page";
@@ -239,6 +240,38 @@ describe("Le scritture mandano solo i campi che l'API accetta", () => {
       method: "PATCH",
       url: "http://localhost:8000/v1/admin/feedback/f1",
       body: { status: "done", staff_note: "Corretto nella 0.1.1" },
+    });
+  });
+
+  test("stili proposti: si respinge con il motivo", async () => {
+    const item = {
+      id: "p1",
+      name: "Avant-garde",
+      tagline: "Silhouette estreme",
+      category: "sottoculture",
+      status: "open",
+      supports: 7,
+      proposer: "giulia.rossi",
+      style: null,
+      staff_note: null,
+      created_at: "2026-10-11T08:00:00Z",
+    };
+    serve({
+      "GET http://localhost:8000/v1/admin/style-proposals?status=open": [item],
+      "POST http://localhost:8000/v1/admin/style-proposals/p1/reject": { ...item, status: "rejected" },
+    });
+    render(<ProposalsPage />, { wrapper });
+    expect(await screen.findByText("Avant-garde")).toBeTruthy();
+    expect(screen.getByText("Sottoculture")).toBeTruthy();
+    expect(screen.getByText("@giulia.rossi")).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: "Respingi" }));
+    await userEvent.type(screen.getByLabelText("Motivo per Avant-garde"), "Doppione di Goth");
+    await userEvent.click(screen.getByRole("button", { name: "Conferma: respingi" }));
+    await waitFor(() => expect(writes()).toHaveLength(1));
+    expect(writes()[0]).toMatchObject({
+      method: "POST",
+      url: "http://localhost:8000/v1/admin/style-proposals/p1/reject",
+      body: { note: "Doppione di Goth" },
     });
   });
 });

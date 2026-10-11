@@ -129,6 +129,7 @@ async def test_archivio_dei_dati(client, keys, db_admin, store, queue):
     archive = zipfile.ZipFile(io.BytesIO(await store.get(key, 10_000_000)))
     names = set(archive.namelist())
     assert {"LEGGIMI.txt", "profilo.json", "fit.json", "voti.json", "dispositivi.json"} <= names
+    assert "stili_proposti.json" in names
     assert f"foto/{post_id}-1.webp" in names
     data = {n: json.loads(archive.read(n)) for n in names if n.endswith(".json")}
     assert data["profilo.json"]["nickname"] == profile["nickname"]

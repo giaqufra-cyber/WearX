@@ -28,6 +28,7 @@ from app.moderation import actions
 from app.people import profile_id_by_nickname
 from app.post_views import ItemOut, LinkOut, MediaOut
 from app.routers.media import media_urls
+from app.routers.styles import StyleCategory
 from app.staff import CurrentAdmin, CurrentStaff, audit
 from app.votes import lift_flag
 
@@ -343,6 +344,7 @@ class AdminStyle(BaseModel):
     is_active: bool
     members: int
     posts_7d: int
+    category: str = "stili"
 
 
 class StyleFields(BaseModel):
@@ -355,6 +357,7 @@ class StyleFields(BaseModel):
     active_until: date | None = None
     sort_order: int | None = Field(default=None, ge=0, le=10000)
     is_active: bool | None = None
+    category: StyleCategory | None = None
 
     @model_validator(mode="after")
     def _check(self) -> StyleFields:
@@ -380,7 +383,7 @@ class StyleCreate(StyleFields):
 
 _STYLE_SELECT = """
     select s.slug, s.name, s.tagline, s.tone, s.min_age_band::text as min_age_band,
-           s.active_from, s.active_until, s.sort_order, s.is_active,
+           s.active_from, s.active_until, s.sort_order, s.is_active, s.category,
            (select count(*) from app.style_memberships m where m.style_id = s.id) as members,
            (select count(*) from app.posts p where p.style_id = s.id
               and p.published_at > now() - interval '7 days') as posts_7d
@@ -419,14 +422,15 @@ async def create_style(body: StyleCreate, admin: CurrentAdmin, session: Session)
     values.setdefault("sort_order", 100)
     values.setdefault("is_active", True)
     values.setdefault("min_age_band", "16_17")
+    values.setdefault("category", "stili")
     try:
         await session.execute(
             text(
                 """insert into app.styles
                      (slug, name, tagline, tone, min_age_band, active_from, active_until,
-                      sort_order, is_active)
+                      sort_order, is_active, category)
                    values (:slug, :name, :tagline, :tone, cast(:min_age_band as app.age_band),
-                           :active_from, :active_until, :sort_order, :is_active)"""
+                           :active_from, :active_until, :sort_order, :is_active, :category)"""
             ),
             {"active_from": None, "active_until": None, **values},
         )
@@ -447,6 +451,7 @@ _STYLE_COLUMNS = (
     "active_until",
     "sort_order",
     "is_active",
+    "category",
 )
 
 
