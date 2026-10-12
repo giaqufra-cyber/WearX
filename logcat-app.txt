@@ -1,0 +1,1 @@
+10-12 03:57:23.546  5882  5882 I AndroidRuntime: VM exiting with result code 0.

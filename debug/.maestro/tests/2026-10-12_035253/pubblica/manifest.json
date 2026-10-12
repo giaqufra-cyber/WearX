@@ -1,0 +1,40 @@
+{
+  "$schema" : "https://storage.googleapis.com/maestro-schemas/artifact-manifest/v1.schema.json",
+  "entries" : [ {
+    "kind" : "MAESTRO_LOG",
+    "format" : "TXT",
+    "relativePath" : "logs/maestro.log",
+    "sizeBytes" : 63558
+  }, {
+    "kind" : "SCREEN_HIERARCHY",
+    "format" : "JSON",
+    "relativePath" : "screen-hierarchy",
+    "count" : 2
+  }, {
+    "kind" : "SCREENSHOT",
+    "format" : "PNG",
+    "relativePath" : "screenshots",
+    "count" : 2
+  }, {
+    "kind" : "COMMAND_METADATA",
+    "format" : "JSON",
+    "relativePath" : "commands.json",
+    "sizeBytes" : 29909
+  }, {
+    "kind" : "DEVICE_LOG",
+    "format" : "TXT",
+    "relativePath" : "logs/device-logcat.txt",
+    "sizeBytes" : 2183164,
+    "metadata" : {
+      "source" : "emulator"
+    }
+  }, {
+    "kind" : "CRASH_REPORT",
+    "format" : "TXT",
+    "relativePath" : "logs/crash-report.txt",
+    "sizeBytes" : 4870,
+    "metadata" : {
+      "message" : "java.lang.IllegalStateException: addViewAt: failed to insert view [826] into parent [906] at index 7"
+    }
+  } ]
+}

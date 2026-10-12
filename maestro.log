@@ -1,0 +1,13 @@
+
+Requested 1 shards, but it cannot be higher than the number of flows (0). Will use 1 shards instead.
+
+Waiting for flows to complete...
+[Passed] registrazione (1m 34s)
+[Passed] voto (45s)
+[Failed] pubblica (1m 54s) (Assertion is false: "Fit pubblicato in Streetwear." is visible)
+
+Flow pubblica failed and continueOnFailure is set to false, aborting running sequential Flows
+
+
+1/3 Flow Failed
+

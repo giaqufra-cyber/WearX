@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="test" tests="3" failures="1" time="252.986" timestamp="2026-10-12T03:53:10">
+    <testcase id="registrazione" name="registrazione" classname="registrazione" file="/home/runner/work/WearX/WearX/apps/mobile/.maestro/registrazione.yaml" time="93.881" timestamp="2026-10-12T03:53:10" status="SUCCESS"/>
+    <testcase id="voto" name="voto" classname="voto" file="/home/runner/work/WearX/WearX/apps/mobile/.maestro/voto.yaml" time="44.621" timestamp="2026-10-12T03:54:44" status="SUCCESS"/>
+    <testcase id="pubblica" name="pubblica" classname="pubblica" file="/home/runner/work/WearX/WearX/apps/mobile/.maestro/pubblica.yaml" time="114.448" timestamp="2026-10-12T03:55:29" status="ERROR">
+      <failure>Assertion is false: "Fit pubblicato in Streetwear." is visible</failure>
+    </testcase>
+  </testsuite>
+</testsuites>
