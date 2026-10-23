@@ -9,6 +9,7 @@ import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { TextField } from "@/ui/TextField";
+import { t } from "@/lib/i18n";
 
 const dateLabel = (iso: string) =>
   new Date(iso).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
@@ -16,10 +17,10 @@ const dateLabel = (iso: string) =>
 /** Ogni decisione della moderazione che ti riguarda, con il motivo e il reclamo (art. 17 e 20 DSA). */
 export function NoticeList({ canOpenPosts = true }: { canOpenPosts?: boolean }) {
   const notices = useNotices();
-  if (notices.isPending) return <Loading label="Carico gli avvisi" />;
+  if (notices.isPending) return <Loading label={t("Carico gli avvisi")} />;
   if (notices.isError) return <ErrorNotice error={notices.error} onRetry={() => void notices.refetch()} />;
   if (notices.data.length === 0) {
-    return <EmptyState title="Nessun avviso" body="Qui trovi le decisioni della moderazione che ti riguardano." />;
+    return <EmptyState title={t("Nessun avviso")} body={t("Qui trovi le decisioni della moderazione che ti riguardano.")} />;
   }
   return (
     <View style={styles.list}>
@@ -57,7 +58,7 @@ function NoticeCard({ notice, canOpenPost }: { notice: ModerationNotice; canOpen
 
       {notice.post_id && canOpenPost ? (
         <Button
-          label="Apri il fit"
+          label={t("Apri il fit")}
           variant="ghost"
           size="sm"
           onPress={() => router.push({ pathname: "/post/[id]", params: { id: notice.post_id! } })}
@@ -65,12 +66,12 @@ function NoticeCard({ notice, canOpenPost }: { notice: ModerationNotice; canOpen
       ) : null}
 
       {notice.can_appeal && !writing ? (
-        <Button label="Fai reclamo" variant="secondary" size="sm" onPress={() => setWriting(true)} />
+        <Button label={t("Fai reclamo")} variant="secondary" size="sm" onPress={() => setWriting(true)} />
       ) : null}
       {writing ? (
         <View style={styles.form}>
           <TextField
-            label="Il tuo reclamo"
+            label={t("Il tuo reclamo")}
             value={text}
             onChangeText={(value) => {
               setText(value);
@@ -78,14 +79,14 @@ function NoticeCard({ notice, canOpenPost }: { notice: ModerationNotice; canOpen
             }}
             multiline
             maxLength={1000}
-            placeholder="Spiega perché pensi che sia un errore"
-            hint="Lo legge un moderatore diverso da chi ha deciso."
+            placeholder={t("Spiega perché pensi che sia un errore")}
+            hint={t("Lo legge un moderatore diverso da chi ha deciso.")}
             error={error}
           />
           <View style={styles.row}>
-            <Button label="Annulla" variant="ghost" size="sm" onPress={() => setWriting(false)} />
+            <Button label={t("Annulla")} variant="ghost" size="sm" onPress={() => setWriting(false)} />
             <Button
-              label="Invia reclamo"
+              label={t("Invia reclamo")}
               size="sm"
               disabled={!text.trim()}
               loading={appeal.isPending}

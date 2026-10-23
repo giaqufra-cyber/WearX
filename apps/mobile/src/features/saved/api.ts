@@ -11,6 +11,7 @@ import { FEED_KEY, patchPost } from "@/features/feed/api";
 import { PORTFOLIO_KEY, postKey } from "@/features/portfolio/api";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 export const SAVED_KEY = ["saved"] as const;
 export const ARCHIVE_KEY = ["archive"] as const;
@@ -69,7 +70,7 @@ export function useSaveHandler(): (post: Post) => void {
     (post: Post) =>
       mutate(
         { postId: post.id, on: !post.saved },
-        { onSuccess: (on) => (on ? toast.show("Salvato. Lo ritrovi nel tuo profilo, in Salvati.") : undefined) },
+        { onSuccess: (on) => (on ? toast.show(t("Salvato. Lo ritrovi nel tuo profilo, in Salvati.")) : undefined) },
       ),
     [mutate, toast],
   );

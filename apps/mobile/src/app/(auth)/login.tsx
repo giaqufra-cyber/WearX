@@ -15,10 +15,11 @@ import { Screen } from "@/ui/Screen";
 import { SegmentedControl } from "@/ui/SegmentedControl";
 import { Text } from "@/ui/Text";
 import { TextField } from "@/ui/TextField";
+import { N_, t } from "@/lib/i18n";
 
 const CONTACT_OPTIONS = [
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Telefono" },
+  { value: "email", label: N_("Email") },
+  { value: "phone", label: N_("Telefono") },
 ] as const;
 
 /** Accesso con email (o telefono) e password. */
@@ -60,14 +61,14 @@ export default function LoginScreen() {
     <Screen>
       <AuthHeader />
       <Text variant="display" role="heading">
-        Bentornato
+        {t("Bentornato")}
       </Text>
-      <Text variant="secondary">Accedi per vedere i fit dei tuoi stili.</Text>
+      <Text variant="secondary">{t("Accedi per vedere i fit dei tuoi stili.")}</Text>
 
       <View style={styles.form}>
         {env.phoneSignupEnabled ? (
           <SegmentedControl
-            label="Come vuoi accedere"
+            label={t("Come vuoi accedere")}
             options={CONTACT_OPTIONS}
             value={mode}
             onChange={(next) => {
@@ -79,13 +80,13 @@ export default function LoginScreen() {
           />
         ) : null}
         <TextField
-          label={isEmail ? "EMAIL" : "TELEFONO"}
+          label={isEmail ? t("EMAIL") : t("TELEFONO")}
           value={contact}
           onChangeText={(value) => {
             setContact(value);
             setError(null);
           }}
-          placeholder={isEmail ? "nome@esempio.it" : "+39 333 123 4567"}
+          placeholder={isEmail ? t("nome@esempio.it") : "+39 333 123 4567"}
           keyboardType={isEmail ? "email-address" : "phone-pad"}
           autoCapitalize="none"
           autoCorrect={false}
@@ -96,7 +97,7 @@ export default function LoginScreen() {
         />
         <TextField
           ref={passwordRef}
-          label="PASSWORD"
+          label={t("PASSWORD")}
           value={password}
           onChangeText={(value) => {
             setPassword(value);
@@ -115,11 +116,11 @@ export default function LoginScreen() {
             {error}
           </Text>
         ) : null}
-        <Button label="Accedi" onPress={() => void submit()} disabled={!canSubmit} loading={submitting} fullWidth />
+        <Button label={t("Accedi")} onPress={() => void submit()} disabled={!canSubmit} loading={submitting} fullWidth />
         {isEmail ? (
-          <Button label="Password dimenticata?" variant="ghost" size="md" onPress={() => router.push("/forgot")} fullWidth />
+          <Button label={t("Password dimenticata?")} variant="ghost" size="md" onPress={() => router.push("/forgot")} fullWidth />
         ) : null}
-        <Button label="Crea un account" variant="ghost" size="md" onPress={() => router.replace("/signup")} fullWidth />
+        <Button label={t("Crea un account")} variant="ghost" size="md" onPress={() => router.replace("/signup")} fullWidth />
       </View>
     </Screen>
   );

@@ -6,6 +6,7 @@ import type { DraftPhoto } from "@/features/create/draft";
 import { type ItemPin, roundPin } from "@/features/create/form";
 import { Button } from "@/ui/Button";
 import { Sheet } from "@/ui/Sheet";
+import { t } from "@/lib/i18n";
 
 type Props = {
   visible: boolean;
@@ -112,7 +113,7 @@ export function PinSheet({ visible, itemLabel, photos, pin, onSave, onClose }: P
         {pin ? (
           <View style={styles.action}>
             <Button
-              label="Togli il punto"
+              label={t("Togli il punto")}
               variant="secondary"
               size="md"
               fullWidth
@@ -125,11 +126,11 @@ export function PinSheet({ visible, itemLabel, photos, pin, onSave, onClose }: P
         ) : null}
         <View style={styles.action}>
           <Button
-            label="Fatto"
+            label={t("Fatto")}
             size="md"
             fullWidth
             disabled={!point || !photo}
-            hint={point ? undefined : "Prima tocca un punto della foto"}
+            hint={point ? undefined : t("Prima tocca un punto della foto")}
             onPress={() => {
               if (!point || !photo) return;
               onSave({ photo: photo.localId, x: point.x, y: point.y });

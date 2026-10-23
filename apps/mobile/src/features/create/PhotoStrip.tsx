@@ -4,6 +4,7 @@ import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View
 import type { DraftPhoto } from "@/features/create/draft";
 import { MAX_PHOTOS } from "@/features/create/form";
 import { IconBack, IconClose, IconPlus } from "@/ui/icons";
+import { t } from "@/lib/i18n";
 
 type Props = {
   photos: DraftPhoto[];
@@ -56,7 +57,7 @@ export function PhotoStrip({ photos, onAdd, onRemove, onMove, onRetry }: Props) 
                   </Text>
                   {photo.status === "error" ? (
                     <Pressable role="button" aria-label={`Riprova la foto ${index + 1}`} onPress={() => onRetry(photo.localId)} style={styles.retry}>
-                      <Text style={styles.retryText}>Riprova</Text>
+                      <Text style={styles.retryText}>{t("Riprova")}</Text>
                     </Pressable>
                   ) : null}
                 </View>
@@ -100,7 +101,7 @@ export function PhotoStrip({ photos, onAdd, onRemove, onMove, onRetry }: Props) 
       {photos.length < MAX_PHOTOS ? (
         <Pressable
           role="button"
-          aria-label={photos.length ? "Aggiungi altre foto" : "Scegli le foto dalla galleria"}
+          aria-label={photos.length ? t("Aggiungi altre foto") : t("Scegli le foto dalla galleria")}
           onPress={onAdd}
           style={({ pressed }) => [styles.tile, styles.add, pressed ? styles.pressed : null]}
         >

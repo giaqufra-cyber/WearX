@@ -8,6 +8,7 @@ import { Button } from "@/ui/Button";
 import { Loading } from "@/ui/LoadState";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
+import { t } from "@/lib/i18n";
 
 const SLOW_AFTER_MS = 90_000;
 
@@ -32,13 +33,13 @@ export default function AgeWaitScreen() {
   return (
     <Screen scroll={false}>
       <View style={styles.center}>
-        <Loading label="Aspettiamo l'esito della verifica…" />
+        <Loading label={t("Aspettiamo l'esito della verifica…")} />
         {slow ? (
           <Text variant="secondary" style={styles.text}>
-            Ci sta mettendo più del solito. Puoi aspettare o tornare ai metodi di verifica.
+            {t("Ci sta mettendo più del solito. Puoi aspettare o tornare ai metodi di verifica.")}
           </Text>
         ) : null}
-        <Button label="Torna ai metodi" variant="ghost" size="md" onPress={() => router.replace("/age")} fullWidth />
+        <Button label={t("Torna ai metodi")} variant="ghost" size="md" onPress={() => router.replace("/age")} fullWidth />
       </View>
     </Screen>
   );

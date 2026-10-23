@@ -8,6 +8,7 @@ import { existingStyle, proposalError, usePropose } from "@/features/styles/prop
 import { Button } from "@/ui/Button";
 import { Sheet } from "@/ui/Sheet";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 const NAME_MAX = 30;
 const TAGLINE_MAX = 60;
@@ -63,25 +64,25 @@ export function ProposeSheet({ visible, initialName = "", onClose, onExisting }:
   };
 
   return (
-    <Sheet visible={visible} title="Proponi uno stile" onClose={onClose}>
+    <Sheet visible={visible} title={t("Proponi uno stile")} onClose={onClose}>
       <View style={styles.form}>
-        <Text style={styles.label}>NOME</Text>
+        <Text style={styles.label}>{t("NOME")}</Text>
         <TextInput
-          aria-label="Nome dello stile"
+          aria-label={t("Nome dello stile")}
           value={name}
           onChangeText={(v) => {
             setName(v);
             setError(null);
             setExists(null);
           }}
-          placeholder="Es. Avant-garde"
+          placeholder={t("Es. Avant-garde")}
           placeholderTextColor={colors.textTertiary}
           selectionColor={colors.accent}
           maxLength={NAME_MAX}
           style={styles.input}
         />
-        <Text style={styles.label}>CATEGORIA</Text>
-        <View style={styles.cats} role="radiogroup" aria-label="Categoria">
+        <Text style={styles.label}>{t("CATEGORIA")}</Text>
+        <View style={styles.cats} role="radiogroup" aria-label={t("Categoria")}>
           {CATEGORIES.map((c) => {
             const selected = c.key === category;
             return (
@@ -97,12 +98,12 @@ export function ProposeSheet({ visible, initialName = "", onClose, onExisting }:
             );
           })}
         </View>
-        <Text style={styles.label}>DESCRIZIONE (OPZ.)</Text>
+        <Text style={styles.label}>{t("DESCRIZIONE (OPZ.)")}</Text>
         <TextInput
-          aria-label="Descrizione dello stile"
+          aria-label={t("Descrizione dello stile")}
           value={tagline}
           onChangeText={setTagline}
-          placeholder="Tre parole: capi, colori, mood"
+          placeholder={t("Tre parole: capi, colori, mood")}
           placeholderTextColor={colors.textTertiary}
           selectionColor={colors.accent}
           maxLength={TAGLINE_MAX}
@@ -115,7 +116,7 @@ export function ProposeSheet({ visible, initialName = "", onClose, onExisting }:
         ) : null}
         {exists ? (
           <Button
-            label={onExisting ? "Scegli questo stile" : "Apri lo stile"}
+            label={onExisting ? t("Scegli questo stile") : t("Apri lo stile")}
             variant="secondary"
             size="md"
             onPress={() => {
@@ -125,7 +126,7 @@ export function ProposeSheet({ visible, initialName = "", onClose, onExisting }:
             }}
           />
         ) : null}
-        <Button label="Proponi" onPress={submit} disabled={!ready} loading={propose.isPending} fullWidth size="md" />
+        <Button label={t("Proponi")} onPress={submit} disabled={!ready} loading={propose.isPending} fullWidth size="md" />
       </View>
     </Sheet>
   );

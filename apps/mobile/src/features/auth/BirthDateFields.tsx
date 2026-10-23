@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { StyleSheet, type TextInput, View } from "react-native";
 
 import { TextField } from "@/ui/TextField";
+import { t } from "@/lib/i18n";
 
 export type BirthValue = { day: string; month: string; year: string };
 
@@ -22,13 +23,13 @@ export function BirthDateFields({
     <View style={styles.row}>
       <View style={styles.small}>
         <TextField
-          label="GIORNO"
+          label={t("GIORNO")}
           value={value.day}
           onChangeText={(raw) => {
             onChange({ day: digits(raw) });
             if (digits(raw).length === 2) monthRef.current?.focus();
           }}
-          placeholder="GG"
+          placeholder={t("GG")}
           keyboardType="number-pad"
           maxLength={2}
           autoComplete="birthdate-day"
@@ -38,13 +39,13 @@ export function BirthDateFields({
       <View style={styles.small}>
         <TextField
           ref={monthRef}
-          label="MESE"
+          label={t("MESE")}
           value={value.month}
           onChangeText={(raw) => {
             onChange({ month: digits(raw) });
             if (digits(raw).length === 2) yearRef.current?.focus();
           }}
-          placeholder="MM"
+          placeholder={t("MM")}
           keyboardType="number-pad"
           maxLength={2}
           autoComplete="birthdate-month"
@@ -54,10 +55,10 @@ export function BirthDateFields({
       <View style={styles.year}>
         <TextField
           ref={yearRef}
-          label="ANNO"
+          label={t("ANNO")}
           value={value.year}
           onChangeText={(raw) => onChange({ year: digits(raw) })}
-          placeholder="AAAA"
+          placeholder={t("AAAA")}
           keyboardType="number-pad"
           maxLength={4}
           autoComplete="birthdate-year"

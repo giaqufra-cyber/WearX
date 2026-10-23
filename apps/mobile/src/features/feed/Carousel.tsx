@@ -16,6 +16,7 @@ import {
 
 import { bestVariant } from "@/features/feed/format";
 import { IconChevronLeft, IconChevronRight, IconTag } from "@/ui/icons";
+import { t } from "@/lib/i18n";
 
 type Props = { post: Post; width: number; authorLabel: string };
 
@@ -89,12 +90,12 @@ export function Carousel({ post, width, authorLabel }: Props) {
             {Platform.OS === "web" ? (
               <>
                 {index > 0 ? (
-                  <Pressable role="button" aria-label="Foto precedente" onPress={() => go(index - 1)} style={[styles.arrow, styles.arrowLeft]}>
+                  <Pressable role="button" aria-label={t("Foto precedente")} onPress={() => go(index - 1)} style={[styles.arrow, styles.arrowLeft]}>
                     <IconChevronLeft color={colors.text} size={18} />
                   </Pressable>
                 ) : null}
                 {index < count - 1 ? (
-                  <Pressable role="button" aria-label="Foto successiva" onPress={() => go(index + 1)} style={[styles.arrow, styles.arrowRight]}>
+                  <Pressable role="button" aria-label={t("Foto successiva")} onPress={() => go(index + 1)} style={[styles.arrow, styles.arrowRight]}>
                     <IconChevronRight color={colors.text} size={18} />
                   </Pressable>
                 ) : null}
@@ -124,7 +125,7 @@ export function Carousel({ post, width, authorLabel }: Props) {
         {tagged > 0 ? (
           <Pressable
             role="button"
-            aria-label={tagsOpen ? "Nascondi i capi sulla foto" : "Mostra i capi sulla foto"}
+            aria-label={tagsOpen ? t("Nascondi i capi sulla foto") : t("Mostra i capi sulla foto")}
             aria-expanded={tagsOpen}
             onPress={() => setTagsOpen((open) => !open)}
             style={styles.tagsButton}

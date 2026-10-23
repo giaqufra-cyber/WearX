@@ -4,19 +4,20 @@ import type { Appeal, ModerationNotice, ReportReason, ReportReceipt, ReportReque
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
+import { N_ } from "@/lib/i18n";
 
 export const NOTICES_KEY = ["moderation-notices"] as const;
 
 /** Motivi della segnalazione, nell'ordine in cui si mostrano. */
 export const REASONS: ReadonlyArray<{ value: ReportReason; label: string; hint: string }> = [
-  { value: "nudity", label: "Nudità o contenuti sessuali", hint: "Foto esplicite o allusive" },
-  { value: "harassment", label: "Molestie o minacce", hint: "Insulti, minacce, dati personali di altri" },
-  { value: "minor_safety", label: "Un minore è in pericolo", hint: "Abusi o sfruttamento di minori" },
-  { value: "stolen_photo", label: "Foto rubata", hint: "La foto è tua o di qualcun altro" },
-  { value: "wrong_style", label: "Stile sbagliato", hint: "Il fit non c'entra con lo stile" },
-  { value: "dangerous_link", label: "Link pericoloso", hint: "Truffa, virus o sito per adulti" },
-  { value: "spam", label: "Spam", hint: "Pubblicità ripetuta o contenuti fuori luogo" },
-  { value: "other", label: "Altro", hint: "Un'altra violazione delle regole" },
+  { value: "nudity", label: N_("Nudità o contenuti sessuali"), hint: N_("Foto esplicite o allusive") },
+  { value: "harassment", label: N_("Molestie o minacce"), hint: N_("Insulti, minacce, dati personali di altri") },
+  { value: "minor_safety", label: N_("Un minore è in pericolo"), hint: N_("Abusi o sfruttamento di minori") },
+  { value: "stolen_photo", label: N_("Foto rubata"), hint: N_("La foto è tua o di qualcun altro") },
+  { value: "wrong_style", label: N_("Stile sbagliato"), hint: N_("Il fit non c'entra con lo stile") },
+  { value: "dangerous_link", label: N_("Link pericoloso"), hint: N_("Truffa, virus o sito per adulti") },
+  { value: "spam", label: N_("Spam"), hint: N_("Pubblicità ripetuta o contenuti fuori luogo") },
+  { value: "other", label: N_("Altro"), hint: N_("Un'altra violazione delle regole") },
 ];
 
 export type ReportTarget = { type: "post"; id: string } | { type: "profile"; nickname: string };

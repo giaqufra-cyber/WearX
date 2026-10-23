@@ -11,6 +11,7 @@ import { EmptyState } from "@/ui/EmptyState";
 import { Loading } from "@/ui/LoadState";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
+import { t } from "@/lib/i18n";
 
 /** Aperta dal link nella mail di recupero: si scambia il codice monouso, poi nuova password. */
 export default function ResetPasswordScreen() {
@@ -45,7 +46,7 @@ export default function ResetPasswordScreen() {
   if (state === "exchanging") {
     return (
       <Screen>
-        <Loading label="Controllo il link…" />
+        <Loading label={t("Controllo il link…")} />
       </Screen>
     );
   }
@@ -54,9 +55,9 @@ export default function ResetPasswordScreen() {
       <Screen>
         <AuthHeader />
         <EmptyState
-          title="Link non valido"
-          body="Il link è scaduto o è già stato usato, oppure l'hai aperto da un altro dispositivo. Chiedine uno nuovo."
-          action={{ label: "Chiedi un nuovo link", onPress: () => router.replace("/forgot") }}
+          title={t("Link non valido")}
+          body={t("Il link è scaduto o è già stato usato, oppure l'hai aperto da un altro dispositivo. Chiedine uno nuovo.")}
+          action={{ label: t("Chiedi un nuovo link"), onPress: () => router.replace("/forgot") }}
         />
       </Screen>
     );
@@ -65,11 +66,11 @@ export default function ResetPasswordScreen() {
     <Screen>
       <AuthHeader />
       <Text variant="display" role="heading">
-        Nuova password
+        {t("Nuova password")}
       </Text>
-      <Text variant="secondary">Scegline una che non usi altrove.</Text>
+      <Text variant="secondary">{t("Scegline una che non usi altrove.")}</Text>
       <NewPasswordFields
-        submitLabel="Salva ed entra"
+        submitLabel={t("Salva ed entra")}
         onSubmit={async (password) => {
           const failed = await saveNewPassword(password);
           if (failed) return authErrorMessage(failed);

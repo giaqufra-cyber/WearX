@@ -44,6 +44,7 @@ import { ErrorNotice } from "@/ui/LoadState";
 import { Sheet } from "@/ui/Sheet";
 import { Skeleton } from "@/ui/Skeleton";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 const MAX_WIDTH = 560;
 const GAP = 8;
@@ -113,7 +114,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
   if (user.isPending) {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        <View style={styles.skeleton} role="progressbar" aria-label="Carico il profilo">
+        <View style={styles.skeleton} role="progressbar" aria-label={t("Carico il profilo")}>
           <Skeleton height={86} width={86} radius={43} />
           <Skeleton height={20} width={200} />
           <Skeleton height={Math.round(tileWidth * 1.28)} />
@@ -126,7 +127,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
         {missing ? (
-          <EmptyState title="Profilo non disponibile" body="Questo profilo non esiste o non è visibile." />
+          <EmptyState title={t("Profilo non disponibile")} body={t("Questo profilo non esiste o non è visibile.")} />
         ) : (
           <ErrorNotice error={user.error} onRetry={() => void user.refetch()} />
         )}
@@ -138,7 +139,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
     <View>
       <View style={[styles.topBar, !own && styles.topBarBack]}>
         {!own ? (
-          <IconButton label="Indietro" onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}>
+          <IconButton label={t("Indietro")} onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}>
             <IconBack color={colors.text} />
           </IconButton>
         ) : null}
@@ -151,18 +152,18 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
         {own ? (
           <>
             <InsightButton />
-            <IconButton label="Salvati" onPress={() => router.push("/saved")}>
+            <IconButton label={t("Salvati")} onPress={() => router.push("/saved")}>
               <IconBookmark color={colors.text} />
             </IconButton>
-            <IconButton label="Trova persone" onPress={() => router.push("/find")}>
+            <IconButton label={t("Trova persone")} onPress={() => router.push("/find")}>
               <IconUserPlus color={colors.text} />
             </IconButton>
-            <IconButton label="Impostazioni dell'account" onPress={() => setSettings(true)}>
+            <IconButton label={t("Impostazioni dell'account")} onPress={() => setSettings(true)}>
               <IconSliders color={colors.text} />
             </IconButton>
           </>
         ) : (
-          <IconButton label="Altre azioni" onPress={() => setMenu(true)}>
+          <IconButton label={t("Altre azioni")} onPress={() => setMenu(true)}>
             <IconMore color={colors.text} />
           </IconButton>
         )}
@@ -177,7 +178,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
           style={styles.requests}
           aria-label={`Richieste di follow: ${profile.pending_requests}`}
         >
-          <Text style={styles.requestsText}>Richieste di follow</Text>
+          <Text style={styles.requestsText}>{t("Richieste di follow")}</Text>
           <Text style={styles.requestsCount}>{profile.pending_requests}</Text>
         </Pressable>
       ) : null}
@@ -193,7 +194,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
         <View style={styles.buttons}>
           <View style={styles.flex}>
             <Button
-              label="Modifica profilo"
+              label={t("Modifica profilo")}
               variant="secondary"
               size="md"
               fullWidth
@@ -206,7 +207,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
         <View style={[styles.buttons, styles.buttonsTight]}>
           <View style={styles.flex}>
             <Button
-              label={reordering ? "Fatto" : "Modifica ordine"}
+              label={reordering ? t("Fatto") : t("Modifica ordine")}
               variant={reordering ? "inverse" : "secondary"}
               size="md"
               fullWidth
@@ -219,7 +220,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
           </View>
           <View style={styles.flex}>
             <Button
-              label="Capsule"
+              label={t("Capsule")}
               variant="secondary"
               size="md"
               fullWidth
@@ -230,7 +231,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
         </View>
       ) : null}
       {reordering ? (
-        <Text style={styles.hint}>Sposta i fit con le frecce. Il primo è la copertina del tuo portfolio.</Text>
+        <Text style={styles.hint}>{t("Sposta i fit con le frecce. Il primo è la copertina del tuo portfolio.")}</Text>
       ) : null}
 
       {profile.can_view_posts && profile.capsules.length > 0 ? (
@@ -280,13 +281,13 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
   if (!profile.can_view_posts) {
     empty = (
       <EmptyState
-        title="Account privato"
+        title={t("Account privato")}
         body={`I fit di @${profile.nickname} li vede solo chi viene approvato.`}
       />
     );
   } else if (grid.isPending) {
     empty = (
-      <View style={styles.gridSkeleton} role="progressbar" aria-label="Carico i fit">
+      <View style={styles.gridSkeleton} role="progressbar" aria-label={t("Carico i fit")}>
         <Skeleton height={Math.round(tileWidth * 1.28)} width={tileWidth} />
         <Skeleton height={Math.round(tileWidth * 1.28)} width={tileWidth} />
       </View>
@@ -296,19 +297,19 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
   } else if (activeCapsule) {
     empty = (
       <EmptyState
-        title="Capsula vuota"
-        body={own ? "Apri un fit e scegli «Capsula» per aggiungerlo qui." : "Qui non ci sono ancora fit."}
+        title={t("Capsula vuota")}
+        body={own ? t("Apri un fit e scegli «Capsula» per aggiungerlo qui.") : t("Qui non ci sono ancora fit.")}
       />
     );
   } else {
     empty = own ? (
       <EmptyState
-        title="Il tuo portfolio è vuoto"
-        body="Pubblica il primo fit: diventa la copertina del tuo profilo."
-        action={{ label: "Pubblica un fit", onPress: () => router.push("/new-post") }}
+        title={t("Il tuo portfolio è vuoto")}
+        body={t("Pubblica il primo fit: diventa la copertina del tuo profilo.")}
+        action={{ label: t("Pubblica un fit"), onPress: () => router.push("/new-post") }}
       />
     ) : (
-      <EmptyState title="Ancora nessun fit" />
+      <EmptyState title={t("Ancora nessun fit")} />
     );
   }
 
@@ -376,7 +377,7 @@ function InsightButton() {
   const on = useAppConfig().data?.feature_flags?.insights === true;
   if (!on) return null;
   return (
-    <IconButton label="Insight" onPress={() => router.push("/insights")}>
+    <IconButton label={t("Insight")} onPress={() => router.push("/insights")}>
       <IconChart color={colors.text} />
     </IconButton>
   );
@@ -390,7 +391,7 @@ function ProfileHead({ profile }: { profile: UserProfile }) {
         {profile.is_self ? (
           <Pressable
             role="button"
-            aria-label="Modifica la foto profilo"
+            aria-label={t("Modifica la foto profilo")}
             onPress={() => router.push("/edit-profile")}
             style={styles.ring}
           >
@@ -402,34 +403,34 @@ function ProfileHead({ profile }: { profile: UserProfile }) {
           </View>
         )}
         <View style={styles.stats}>
-          <Stat value={statValue(stats.posts, "count")} label="outfit" />
-          <Stat value={statValue(stats.average, "average")} label="voto medio" accent />
-          <Stat value={statValue(stats.votes, "count")} label="voti ricevuti" />
+          <Stat value={statValue(stats.posts, "count")} label={t("outfit")} />
+          <Stat value={statValue(stats.average, "average")} label={t("voto medio")} accent />
+          <Stat value={statValue(stats.votes, "count")} label={t("voti ricevuti")} />
         </View>
       </View>
       <View style={styles.info}>
         <View style={styles.nameRow}>
           <Text style={styles.name}>@{profile.nickname}</Text>
           <Text style={styles.type}>{accountTypeLabel(profile.account_type)}</Text>
-          {profile.relationship.follows_you && !profile.is_self ? <Text style={styles.type}>TI SEGUE</Text> : null}
+          {profile.relationship.follows_you && !profile.is_self ? <Text style={styles.type}>{t("TI SEGUE")}</Text> : null}
         </View>
         <View style={styles.counts}>
           <Count
             value={profile.followers}
-            label="follower"
+            label={t("follower")}
             onPress={profile.is_self ? () => router.push({ pathname: "/people", params: { tab: "followers" } }) : undefined}
           />
           <Text style={styles.countDot}>·</Text>
           <Count
             value={profile.following}
-            label="seguiti"
+            label={t("seguiti")}
             onPress={profile.is_self ? () => router.push({ pathname: "/people", params: { tab: "following" } }) : undefined}
           />
         </View>
         {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
         {!profile.bio && profile.is_self ? (
           <Pressable role="link" onPress={() => router.push("/edit-profile")} hitSlop={8} style={styles.addBio}>
-            <Text style={styles.addBioText}>+ Aggiungi una bio</Text>
+            <Text style={styles.addBioText}>{t("+ Aggiungi una bio")}</Text>
           </Pressable>
         ) : null}
         {(profile.verified_domains ?? []).length > 0 ? (
@@ -493,9 +494,9 @@ function Stat({ value, label, accent = false }: { value: string; label: string; 
 function AccountSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { signOut } = useAuth();
   return (
-    <Sheet visible={visible} title="Account" onClose={onClose}>
+    <Sheet visible={visible} title={t("Account")} onClose={onClose}>
       <Button
-        label="Salvati"
+        label={t("Salvati")}
         variant="secondary"
         size="md"
         onPress={() => {
@@ -504,7 +505,7 @@ function AccountSheet({ visible, onClose }: { visible: boolean; onClose: () => v
         }}
       />
       <Button
-        label="Archivio"
+        label={t("Archivio")}
         variant="secondary"
         size="md"
         onPress={() => {
@@ -513,7 +514,7 @@ function AccountSheet({ visible, onClose }: { visible: boolean; onClose: () => v
         }}
       />
       <Button
-        label="Notifiche"
+        label={t("Notifiche")}
         variant="secondary"
         size="md"
         onPress={() => {
@@ -522,7 +523,7 @@ function AccountSheet({ visible, onClose }: { visible: boolean; onClose: () => v
         }}
       />
       <Button
-        label="Avvisi della moderazione"
+        label={t("Avvisi della moderazione")}
         variant="secondary"
         size="md"
         onPress={() => {
@@ -531,7 +532,7 @@ function AccountSheet({ visible, onClose }: { visible: boolean; onClose: () => v
         }}
       />
       <Button
-        label="Account bloccati"
+        label={t("Account bloccati")}
         variant="secondary"
         size="md"
         onPress={() => {
@@ -540,7 +541,7 @@ function AccountSheet({ visible, onClose }: { visible: boolean; onClose: () => v
         }}
       />
       <Button
-        label="Privacy e sicurezza"
+        label={t("Privacy e sicurezza")}
         variant="secondary"
         size="md"
         onPress={() => {
@@ -549,7 +550,7 @@ function AccountSheet({ visible, onClose }: { visible: boolean; onClose: () => v
         }}
       />
       <Button
-        label="Esci"
+        label={t("Esci")}
         variant="secondary"
         size="md"
         onPress={() => {

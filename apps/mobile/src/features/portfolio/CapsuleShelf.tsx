@@ -5,6 +5,7 @@ import { PixelRatio, Pressable, ScrollView, StyleSheet, Text, View } from "react
 
 import { bestVariant } from "@/features/feed/format";
 import { Shade } from "@/ui/Shade";
+import { t } from "@/lib/i18n";
 
 /**
  * Capsule come "collezioni" di un portfolio (seduta 28): una copertina per capsula, più grande
@@ -43,12 +44,12 @@ export function CapsuleShelf({ capsules, total, active, onSelect }: Props) {
   const height = shelfHeight(capsules);
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>CAPSULE</Text>
+      <Text style={styles.label}>{t("CAPSULE")}</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         role="tablist"
-        aria-label="Capsule"
+        aria-label={t("Capsule")}
         contentContainerStyle={[styles.row, { height }]}
       >
         <Pressable
@@ -59,7 +60,7 @@ export function CapsuleShelf({ capsules, total, active, onSelect }: Props) {
           style={[styles.all, active === null && styles.selected]}
         >
           <Text style={styles.allCount}>{total}</Text>
-          <Text style={styles.allText}>Tutti</Text>
+          <Text style={styles.allText}>{t("Tutti")}</Text>
         </Pressable>
         {capsules.map((capsule) => {
           const selected = capsule.id === active;

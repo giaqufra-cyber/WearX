@@ -17,6 +17,7 @@ import { ErrorNotice } from "@/ui/LoadState";
 import { SearchField } from "@/ui/SearchField";
 import { Skeleton } from "@/ui/Skeleton";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 export const PEOPLE_DEBOUNCE_MS = 200;
 const AVATAR = 44;
@@ -48,8 +49,8 @@ export function PeopleSearch({ autoFocus = false }: { autoFocus?: boolean }) {
       <SearchField
         value={text}
         onChangeText={setText}
-        label="Cerca persone"
-        placeholder="Cerca un nickname"
+        label={t("Cerca persone")}
+        placeholder={t("Cerca un nickname")}
         maxLength={31}
         autoFocus={autoFocus}
       />
@@ -67,8 +68,8 @@ export function PeopleSearch({ autoFocus = false }: { autoFocus?: boolean }) {
           ))}
           {results.isSuccess && results.data.items.length === 0 && query === results.data.query ? (
             <EmptyState
-              title="Nessuno con questo nickname"
-              body="Controlla come si scrive. Chi ha scelto di non farsi trovare compare solo col nickname esatto."
+              title={t("Nessuno con questo nickname")}
+              body={t("Controlla come si scrive. Chi ha scelto di non farsi trovare compare solo col nickname esatto.")}
             />
           ) : null}
         </View>
@@ -77,9 +78,9 @@ export function PeopleSearch({ autoFocus = false }: { autoFocus?: boolean }) {
           {recent.items.length > 0 ? (
             <View style={styles.list}>
               <View style={styles.head}>
-                <Text style={styles.section}>RECENTI</Text>
+                <Text style={styles.section}>{t("RECENTI")}</Text>
                 <Pressable role="button" onPress={recent.clear} hitSlop={8}>
-                  <Text style={styles.clear}>Cancella</Text>
+                  <Text style={styles.clear}>{t("Cancella")}</Text>
                 </Pressable>
               </View>
               {recent.items.map((person) => (
@@ -108,7 +109,7 @@ function Suggested({ onOpen, hide }: { onOpen: (person: PersonCard) => void; hid
 
   return (
     <View style={styles.list}>
-      <Text style={styles.section}>PERSONE CHE POTRESTI CONOSCERE</Text>
+      <Text style={styles.section}>{t("PERSONE CHE POTRESTI CONOSCERE")}</Text>
       {suggestions.isPending ? <RowsSkeleton count={4} /> : null}
       {suggestions.isError ? <ErrorNotice error={suggestions.error} onRetry={() => void suggestions.refetch()} /> : null}
       {items.map((person) => (
@@ -121,8 +122,8 @@ function Suggested({ onOpen, hide }: { onOpen: (person: PersonCard) => void; hid
       ))}
       {suggestions.isSuccess && items.length === 0 ? (
         <EmptyState
-          title="Ancora nessun suggerimento"
-          body="Segui qualcuno o entra in altri stili: qui compariranno amici di amici e persone con i tuoi stili."
+          title={t("Ancora nessun suggerimento")}
+          body={t("Segui qualcuno o entra in altri stili: qui compariranno amici di amici e persone con i tuoi stili.")}
         />
       ) : null}
     </View>
@@ -188,7 +189,7 @@ function RowFollow({ person, onOpen }: { person: PersonCard; onOpen: () => void 
     if (state === "accepted") {
       onOpen();
     } else if (state === "pending") {
-      follow.mutate({ person, action: "unfollow" }, { onSuccess: () => toast.show("Richiesta ritirata.") });
+      follow.mutate({ person, action: "unfollow" }, { onSuccess: () => toast.show(t("Richiesta ritirata.")) });
     } else {
       follow.mutate(
         { person, action: "follow" },
@@ -230,7 +231,7 @@ function RecentRow({ person, onOpen, onRemove }: { person: RecentPerson; onOpen:
           <Text style={styles.nick} numberOfLines={1}>
             @{person.nickname}
           </Text>
-          {person.account_type === "business" ? <Text style={styles.line}>Account business</Text> : null}
+          {person.account_type === "business" ? <Text style={styles.line}>{t("Account business")}</Text> : null}
         </View>
       </Pressable>
       <IconButton label={`Togli @${person.nickname} dai recenti`} onPress={onRemove}>
@@ -242,7 +243,7 @@ function RecentRow({ person, onOpen, onRemove }: { person: RecentPerson; onOpen:
 
 function RowsSkeleton({ count }: { count: number }) {
   return (
-    <View style={styles.list} role="progressbar" aria-label="Carico le persone">
+    <View style={styles.list} role="progressbar" aria-label={t("Carico le persone")}>
       {Array.from({ length: count }, (_, i) => (
         <View key={i} style={styles.row}>
           <Skeleton width={AVATAR} height={AVATAR} radius={AVATAR / 2} />

@@ -27,6 +27,7 @@ import { ErrorNotice } from "@/ui/LoadState";
 import { Skeleton } from "@/ui/Skeleton";
 import { Text } from "@/ui/Text";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 // Un fit conta come "visto" se resta per almeno un secondo con il 60% sullo schermo.
 const VIEWABILITY = { itemVisiblePercentThreshold: 60, minimumViewTime: 1000 };
@@ -87,7 +88,7 @@ export default function FeedScreen() {
       </View>
       {mine.data ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          <View role="tablist" aria-label="Filtra per stile" style={styles.chipRow}>
+          <View role="tablist" aria-label={t("Filtra per stile")} style={styles.chipRow}>
           {chips.map((chip) => {
             const selected = chip.slug === active;
             return (
@@ -103,9 +104,9 @@ export default function FeedScreen() {
             );
           })}
           </View>
-          <Pressable onPress={() => router.navigate("/explore")} role="button" aria-label="Aggiungi stili" style={[styles.chip, styles.chipAdd]}>
+          <Pressable onPress={() => router.navigate("/explore")} role="button" aria-label={t("Aggiungi stili")} style={[styles.chip, styles.chipAdd]}>
             <IconPlus color={colors.textSecondary} size={16} />
-            <Text style={[styles.chipText, styles.chipAddText]}>Stili</Text>
+            <Text style={[styles.chipText, styles.chipAddText]}>{t("Stili")}</Text>
           </Pressable>
         </ScrollView>
       ) : null}
@@ -116,7 +117,7 @@ export default function FeedScreen() {
   let empty = null;
   if (feed.isPending) {
     empty = (
-      <View style={styles.skeleton} aria-label="Carico il feed" role="progressbar">
+      <View style={styles.skeleton} aria-label={t("Carico il feed")} role="progressbar">
         <Skeleton height={38} width={180} radius={19} />
         <Skeleton height={Math.round(width * 1.25)} radius={0} />
         <Skeleton height={44} />
@@ -127,17 +128,17 @@ export default function FeedScreen() {
   } else if (emptyReason === "no_styles") {
     empty = (
       <EmptyState
-        title="Scegli i tuoi stili"
-        body="Il feed è fatto dei fit degli stili che segui."
-        action={{ label: "Esplora gli stili", onPress: () => router.navigate("/explore") }}
+        title={t("Scegli i tuoi stili")}
+        body={t("Il feed è fatto dei fit degli stili che segui.")}
+        action={{ label: t("Esplora gli stili"), onPress: () => router.navigate("/explore") }}
       />
     );
   } else if (posts.length === 0) {
     empty = (
       <EmptyState
-        title="Hai visto tutto"
-        body="Non ci sono altri fit da votare qui. Sii il primo a postarne uno."
-        action={{ label: "Pubblica un fit", onPress: () => router.push("/new-post") }}
+        title={t("Hai visto tutto")}
+        body={t("Non ci sono altri fit da votare qui. Sii il primo a postarne uno.")}
+        action={{ label: t("Pubblica un fit"), onPress: () => router.push("/new-post") }}
       />
     );
   }

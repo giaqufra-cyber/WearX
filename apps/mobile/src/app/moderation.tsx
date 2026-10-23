@@ -6,17 +6,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { NoticeList } from "@/features/moderation/NoticeList";
 import { IconButton } from "@/ui/IconButton";
 import { IconBack } from "@/ui/icons";
+import { t } from "@/lib/i18n";
 
 /** Avvisi della moderazione: decisioni che ti riguardano, motivazioni, reclami. */
 export default function ModerationScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <IconButton label="Indietro" onPress={() => (router.canGoBack() ? router.back() : router.replace("/profile"))}>
+        <IconButton label={t("Indietro")} onPress={() => (router.canGoBack() ? router.back() : router.replace("/profile"))}>
           <IconBack color={colors.text} />
         </IconButton>
         <Text style={styles.title} role="heading">
-          Avvisi della moderazione
+          {t("Avvisi della moderazione")}
         </Text>
         <View style={styles.spacer} />
       </View>

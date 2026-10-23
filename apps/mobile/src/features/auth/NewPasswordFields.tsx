@@ -8,6 +8,7 @@ import { Button } from "@/ui/Button";
 import { PasswordStrength } from "@/ui/PasswordStrength";
 import { Text } from "@/ui/Text";
 import { TextField } from "@/ui/TextField";
+import { t } from "@/lib/i18n";
 
 type Props = {
   submitLabel: string;
@@ -50,7 +51,7 @@ export function NewPasswordFields({ submitLabel, onSubmit, before, ready = true 
     <View style={styles.form}>
       {before}
       <TextField
-        label="NUOVA PASSWORD"
+        label={t("NUOVA PASSWORD")}
         value={password}
         onChangeText={(value) => {
           setPassword(value);
@@ -64,7 +65,7 @@ export function NewPasswordFields({ submitLabel, onSubmit, before, ready = true 
       />
       <PasswordStrength password={password} />
       <TextField
-        label="RIPETI LA PASSWORD"
+        label={t("RIPETI LA PASSWORD")}
         value={repeat}
         onChangeText={(value) => {
           setRepeat(value);

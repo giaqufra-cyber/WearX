@@ -2,6 +2,7 @@ import { colors, fonts, fontSizes, radii, spacing } from "@wearx/design-tokens";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
 import { IconClose, IconSearch } from "@/ui/icons";
+import { t } from "@/lib/i18n";
 
 type Props = {
   value: string;
@@ -34,7 +35,7 @@ export function SearchField({ value, onChangeText, placeholder, label, maxLength
         style={styles.input}
       />
       {value ? (
-        <Pressable role="button" aria-label="Svuota la ricerca" onPress={() => onChangeText("")} hitSlop={10}>
+        <Pressable role="button" aria-label={t("Svuota la ricerca")} onPress={() => onChangeText("")} hitSlop={10}>
           <IconClose color={colors.textSecondary} size={18} />
         </Pressable>
       ) : null}

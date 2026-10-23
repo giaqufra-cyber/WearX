@@ -8,6 +8,7 @@ import { Button } from "@/ui/Button";
 import { IconCheck } from "@/ui/icons";
 import { Sheet } from "@/ui/Sheet";
 import { TextField } from "@/ui/TextField";
+import { t } from "@/lib/i18n";
 
 type Props = { target: ReportTarget; visible: boolean; onClose: () => void };
 
@@ -29,7 +30,7 @@ export function ReportSheet({ target, visible, onClose }: Props) {
   const title = target.type === "post" ? "Segnala il fit" : `Segnala @${target.nickname}`;
 
   return (
-    <Sheet visible={visible} title={done ? "Grazie" : title} onClose={close}>
+    <Sheet visible={visible} title={done ? t("Grazie") : title} onClose={close}>
       {done ? (
         <View style={styles.done} role="alert">
           <Text style={styles.text}>
@@ -37,15 +38,15 @@ export function ReportSheet({ target, visible, onClose }: Props) {
             nessuno chi l'ha fatta.
           </Text>
           {reason === "minor_safety" ? (
-            <Text style={styles.urgent}>Se qualcuno è in pericolo adesso, chiama il 112.</Text>
+            <Text style={styles.urgent}>{t("Se qualcuno è in pericolo adesso, chiama il 112.")}</Text>
           ) : null}
-          <Text style={styles.hint}>Puoi anche bloccare la persona dal suo profilo.</Text>
-          <Button label="Chiudi" variant="secondary" size="md" fullWidth onPress={close} />
+          <Text style={styles.hint}>{t("Puoi anche bloccare la persona dal suo profilo.")}</Text>
+          <Button label={t("Chiudi")} variant="secondary" size="md" fullWidth onPress={close} />
         </View>
       ) : (
         <>
           <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
-            <View role="radiogroup" aria-label="Motivo della segnalazione" style={styles.listContent}>
+            <View role="radiogroup" aria-label={t("Motivo della segnalazione")} style={styles.listContent}>
               {REASONS.map((r) => {
                 const selected = r.value === reason;
                 return (
@@ -69,17 +70,17 @@ export function ReportSheet({ target, visible, onClose }: Props) {
           </ScrollView>
           {reason ? (
             <TextField
-              label="Dettagli (facoltativi)"
+              label={t("Dettagli (facoltativi)")}
               value={details}
               onChangeText={setDetails}
               maxLength={500}
               multiline
-              placeholder="Cosa è successo?"
+              placeholder={t("Cosa è successo?")}
               error={error}
             />
           ) : null}
           <Button
-            label="Invia segnalazione"
+            label={t("Invia segnalazione")}
             size="md"
             fullWidth
             disabled={!reason}

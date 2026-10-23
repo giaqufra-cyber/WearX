@@ -18,27 +18,28 @@ import { IconDocument, IconFaceScan, IconIdCard, IconLock, IconShield } from "@/
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
+import { N_, t } from "@/lib/i18n";
 
 const METHODS: Record<AgeMethod, { title: string; body: string; icon: ReactNode; tag?: string }> = {
   selfie_estimation: {
-    title: "Stima con selfie",
-    body: "30 secondi. La foto viene analizzata e cancellata subito.",
+    title: N_("Stima con selfie"),
+    body: N_("30 secondi. La foto viene analizzata e cancellata subito."),
     icon: <IconFaceScan color={colors.text} />,
     tag: "RAPIDO",
   },
   spid: {
-    title: "SPID",
-    body: "Ci arriva solo la tua età. Nessun altro dato.",
+    title: N_("SPID"),
+    body: N_("Ci arriva solo la tua età. Nessun altro dato."),
     icon: <IconIdCard color={colors.text} />,
   },
   cie: {
-    title: "CIE",
-    body: "Carta d'identità elettronica. Ci arriva solo la tua età.",
+    title: N_("CIE"),
+    body: N_("Carta d'identità elettronica. Ci arriva solo la tua età."),
     icon: <IconIdCard color={colors.text} />,
   },
   id_document: {
-    title: "Documento d'identità",
-    body: "Verifica tramite partner certificato, documento non conservato.",
+    title: N_("Documento d'identità"),
+    body: N_("Verifica tramite partner certificato, documento non conservato."),
     icon: <IconDocument color={colors.text} />,
   },
 };
@@ -46,12 +47,12 @@ const METHODS: Record<AgeMethod, { title: string; body: string; icon: ReactNode;
 /** Messaggio sull'ultimo tentativo, se non è andato a buon fine. */
 function lastAttemptNote(latest: AgeStatus["latest"]): string | null {
   if (!latest) return null;
-  if (latest.status === "expired") return "La verifica precedente è scaduta. Puoi riprovare.";
+  if (latest.status === "expired") return t("La verifica precedente è scaduta. Puoi riprovare.");
   if (latest.status !== "failed") return null;
   if (latest.failure_reason === "inconsistent") {
-    return "La stima non è bastata a confermare la tua età. Usa un documento per completare.";
+    return t("La stima non è bastata a confermare la tua età. Usa un documento per completare.");
   }
-  if (latest.failure_reason === "not_completed") return "Verifica non completata. Puoi riprovare quando vuoi.";
+  if (latest.failure_reason === "not_completed") return t("Verifica non completata. Puoi riprovare quando vuoi.");
   return null;
 }
 
@@ -73,14 +74,14 @@ export default function AgeScreen() {
   if (status.isPending || verified) {
     return (
       <Screen>
-        <Loading label="Un attimo…" />
+        <Loading label={t("Un attimo…")} />
       </Screen>
     );
   }
   if (status.isError) {
     return (
       <Screen>
-        <AuthHeader step="PASSO 2 DI 4" onBack={() => void signOut()} />
+        <AuthHeader step={t("PASSO {n} DI 4", { n: 2 })} onBack={() => void signOut()} />
         <ErrorNotice error={status.error} />
       </Screen>
     );
@@ -92,9 +93,9 @@ export default function AgeScreen() {
       <Screen>
         <AuthHeader onBack={null} />
         <EmptyState
-          title="WearX è per chi ha 16 anni o più"
-          body="La verifica dice che non hai ancora l'età per usare WearX. Ti aspettiamo più avanti."
-          action={{ label: "Esci", onPress: () => void signOut() }}
+          title={t("WearX è per chi ha 16 anni o più")}
+          body={t("La verifica dice che non hai ancora l'età per usare WearX. Ti aspettiamo più avanti.")}
+          action={{ label: t("Esci"), onPress: () => void signOut() }}
         />
       </Screen>
     );
@@ -109,9 +110,9 @@ export default function AgeScreen() {
   const declaredAge = declared ? ageOn(declared.day, declared.month, declared.year, new Date()) : null;
   const birthProblem =
     !draftBirth && typed && declaredAge === null
-      ? "Questa data non esiste."
+      ? t("Questa data non esiste.")
       : declaredAge !== null && declaredAge < MIN_AGE
-        ? "WearX è riservata a chi ha almeno 16 anni."
+        ? t("WearX è riservata a chi ha almeno 16 anni.")
         : null;
   const ready = declared !== null && declaredAge !== null && declaredAge >= MIN_AGE;
 
@@ -136,8 +137,8 @@ export default function AgeScreen() {
     } catch (caught) {
       if (caught instanceof ApiError && caught.code === "age.blocked") setBlocked(true);
       else if (caught instanceof ApiError && caught.code === "age.already_verified") void status.refetch();
-      else if (caught instanceof ApiError && caught.status === 429) setError("Troppi tentativi. Riprova tra un'ora.");
-      else setError("Non riusciamo ad avviare la verifica. Controlla la connessione e riprova.");
+      else if (caught instanceof ApiError && caught.status === 429) setError(t("Troppi tentativi. Riprova tra un'ora."));
+      else setError(t("Non riusciamo ad avviare la verifica. Controlla la connessione e riprova."));
     } finally {
       setStarting(null);
     }
@@ -145,15 +146,15 @@ export default function AgeScreen() {
 
   return (
     <Screen>
-      <AuthHeader step="PASSO 2 DI 4" onBack={() => void signOut()} />
+      <AuthHeader step={t("PASSO {n} DI 4", { n: 2 })} onBack={() => void signOut()} />
       <View style={styles.badge}>
         <IconShield color={colors.accent} size={32} />
       </View>
       <Text variant="display" role="heading">
-        Confermiamo{"\n"}che hai 16+
+        {t("Confermiamo\nche hai 16+")}
       </Text>
       <Text variant="secondary">
-        Lo facciamo una volta sola, così la community resta sicura. Scegli il metodo che preferisci.
+        {t("Lo facciamo una volta sola, così la community resta sicura. Scegli il metodo che preferisci.")}
       </Text>
 
       {note ? (
@@ -164,7 +165,7 @@ export default function AgeScreen() {
 
       {!draftBirth ? (
         <View style={styles.group}>
-          <Text variant="secondary">Per sicurezza non teniamo la data di nascita: inseriscila di nuovo.</Text>
+          <Text variant="secondary">{t("Per sicurezza non teniamo la data di nascita: inseriscila di nuovo.")}</Text>
           <BirthDateFields value={birth} onChange={(patch) => setBirth((prev) => ({ ...prev, ...patch }))} />
           {birthProblem ? (
             <Text variant="secondary" color={colors.danger} role="alert">
@@ -196,7 +197,7 @@ export default function AgeScreen() {
       <View style={styles.privacy}>
         <IconLock color={colors.textTertiary} />
         <Text variant="secondary" style={styles.privacyText} color={colors.textTertiary}>
-          Nessun dato biometrico viene salvato. Teniamo solo l'esito della verifica, cifrato.
+          {t("Nessun dato biometrico viene salvato. Teniamo solo l'esito della verifica, cifrato.")}
         </Text>
       </View>
     </Screen>

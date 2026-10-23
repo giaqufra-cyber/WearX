@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IconButton } from "@/ui/IconButton";
 import { IconClose } from "@/ui/icons";
+import { t } from "@/lib/i18n";
 
 type Props = {
   visible: boolean;
@@ -39,7 +40,7 @@ export function Sheet({ visible, title, onClose, children }: Props) {
             <Text role="heading" aria-level={2} style={styles.title}>
               {title}
             </Text>
-            <IconButton label="Chiudi" onPress={onClose}>
+            <IconButton label={t("Chiudi")} onPress={onClose}>
               <IconClose color={colors.text} />
             </IconButton>
           </View>

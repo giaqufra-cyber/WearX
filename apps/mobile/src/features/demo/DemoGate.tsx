@@ -15,6 +15,7 @@ import { Button } from "@/ui/Button";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
 import { TextField } from "@/ui/TextField";
+import { t } from "@/lib/i18n";
 
 type Props = {
   /** Font caricati: la schermata di collegamento usa quelli del brand. */
@@ -76,18 +77,17 @@ export function DemoSetup() {
   return (
     <Screen>
       <View style={styles.top}>
-        <RNText style={styles.kicker}>WEARX · DEMO</RNText>
+        <RNText style={styles.kicker}>{t("WEARX · DEMO")}</RNText>
       </View>
       <Text variant="display" role="heading">
-        Collega la demo
+        {t("Collega la demo")}
       </Text>
       <Text variant="secondary">
-        Sul computer avvia la demo (scripts/demo.sh). Poi inquadra il primo QR con la Fotocamera
-        dell&apos;iPhone, oppure incolla qui il link che finisce con trycloudflare.com.
+        {t("Sul computer avvia la demo (scripts/demo.sh). Poi inquadra il primo QR con la Fotocamera dell'iPhone, oppure incolla qui il link che finisce con trycloudflare.com.")}
       </Text>
       <TextField
-        label="Link della demo"
-        placeholder="https://….trycloudflare.com"
+        label={t("Link della demo")}
+        placeholder={t("https://….trycloudflare.com")}
         value={value}
         onChangeText={setValue}
         autoCapitalize="none"
@@ -98,18 +98,17 @@ export function DemoSetup() {
         error={problem}
       />
       <Button
-        label={checking ? "Collegamento…" : "Collega"}
+        label={checking ? t("Collegamento…") : t("Collega")}
         loading={checking}
         disabled={checking || !value.trim()}
         onPress={() => void connectDemo(value)}
         fullWidth
       />
       <View style={styles.note}>
-        <Text variant="label">ACCESSO PRONTO</Text>
-        <Text variant="secondary">ospite@demo.test · Demo-WearX-2026!</Text>
+        <Text variant="label">{t("ACCESSO PRONTO")}</Text>
+        <Text variant="secondary">{t("ospite@demo.test · Demo-WearX-2026!")}</Text>
         <Text variant="secondary">
-          Per un account nuovo il codice di conferma è sempre 123456. I dati della demo si azzerano a ogni
-          avvio.
+          {t("Per un account nuovo il codice di conferma è sempre 123456. I dati della demo si azzerano a ogni avvio.")}
         </Text>
       </View>
     </Screen>

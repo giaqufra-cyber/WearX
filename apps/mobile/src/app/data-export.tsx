@@ -8,6 +8,7 @@ import { ApiError } from "@/lib/api";
 import { Button } from "@/ui/Button";
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { TopBar } from "@/ui/TopBar";
+import { t } from "@/lib/i18n";
 
 const CONTENTS = [
   "Profilo, impostazioni, consensi ed esito della verifica dell'età",
@@ -27,44 +28,44 @@ export default function DataExportScreen() {
   const tooSoon = request.error instanceof ApiError && request.error.code === "export.too_soon";
 
   let status;
-  if (latest.isPending) status = <Loading label="Controllo l'archivio" />;
+  if (latest.isPending) status = <Loading label={t("Controllo l'archivio")} />;
   else if (latest.isError) status = <ErrorNotice error={latest.error} onRetry={() => void latest.refetch()} />;
   else if (data?.status === "pending")
     status = (
       <View style={styles.card} role="status">
         <ActivityIndicator color={colors.accent} />
-        <Text style={styles.cardTitle}>Stiamo preparando il tuo archivio</Text>
-        <Text style={styles.text}>Di solito bastano pochi minuti. Ti mandiamo una notifica quando è pronto.</Text>
+        <Text style={styles.cardTitle}>{t("Stiamo preparando il tuo archivio")}</Text>
+        <Text style={styles.text}>{t("Di solito bastano pochi minuti. Ti mandiamo una notifica quando è pronto.")}</Text>
       </View>
     );
   else if (data?.status === "ready" && data.url)
     status = (
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Archivio pronto</Text>
+        <Text style={styles.cardTitle}>{t("Archivio pronto")}</Text>
         <Text style={styles.text}>
           {data.size_bytes ? `${formatBytes(data.size_bytes)} · ` : ""}scaricabile fino al{" "}
           {data.expires_at ? longDate(data.expires_at) : ""}
         </Text>
-        <Button label="Scarica l'archivio" fullWidth onPress={() => void WebBrowser.openBrowserAsync(data.url!)} />
+        <Button label={t("Scarica l'archivio")} fullWidth onPress={() => void WebBrowser.openBrowserAsync(data.url!)} />
       </View>
     );
   else
     status = (
       <View style={styles.card}>
         {data?.status === "failed" ? (
-          <Text style={[styles.text, styles.danger]}>L&apos;ultimo archivio non è riuscito. Riprova.</Text>
+          <Text style={[styles.text, styles.danger]}>{t("L'ultimo archivio non è riuscito. Riprova.")}</Text>
         ) : null}
-        {data?.status === "expired" ? <Text style={styles.text}>L&apos;ultimo archivio è scaduto.</Text> : null}
+        {data?.status === "expired" ? <Text style={styles.text}>{t("L'ultimo archivio è scaduto.")}</Text> : null}
         <Button
-          label="Prepara l'archivio"
+          label={t("Prepara l'archivio")}
           fullWidth
           loading={request.isPending}
           onPress={() => request.mutate()}
         />
-        {tooSoon ? <Text style={styles.text}>Puoi chiedere un nuovo archivio una volta al giorno.</Text> : null}
+        {tooSoon ? <Text style={styles.text}>{t("Puoi chiedere un nuovo archivio una volta al giorno.")}</Text> : null}
         {request.isError && !tooSoon ? (
           <Text style={[styles.text, styles.danger]} role="alert">
-            Non è riuscito. Controlla la connessione e riprova.
+            {t("Non è riuscito. Controlla la connessione e riprova.")}
           </Text>
         ) : null}
       </View>
@@ -72,21 +73,20 @@ export default function DataExportScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <TopBar title="I tuoi dati" fallback="/settings" />
+      <TopBar title={t("I tuoi dati")} fallback="/settings" />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.lead}>
-          Ricevi un file ZIP con tutto quello che WearX conserva su di te, in un formato leggibile e portabile.
+          {t("Ricevi un file ZIP con tutto quello che WearX conserva su di te, in un formato leggibile e portabile.")}
         </Text>
         {status}
-        <Text style={styles.kicker}>COSA CONTIENE</Text>
+        <Text style={styles.kicker}>{t("COSA CONTIENE")}</Text>
         {CONTENTS.map((line) => (
           <Text key={line} style={styles.item}>
             — {line}
           </Text>
         ))}
         <Text style={styles.note}>
-          L&apos;archivio resta scaricabile 7 giorni, poi lo cancelliamo. Il link per scaricarlo vale un&apos;ora: se
-          scade, riapri questa pagina. Contiene dati personali: non condividerlo.
+          {t("L'archivio resta scaricabile 7 giorni, poi lo cancelliamo. Il link per scaricarlo vale un'ora: se scade, riapri questa pagina. Contiene dati personali: non condividerlo.")}
         </Text>
       </ScrollView>
     </SafeAreaView>

@@ -8,6 +8,7 @@ import { bestVariant } from "@/features/feed/format";
 import { positionLabel, tileScore, tileStatus } from "@/features/portfolio/format";
 import { IconChevronLeft, IconChevronRight } from "@/ui/icons";
 import { Shade } from "@/ui/Shade";
+import { t } from "@/lib/i18n";
 
 type Props = {
   tile: PortfolioTile;
@@ -101,7 +102,7 @@ export const FitTile = memo(function FitTile({
           </Text>
         ) : null}
         <View style={styles.badges}>
-          {isCover ? <Text style={[styles.badge, styles.cover]}>COPERTINA</Text> : null}
+          {isCover ? <Text style={[styles.badge, styles.cover]}>{t("COPERTINA")}</Text> : null}
           {status ? <Text style={[styles.badge, styles.status]}>{status}</Text> : null}
         </View>
         {tile.media_count > 1 ? <Text style={styles.count}>1/{tile.media_count}</Text> : null}

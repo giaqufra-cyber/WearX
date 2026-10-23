@@ -15,6 +15,7 @@ import { Button } from "@/ui/Button";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
 import { TextField } from "@/ui/TextField";
+import { t } from "@/lib/i18n";
 
 const CODE_LENGTH = 6;
 
@@ -74,11 +75,11 @@ export default function ForgotScreen() {
       <Screen>
         <AuthHeader />
         <Text variant="display" role="heading">
-          Nuova password
+          {t("Nuova password")}
         </Text>
-        <Text variant="secondary">Scegline una che non usi altrove.</Text>
+        <Text variant="secondary">{t("Scegline una che non usi altrove.")}</Text>
         <NewPasswordFields
-          submitLabel="Salva ed entra"
+          submitLabel={t("Salva ed entra")}
           onSubmit={async (password) => {
             const failed = await saveNewPassword(password);
             if (failed) return authErrorMessage(failed);
@@ -94,22 +95,23 @@ export default function ForgotScreen() {
     <Screen>
       <AuthHeader />
       <Text variant="display" role="heading">
-        Password dimenticata
+        {t("Password dimenticata")}
       </Text>
       {step === "email" ? (
         <View style={styles.form}>
           <Text variant="secondary">
-            Scrivi l&apos;email del tuo account: ti mandiamo {withCode ? "un codice" : "un link"} per sceglierne una
-            nuova.
+            {withCode
+              ? t("Scrivi l'email del tuo account: ti mandiamo un codice per sceglierne una nuova.")
+              : t("Scrivi l'email del tuo account: ti mandiamo un link per sceglierne una nuova.")}
           </Text>
           <TextField
-            label="EMAIL"
+            label={t("EMAIL")}
             value={email}
             onChangeText={(value) => {
               setEmail(value);
               setError(null);
             }}
-            placeholder="nome@esempio.it"
+            placeholder={t("nome@esempio.it")}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -119,7 +121,7 @@ export default function ForgotScreen() {
             error={error}
           />
           <Button
-            label={withCode ? "Mandami il codice" : "Mandami il link"}
+            label={withCode ? t("Mandami il codice") : t("Mandami il link")}
             onPress={() => void send()}
             disabled={!EMAIL_RE.test(email.trim())}
             loading={busy}
@@ -129,14 +131,19 @@ export default function ForgotScreen() {
       ) : (
         <View style={styles.form}>
           <Text variant="secondary">
-            Se <Text variant="bodyStrong">{email.trim()}</Text> è registrata, ti è arrivata una mail{" "}
             {withCode
-              ? `con un codice di ${CODE_LENGTH} cifre. Scade dopo un'ora.`
-              : "con un link: aprilo da questo telefono per scegliere la nuova password. Scade dopo un'ora."}
+              ? t("Se {email} è registrata, ti è arrivata una mail con un codice di {n} cifre. Scade dopo un'ora.", {
+                  email: email.trim(),
+                  n: CODE_LENGTH,
+                })
+              : t(
+                  "Se {email} è registrata, ti è arrivata una mail con un link: aprilo da questo telefono per scegliere la nuova password. Scade dopo un'ora.",
+                  { email: email.trim() },
+                )}
           </Text>
           {withCode ? (
             <TextField
-              label="CODICE"
+              label={t("CODICE")}
               value={code}
               onChangeText={(raw) => {
                 const next = raw.replace(/\D/g, "").slice(0, CODE_LENGTH);
@@ -155,12 +162,12 @@ export default function ForgotScreen() {
             />
           ) : null}
           <Text variant="secondary" color={colors.textTertiary}>
-            Non trovi la mail? Guarda anche nello spam.
+            {t("Non trovi la mail? Guarda anche nello spam.")}
           </Text>
-          <Button label="Usa un'altra email" variant="ghost" onPress={() => setStep("email")} fullWidth />
+          <Button label={t("Usa un'altra email")} variant="ghost" onPress={() => setStep("email")} fullWidth />
         </View>
       )}
-      <Button label="Torna all'accesso" variant="ghost" size="md" onPress={() => router.replace("/login")} fullWidth />
+      <Button label={t("Torna all'accesso")} variant="ghost" size="md" onPress={() => router.replace("/login")} fullWidth />
     </Screen>
   );
 }

@@ -5,6 +5,7 @@ import { useAppConfig } from "@/features/styles/useAppConfig";
 import { APP_VERSION } from "@/lib/api";
 import { Button } from "@/ui/Button";
 import { Screen } from "@/ui/Screen";
+import { t } from "@/lib/i18n";
 
 /** Versione troppo vecchia: l'unica cosa da fare è aggiornare dallo store. */
 export function UpdateRequired() {
@@ -16,13 +17,12 @@ export function UpdateRequired() {
   return (
     <Screen scroll={false}>
       <View style={styles.body}>
-        <Text style={styles.kicker}>NUOVA VERSIONE</Text>
+        <Text style={styles.kicker}>{t("NUOVA VERSIONE")}</Text>
         <Text style={styles.title} role="heading">
-          Aggiorna WearX
+          {t("Aggiorna WearX")}
         </Text>
         <Text style={styles.text}>
-          Questa versione dell&apos;app non è più supportata: aggiornala per continuare a votare e pubblicare. I tuoi
-          fit, i voti e le impostazioni restano come sono.
+          {t("Questa versione dell'app non è più supportata: aggiornala per continuare a votare e pubblicare. I tuoi fit, i voti e le impostazioni restano come sono.")}
         </Text>
         <Text style={styles.version}>
           {minimum ? `Hai la ${APP_VERSION} · serve almeno la ${minimum}` : `Hai la ${APP_VERSION}`}
@@ -31,12 +31,12 @@ export function UpdateRequired() {
       <View style={styles.actions}>
         {store ? (
           <Button
-            label={Platform.OS === "ios" ? "Apri l'App Store" : "Apri Google Play"}
+            label={Platform.OS === "ios" ? t("Apri l'App Store") : t("Apri Google Play")}
             fullWidth
             onPress={() => void Linking.openURL(store)}
           />
         ) : (
-          <Text style={styles.text}>Cerca «WearX» nello store del tuo telefono.</Text>
+          <Text style={styles.text}>{t("Cerca «WearX» nello store del tuo telefono.")}</Text>
         )}
       </View>
     </Screen>

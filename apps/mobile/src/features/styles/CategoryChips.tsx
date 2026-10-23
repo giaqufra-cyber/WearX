@@ -2,6 +2,7 @@ import { colors, fonts, spacing } from "@wearx/design-tokens";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 
 import { CATEGORIES, type StyleCategory } from "@/features/styles/catalog";
+import { t } from "@/lib/i18n";
 
 type Props = {
   value: StyleCategory | null;
@@ -18,7 +19,7 @@ export function CategoryChips({ value, onChange, allLabel = "Più seguiti" }: Pr
       horizontal
       showsHorizontalScrollIndicator={false}
       role="tablist"
-      aria-label="Categorie di stili"
+      aria-label={t("Categorie di stili")}
       contentContainerStyle={styles.row}
       style={styles.bar}
     >

@@ -13,19 +13,20 @@ import { IconButton } from "@/ui/IconButton";
 import { IconBack, IconClose } from "@/ui/icons";
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { useToast } from "@/ui/Toast";
+import { N_, t } from "@/lib/i18n";
 
 const TABS: ReadonlyArray<{ kind: PeopleKind; label: string }> = [
-  { kind: "requests", label: "Richieste" },
-  { kind: "followers", label: "Follower" },
-  { kind: "following", label: "Seguiti" },
-  { kind: "blocks", label: "Bloccati" },
+  { kind: "requests", label: N_("Richieste") },
+  { kind: "followers", label: N_("Follower") },
+  { kind: "following", label: N_("Seguiti") },
+  { kind: "blocks", label: N_("Bloccati") },
 ];
 
 const EMPTY: Record<PeopleKind, { title: string; body: string }> = {
-  requests: { title: "Nessuna richiesta", body: "Chi vuole vedere il tuo portfolio compare qui: decidi tu." },
-  followers: { title: "Ancora nessun follower", body: "Il tuo account è privato: ti segue solo chi accetti." },
-  following: { title: "Non segui nessuno", body: "Cerca un amico per nickname da «Trova persone»." },
-  blocks: { title: "Nessun account bloccato", body: "Chi blocchi non ti vede e tu non vedi lui." },
+  requests: { title: N_("Nessuna richiesta"), body: N_("Chi vuole vedere il tuo portfolio compare qui: decidi tu.") },
+  followers: { title: N_("Ancora nessun follower"), body: N_("Il tuo account è privato: ti segue solo chi accetti.") },
+  following: { title: N_("Non segui nessuno"), body: N_("Cerca un amico per nickname da «Trova persone».") },
+  blocks: { title: N_("Nessun account bloccato"), body: N_("Chi blocchi non ti vede e tu non vedi lui.") },
 };
 
 const isKind = (value: unknown): value is PeopleKind => TABS.some((t) => t.kind === value);
@@ -39,11 +40,11 @@ export default function PeopleScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <IconButton label="Indietro" onPress={back}>
+        <IconButton label={t("Indietro")} onPress={back}>
           <IconBack color={colors.text} />
         </IconButton>
         <Text style={styles.title} role="heading">
-          Persone
+          {t("Persone")}
         </Text>
         <View style={styles.spacer} />
       </View>
@@ -71,7 +72,7 @@ function PeopleList({ kind }: { kind: PeopleKind }) {
   const action = usePeopleAction(kind, { onError: (message) => toast.show(message, { tone: "error" }) });
   const people = useMemo(() => (list.data?.pages ?? []).flatMap((p) => p.items), [list.data]);
 
-  if (list.isPending) return <Loading label="Carico l'elenco" />;
+  if (list.isPending) return <Loading label={t("Carico l'elenco")} />;
   if (list.isError) return <ErrorNotice error={list.error} onRetry={() => void list.refetch()} />;
 
   return (
@@ -88,7 +89,7 @@ function PeopleList({ kind }: { kind: PeopleKind }) {
               { nickname: item.nickname, accept },
               {
                 onSuccess: () => {
-                  if (kind === "requests") toast.show(accept ? `@${item.nickname} ora ti segue.` : "Richiesta rifiutata.");
+                  if (kind === "requests") toast.show(accept ? `@${item.nickname} ora ti segue.` : t("Richiesta rifiutata."));
                   if (kind === "blocks") toast.show(`@${item.nickname} sbloccato.`);
                 },
               },
@@ -128,12 +129,12 @@ function PersonRow({
           <Text style={styles.nick} numberOfLines={1}>
             @{person.nickname}
           </Text>
-          {person.account_type === "business" ? <Text style={styles.meta}>BUSINESS</Text> : null}
+          {person.account_type === "business" ? <Text style={styles.meta}>{t("BUSINESS")}</Text> : null}
         </View>
       </Pressable>
       {kind === "requests" ? (
         <View style={styles.actions}>
-          <Button label="Accetta" size="sm" onPress={() => onAction(true)} hint={`Accetta @${person.nickname}`} />
+          <Button label={t("Accetta")} size="sm" onPress={() => onAction(true)} hint={`Accetta @${person.nickname}`} />
           <IconButton label={`Rifiuta @${person.nickname}`} onPress={() => onAction(false)}>
             <IconClose color={colors.textSecondary} size={20} />
           </IconButton>

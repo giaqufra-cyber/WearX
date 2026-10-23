@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { statsNote, votesLabel } from "@/features/feed/format";
 import { VoteSlider } from "@/features/feed/VoteSlider";
 import { Button } from "@/ui/Button";
+import { t } from "@/lib/i18n";
 
 type Props = {
   post: Post;
@@ -44,7 +45,7 @@ export function VotePanel({ post, onVote, busy }: Props) {
           </View>
           <Text
             style={[styles.score, average === null ? styles.scorePending : null]}
-            aria-label={average === null ? "Media non ancora disponibile" : `Media ${average}`}
+            aria-label={average === null ? t("Media non ancora disponibile") : `Media ${average}`}
           >
             {average === null ? (busy ? "…" : "–") : Math.round(average)}
           </Text>
@@ -62,7 +63,7 @@ export function VotePanel({ post, onVote, busy }: Props) {
     <View style={styles.wrap}>
       <View style={styles.head}>
         <View style={styles.flex}>
-          <Text style={styles.kicker}>VOTA IL FIT · 1–100</Text>
+          <Text style={styles.kicker}>{t("VOTA IL FIT · 1–100")}</Text>
           <Text style={styles.mood}>{voteMood(draft)}</Text>
         </View>
         <Text style={styles.score} aria-live="polite">
@@ -72,7 +73,7 @@ export function VotePanel({ post, onVote, busy }: Props) {
       {vote.ask_style_confirm ? (
         <View style={styles.confirm}>
           <Text style={styles.confirmText}>
-            È davvero <Text style={styles.styleName}>{post.style.name}</Text>?
+            {t("È davvero")}{" "}<Text style={styles.styleName}>{post.style.name}</Text>?
           </Text>
           <View style={styles.choices} role="radiogroup" aria-label={`È davvero ${post.style.name}?`}>
             {([true, false] as const).map((answer) => (
@@ -92,8 +93,8 @@ export function VotePanel({ post, onVote, busy }: Props) {
         </View>
       ) : null}
       <View style={styles.controls}>
-        <VoteSlider value={draft} onChange={setDraft} color={colors.accent} label="Il tuo voto da 1 a 100" />
-        <Button label="Vota" variant="inverse" size="md" onPress={() => onVote(draft, confirm)} loading={busy} />
+        <VoteSlider value={draft} onChange={setDraft} color={colors.accent} label={t("Il tuo voto da 1 a 100")} />
+        <Button label={t("Vota")} variant="inverse" size="md" onPress={() => onVote(draft, confirm)} loading={busy} />
       </View>
     </View>
   );

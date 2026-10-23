@@ -10,6 +10,7 @@ import { ApiError } from "@/lib/api";
 import { Button } from "@/ui/Button";
 import { TextField } from "@/ui/TextField";
 import { TopBar } from "@/ui/TopBar";
+import { t } from "@/lib/i18n";
 
 const ERRORS: Record<string, string> = {
   "deletion.confirm_mismatch": "Il nickname non corrisponde.",
@@ -27,25 +28,24 @@ export default function DeleteAccountScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <TopBar title="Cancella l'account" fallback="/settings" />
+      <TopBar title={t("Cancella l'account")} fallback="/settings" />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.lead}>Cosa succede</Text>
-        <Step n="1" title="Subito">
-          Il tuo profilo, i fit e le capsule spariscono per tutti. Esci da tutti i dispositivi e non ricevi più
-          notifiche.
+        <Text style={styles.lead}>{t("Cosa succede")}</Text>
+        <Step n="1" title={t("Subito")}>
+          {t("Il tuo profilo, i fit e le capsule spariscono per tutti. Esci da tutti i dispositivi e non ricevi più notifiche.")}
         </Step>
-        <Step n="2" title="Per 30 giorni">
-          Puoi ripensarci: accedi con email e password e tocca «Annulla la cancellazione». Tutto torna com&apos;era.
+        <Step n="2" title={t("Per 30 giorni")}>
+          {t("Puoi ripensarci: accedi con email e password e tocca «Annulla la cancellazione». Tutto torna com'era.")}
         </Step>
-        <Step n="3" title="Dopo 30 giorni">
-          Cancelliamo per sempre profilo, foto, fit, follow, notifiche e accesso. Non si può tornare indietro.
+        <Step n="3" title={t("Dopo 30 giorni")}>
+          {t("Cancelliamo per sempre profilo, foto, fit, follow, notifiche e accesso. Non si può tornare indietro.")}
         </Step>
         <View style={styles.box}>
           <Text style={styles.boxText}>
             Restano, senza alcun collegamento con te: i voti che hai dato (anonimi, dentro le medie dei fit altrui) e
             le decisioni della moderazione (per legge). Prima di cancellare puoi{" "}
             <Text style={styles.link} role="link" onPress={() => router.push("/data-export")}>
-              scaricare i tuoi dati
+              {t("scaricare i tuoi dati")}
             </Text>
             .
           </Text>
@@ -60,14 +60,14 @@ export default function DeleteAccountScreen() {
           error={code ? (ERRORS[code] ?? "Non è riuscito. Riprova.") : null}
         />
         <Button
-          label="Cancella il mio account"
+          label={t("Cancella il mio account")}
           variant="danger"
           fullWidth
           disabled={!matches}
           loading={request.isPending}
           onPress={() => request.mutate(typed)}
         />
-        <Button label="Ci ripenso" variant="ghost" fullWidth onPress={() => router.back()} />
+        <Button label={t("Ci ripenso")} variant="ghost" fullWidth onPress={() => router.back()} />
       </ScrollView>
     </SafeAreaView>
   );

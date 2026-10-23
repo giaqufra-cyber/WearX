@@ -16,6 +16,7 @@ import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
 import { TextField } from "@/ui/TextField";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 const CODE_LENGTH = 6;
 const RESEND_COOLDOWN_S = 60;
@@ -39,9 +40,9 @@ export default function VerifyScreen() {
       <Screen>
         <AuthHeader />
         <EmptyState
-          title="Ricominciamo"
-          body="Per sicurezza non teniamo i dati della registrazione se chiudi l'app. Accedi o crea di nuovo l'account."
-          action={{ label: "Accedi", onPress: () => router.replace("/login") }}
+          title={t("Ricominciamo")}
+          body={t("Per sicurezza non teniamo i dati della registrazione se chiudi l'app. Accedi o crea di nuovo l'account.")}
+          action={{ label: t("Accedi"), onPress: () => router.replace("/login") }}
         />
       </Screen>
     );
@@ -94,32 +95,30 @@ function Waiting({ contact, isEmail, withCode }: { contact: string; isEmail: boo
       return;
     }
     setCooldown(RESEND_COOLDOWN_S);
-    toast.show(withCode ? "Codice inviato di nuovo." : "Link inviato di nuovo.");
+    toast.show(withCode ? t("Codice inviato di nuovo.") : t("Link inviato di nuovo."));
   };
 
   return (
     <Screen>
-      <AuthHeader step="PASSO 1 DI 4" />
+      <AuthHeader step={t("PASSO {n} DI 4", { n: 1 })} />
       <Text variant="display" role="heading">
-        Controlla {isEmail ? "la mail" : "i messaggi"}
+        {isEmail ? t("Controlla la mail") : t("Controlla i messaggi")}
       </Text>
       {withCode ? (
         <Text variant="secondary">
           {env.demo ? (
             <>
-              Nella demo non arriva nessuna mail: il codice è sempre <Text variant="bodyStrong">123456</Text>.
+              {t("Nella demo non arriva nessuna mail: il codice è sempre")}{" "}<Text variant="bodyStrong">123456</Text>.
             </>
           ) : (
             <>
-              Abbiamo mandato un codice di {CODE_LENGTH} cifre a <Text variant="bodyStrong">{contact}</Text>. Scade
-              dopo un'ora.
+              {t("Abbiamo mandato un codice di {n} cifre a {contact}. Scade dopo un'ora.", { n: CODE_LENGTH, contact })}
             </>
           )}
         </Text>
       ) : (
         <Text variant="secondary">
-          Abbiamo mandato un link di conferma a <Text variant="bodyStrong">{contact}</Text>. Aprilo da questo
-          telefono: torni qui e prosegui. Scade dopo un'ora.
+          {t("Abbiamo mandato un link di conferma a")}{" "}<Text variant="bodyStrong">{contact}</Text>{t(". Aprilo da questo telefono: torni qui e prosegui. Scade dopo un'ora.")}
         </Text>
       )}
 
@@ -127,7 +126,7 @@ function Waiting({ contact, isEmail, withCode }: { contact: string; isEmail: boo
         {withCode ? (
           <>
             <TextField
-              label="CODICE"
+              label={t("CODICE")}
               value={code}
               onChangeText={(raw) => {
                 const next = raw.replace(/\D/g, "").slice(0, CODE_LENGTH);
@@ -145,7 +144,7 @@ function Waiting({ contact, isEmail, withCode }: { contact: string; isEmail: boo
               error={error}
             />
             <Button
-              label="Conferma"
+              label={t("Conferma")}
               onPress={() => void verify(code)}
               disabled={code.length !== CODE_LENGTH}
               loading={verifying}
@@ -158,17 +157,24 @@ function Waiting({ contact, isEmail, withCode }: { contact: string; isEmail: boo
           </Text>
         ) : null}
         <Button
-          label={cooldown > 0 ? `Invia di nuovo tra ${cooldown}s` : `Invia di nuovo il ${withCode ? "codice" : "link"}`}
+          label={
+            cooldown > 0
+              ? t("Invia di nuovo tra {s}s", { s: cooldown })
+              : withCode
+                ? t("Invia di nuovo il codice")
+                : t("Invia di nuovo il link")
+          }
           variant={withCode ? "ghost" : "secondary"}
           onPress={() => void resend()}
           disabled={cooldown > 0}
           fullWidth
         />
         <Text variant="secondary" style={styles.note} color={colors.textTertiary}>
-          Non trovi {isEmail ? "la mail" : "il messaggio"}? Guarda anche nello spam. Se il contatto è già registrato,
-          accedi con la tua password.
+          {isEmail
+            ? t("Non trovi la mail? Guarda anche nello spam. Se il contatto è già registrato, accedi con la tua password.")
+            : t("Non trovi il messaggio? Guarda anche nello spam. Se il contatto è già registrato, accedi con la tua password.")}
         </Text>
-        <Button label="Ho già un account" variant="ghost" size="md" onPress={() => router.replace("/login")} fullWidth />
+        <Button label={t("Ho già un account")} variant="ghost" size="md" onPress={() => router.replace("/login")} fullWidth />
       </View>
     </Screen>
   );
@@ -194,7 +200,7 @@ function LinkConfirm({ code }: { code: string }) {
   if (!failed) {
     return (
       <Screen>
-        <Loading label="Confermiamo il tuo account…" />
+        <Loading label={t("Confermiamo il tuo account…")} />
       </Screen>
     );
   }
@@ -204,9 +210,9 @@ function LinkConfirm({ code }: { code: string }) {
     <Screen>
       <AuthHeader />
       <EmptyState
-        title="Email confermata"
-        body="Ora accedi con la tua email e la password che hai scelto."
-        action={{ label: "Accedi", onPress: () => router.replace("/login") }}
+        title={t("Email confermata")}
+        body={t("Ora accedi con la tua email e la password che hai scelto.")}
+        action={{ label: t("Accedi"), onPress: () => router.replace("/login") }}
       />
     </Screen>
   );
@@ -218,13 +224,13 @@ function LinkProblem({ code }: { code: string }) {
     <Screen>
       <AuthHeader />
       <EmptyState
-        title={expired ? "Link scaduto" : "Link non valido"}
+        title={expired ? t("Link scaduto") : t("Link non valido")}
         body={
           expired
-            ? "Il link è scaduto o è già stato usato. Accedi: se l'email non è ancora confermata potrai chiederne uno nuovo."
-            : "Questo link non funziona. Accedi o crea di nuovo l'account."
+            ? t("Il link è scaduto o è già stato usato. Accedi: se l'email non è ancora confermata potrai chiederne uno nuovo.")
+            : t("Questo link non funziona. Accedi o crea di nuovo l'account.")
         }
-        action={{ label: "Accedi", onPress: () => router.replace("/login") }}
+        action={{ label: t("Accedi"), onPress: () => router.replace("/login") }}
       />
     </Screen>
   );

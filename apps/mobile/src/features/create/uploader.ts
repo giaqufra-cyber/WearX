@@ -8,6 +8,7 @@
 import type { MediaUpload } from "@wearx/api-types";
 
 import { ApiError } from "@/lib/api";
+import { t } from "@/lib/i18n";
 
 export const RETRY_DELAYS_MS = [1000, 2000, 4000, 8000];
 export const POLL_INTERVAL_MS = 1000;
@@ -119,7 +120,7 @@ export async function uploadPhoto(
       }
       const delay = RETRY_DELAYS_MS[tryNo];
       if (delay === undefined || !isRetryable(error)) {
-        update({ status: "error", message: "Caricamento non riuscito. Controlla la connessione." });
+        update({ status: "error", message: t("Caricamento non riuscito. Controlla la connessione.") });
         return null;
       }
       try {

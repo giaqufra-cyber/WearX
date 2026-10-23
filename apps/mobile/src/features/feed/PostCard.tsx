@@ -14,6 +14,7 @@ import { Avatar } from "@/ui/Avatar";
 import { IconButton } from "@/ui/IconButton";
 import { IconArrowUpRight, IconBookmark, IconCheck, IconMore, IconShield } from "@/ui/icons";
 import { track } from "@/lib/events";
+import { t } from "@/lib/i18n";
 
 type Props = {
   post: Post;
@@ -72,12 +73,12 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting, on
           </View>
         </View>
         {!post.is_own && onToggleSave ? (
-          <IconButton label={post.saved ? "Togli dai salvati" : "Salva il fit"} onPress={() => onToggleSave(post)}>
+          <IconButton label={post.saved ? t("Togli dai salvati") : t("Salva il fit")} onPress={() => onToggleSave(post)}>
             <IconBookmark color={post.saved ? colors.accent : colors.textSecondary} filled={post.saved} />
           </IconButton>
         ) : null}
         {!post.is_own ? (
-          <IconButton label="Segnala il fit" onPress={() => setReporting(true)}>
+          <IconButton label={t("Segnala il fit")} onPress={() => setReporting(true)}>
             <IconMore color={colors.textSecondary} />
           </IconButton>
         ) : null}
@@ -100,7 +101,7 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting, on
       {post.items.length > 0 ? (
         <View style={styles.items}>
           <View style={styles.itemsHead}>
-            <Text style={styles.itemsKicker}>IL FIT</Text>
+            <Text style={styles.itemsKicker}>{t("IL FIT")}</Text>
             {total ? <Text style={styles.itemsKicker}>TOTALE {total}</Text> : null}
           </View>
           {post.items.map((item) => {
@@ -115,7 +116,7 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting, on
                       {item.brand}
                     </Text>
                     {link?.verified ? (
-                      <View style={styles.verified} accessible aria-label="Negozio verificato">
+                      <View style={styles.verified} accessible aria-label={t("Negozio verificato")}>
                         <IconCheck color={colors.onAccent} size={9} strokeWidth={3.4} />
                       </View>
                     ) : null}
@@ -123,8 +124,8 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting, on
                   <Text style={styles.itemName} numberOfLines={1}>
                     {item.name}
                   </Text>
-                  {link?.status === "broken" ? <Text style={styles.linkNote}>Link non più disponibile</Text> : null}
-                  {link?.status === "blocked" ? <Text style={styles.linkNote}>Link rimosso per sicurezza</Text> : null}
+                  {link?.status === "broken" ? <Text style={styles.linkNote}>{t("Link non più disponibile")}</Text> : null}
+                  {link?.status === "blocked" ? <Text style={styles.linkNote}>{t("Link rimosso per sicurezza")}</Text> : null}
                 </View>
                 {item.price_cents !== null ? <Text style={styles.price}>{formatPrice(item.price_cents)}</Text> : null}
                 {target ? (

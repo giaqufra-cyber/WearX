@@ -6,6 +6,7 @@ import type { DraftPhoto } from "@/features/create/draft";
 import { BRAND_MAX, type ItemDraft, itemErrors, NAME_MAX } from "@/features/create/form";
 import { PinSheet } from "@/features/create/PinSheet";
 import { IconTag } from "@/ui/icons";
+import { t } from "@/lib/i18n";
 
 type Props = {
   index: number;
@@ -42,7 +43,7 @@ export function ItemCard({ index, item, photos, canRemove, onChange, onRemove }:
         <Text style={styles.title}>Capo {index + 1}</Text>
         {canRemove ? (
           <Pressable role="button" aria-label={`Rimuovi il capo ${index + 1}`} onPress={onRemove} hitSlop={8}>
-            <Text style={styles.remove}>Rimuovi</Text>
+            <Text style={styles.remove}>{t("Rimuovi")}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -50,7 +51,7 @@ export function ItemCard({ index, item, photos, canRemove, onChange, onRemove }:
         <View style={styles.cell}>
           <Field
             aria-label={`Brand del capo ${index + 1}`}
-            placeholder="Brand"
+            placeholder={t("Brand")}
             value={item.brand}
             onChangeText={(brand) => onChange({ brand })}
             maxLength={BRAND_MAX}
@@ -61,7 +62,7 @@ export function ItemCard({ index, item, photos, canRemove, onChange, onRemove }:
         <View style={styles.cell}>
           <Field
             aria-label={`Nome del capo ${index + 1}`}
-            placeholder="Capo (es. blazer)"
+            placeholder={t("Capo (es. blazer)")}
             value={item.name}
             onChangeText={(name) => onChange({ name })}
             maxLength={NAME_MAX}
@@ -73,7 +74,7 @@ export function ItemCard({ index, item, photos, canRemove, onChange, onRemove }:
         <View style={styles.cell}>
           <Field
             aria-label={`Prezzo in euro del capo ${index + 1}`}
-            placeholder="Prezzo € (opz.)"
+            placeholder={t("Prezzo € (opz.)")}
             value={item.price}
             onChangeText={(price) => onChange({ price })}
             keyboardType="decimal-pad"
@@ -84,7 +85,7 @@ export function ItemCard({ index, item, photos, canRemove, onChange, onRemove }:
         <View style={styles.cell}>
           <Field
             aria-label={`Link del negozio del capo ${index + 1}`}
-            placeholder="Link shop (opz.)"
+            placeholder={t("Link shop (opz.)")}
             value={item.link}
             onChangeText={(link) => onChange({ link })}
             keyboardType="url"

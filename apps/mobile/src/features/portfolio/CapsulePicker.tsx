@@ -8,6 +8,7 @@ import { Button } from "@/ui/Button";
 import { IconCheck } from "@/ui/icons";
 import { Sheet } from "@/ui/Sheet";
 import { TextField } from "@/ui/TextField";
+import { t } from "@/lib/i18n";
 
 type Props = {
   visible: boolean;
@@ -27,9 +28,9 @@ export function CapsulePicker({ visible, current, busy, onPick, onClose }: Props
   const options = [{ id: null, name: "Nessuna capsula" }, ...list];
 
   return (
-    <Sheet visible={visible} title="Capsula" onClose={onClose}>
+    <Sheet visible={visible} title={t("Capsula")} onClose={onClose}>
       <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
-        <View role="radiogroup" aria-label="Capsula del fit" style={styles.listContent}>
+        <View role="radiogroup" aria-label={t("Capsula del fit")} style={styles.listContent}>
           {options.map((option) => {
             const selected = option.id === current;
             return (
@@ -52,20 +53,20 @@ export function CapsulePicker({ visible, current, busy, onPick, onClose }: Props
         <View style={styles.newRow}>
           <View style={styles.flex}>
             <TextField
-              label="Oppure creane una"
+              label={t("Oppure creane una")}
               value={name}
               onChangeText={(value) => {
                 setName(value);
                 setError(null);
               }}
-              placeholder="Es. Estate"
+              placeholder={t("Es. Estate")}
               maxLength={30}
               error={error}
             />
           </View>
           <View style={styles.add}>
             <Button
-              label="Crea e aggiungi"
+              label={t("Crea e aggiungi")}
               size="md"
               disabled={!name.trim() || busy}
               loading={create.isPending}

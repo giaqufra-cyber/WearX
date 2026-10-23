@@ -2,6 +2,7 @@ import { colors, fonts, fontSizes, spacing } from "@wearx/design-tokens";
 import { StyleSheet, Text, View } from "react-native";
 
 import { PASSWORD_LABELS, passwordScore } from "@/lib/validation";
+import { t } from "@/lib/i18n";
 
 const BAR_COLORS = [colors.dangerStrong, colors.warning, colors.accent, colors.accent] as const;
 
@@ -18,7 +19,7 @@ export function PasswordStrength({ password }: { password: string }) {
       style={styles.wrap}
       accessible
       role="progressbar"
-      aria-label="Robustezza della password"
+      aria-label={t("Robustezza della password")}
       aria-valuemin={0}
       aria-valuemax={4}
       aria-valuenow={score}

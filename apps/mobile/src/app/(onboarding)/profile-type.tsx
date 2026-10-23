@@ -10,6 +10,7 @@ import { useAppConfig } from "@/features/styles/useAppConfig";
 import { Button } from "@/ui/Button";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
+import { t } from "@/lib/i18n";
 
 /** Passo 3 di 4: profilo privato o Business (prototipo, "Che profilo vuoi?"). */
 export default function ProfileTypeScreen() {
@@ -31,22 +32,22 @@ export default function ProfileTypeScreen() {
   return (
     <Screen>
       {/* Dalla verifica dell'età non si torna indietro: è già fatta. */}
-      <AuthHeader step="PASSO 3 DI 4" onBack={null} />
+      <AuthHeader step={t("PASSO {n} DI 4", { n: 3 })} onBack={null} />
       <Text variant="display" role="heading">
         Che profilo{"\n"}vuoi?
       </Text>
-      <Text variant="secondary">Puoi cambiarlo quando vuoi dalle impostazioni.</Text>
+      <Text variant="secondary">{t("Puoi cambiarlo quando vuoi dalle impostazioni.")}</Text>
 
-      <View style={styles.cards} role="radiogroup" aria-label="Tipo di profilo">
+      <View style={styles.cards} role="radiogroup" aria-label={t("Tipo di profilo")}>
         <ChoiceCard
-          title="Privato"
-          body="Il tuo portfolio lo vede solo chi approvi. I tuoi fit nei feed degli stili restano anonimi fino a quando non li apri."
+          title={t("Privato")}
+          body={t("Il tuo portfolio lo vede solo chi approvi. I tuoi fit nei feed degli stili restano anonimi fino a quando non li apri.")}
           selected={selected === "private"}
           onPress={() => setDraft({ accountType: "private" })}
         />
         <ChoiceCard
-          title="Business"
-          body="Per brand, negozi e creator. Profilo pubblico, link shop verificati e insight sui click ai negozi."
+          title={t("Business")}
+          body={t("Per brand, negozi e creator. Profilo pubblico, link shop verificati e insight sui click ai negozi.")}
           selected={selected === "business"}
           onPress={() => setDraft({ accountType: "business" })}
           disabled={!businessAllowed}
@@ -55,7 +56,7 @@ export default function ProfileTypeScreen() {
       </View>
 
       <Button
-        label="Continua"
+        label={t("Continua")}
         onPress={() => {
           setDraft({ accountType: selected });
           router.push("/pick-styles");

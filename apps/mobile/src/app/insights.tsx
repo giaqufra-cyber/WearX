@@ -14,11 +14,12 @@ import { IconButton } from "@/ui/IconButton";
 import { IconBack } from "@/ui/icons";
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { SegmentedControl } from "@/ui/SegmentedControl";
+import { N_, t } from "@/lib/i18n";
 
 const PERIODS: { value: `${InsightPeriod}`; label: string }[] = [
-  { value: "7", label: "7 giorni" },
-  { value: "28", label: "28 giorni" },
-  { value: "90", label: "90 giorni" },
+  { value: "7", label: N_("7 giorni") },
+  { value: "28", label: N_("28 giorni") },
+  { value: "90", label: N_("90 giorni") },
 ];
 
 const MAX_WIDTH = 560;
@@ -33,12 +34,12 @@ export default function InsightsScreen() {
   const width = Math.min(screen, MAX_WIDTH) - spacing[4] * 2;
 
   let body;
-  if (insights.isPending) body = <Loading label="Carico gli insight" />;
+  if (insights.isPending) body = <Loading label={t("Carico gli insight")} />;
   else if (insights.isError) body = <ErrorNotice error={insights.error} onRetry={() => void insights.refetch()} />;
   else {
     const data = insights.data;
-    const t = data.totals;
-    const empty = data.top_posts.length === 0 && t.impressions.value === 0 && t.votes.value === 0;
+    const totals = data.totals;
+    const empty = data.top_posts.length === 0 && totals.impressions.value === 0 && totals.votes.value === 0;
     const compare = `vs ${days} giorni prima`;
     body = (
       <>
@@ -48,19 +49,19 @@ export default function InsightsScreen() {
         </Text>
         {empty ? (
           <EmptyState
-            title="Ancora nessun dato"
-            body="Quando qualcuno vede, apre o vota i tuoi fit, qui trovi i numeri del giorno dopo."
-            action={{ label: "Pubblica un fit", onPress: () => router.push("/new-post") }}
+            title={t("Ancora nessun dato")}
+            body={t("Quando qualcuno vede, apre o vota i tuoi fit, qui trovi i numeri del giorno dopo.")}
+            action={{ label: t("Pubblica un fit"), onPress: () => router.push("/new-post") }}
           />
         ) : (
           <>
             <View style={styles.grid}>
-              <Tile label="Visualizzazioni" metric={t.impressions} compare={compare} />
-              <Tile label="Voti ricevuti" metric={t.votes} compare={compare} />
-              <Tile label="Media voti" value={t.average === null ? "—" : t.average.toFixed(1).replace(".", ",")} />
-              <Tile label="Aperture" metric={t.opens} compare={compare} />
-              <Tile label="Click ai negozi" metric={t.shop_clicks} compare={compare} />
-              <Tile label="Visite al profilo" metric={t.profile_views} compare={compare} />
+              <Tile label={t("Visualizzazioni")} metric={totals.impressions} compare={compare} />
+              <Tile label={t("Voti ricevuti")} metric={totals.votes} compare={compare} />
+              <Tile label={t("Media voti")} value={totals.average === null ? "—" : totals.average.toFixed(1).replace(".", ",")} />
+              <Tile label={t("Aperture")} metric={totals.opens} compare={compare} />
+              <Tile label={t("Click ai negozi")} metric={totals.shop_clicks} compare={compare} />
+              <Tile label={t("Visite al profilo")} metric={totals.profile_views} compare={compare} />
             </View>
 
             <View style={styles.card}>
@@ -69,11 +70,11 @@ export default function InsightsScreen() {
                   {data.bucket === "week" ? "Ogni settimana" : "Ogni giorno"}
                 </Text>
                 <SegmentedControl
-                  label="Misura del grafico"
+                  label={t("Misura del grafico")}
                   size="sm"
                   options={[
-                    { value: "impressions", label: "Viste" },
-                    { value: "votes", label: "Voti" },
+                    { value: "impressions", label: t("Viste") },
+                    { value: "votes", label: t("Voti") },
                   ]}
                   value={metric}
                   onChange={setMetric}
@@ -90,7 +91,7 @@ export default function InsightsScreen() {
 
             {data.top_posts.length > 0 ? (
               <View style={styles.section}>
-                <Text style={styles.kicker}>I TUOI FIT PIÙ VISTI</Text>
+                <Text style={styles.kicker}>{t("I TUOI FIT PIÙ VISTI")}</Text>
                 {data.top_posts.map((post, i) => (
                   <TopPost key={post.id} post={post} rank={i + 1} />
                 ))}
@@ -99,9 +100,7 @@ export default function InsightsScreen() {
           </>
         )}
         <Text style={styles.note}>
-          Per proteggere chi guarda e vota, i numeri da 1 a 4 compaiono come «&lt;5», la media dei voti appare da 5 voti
-          in su e non esiste giorno per giorno. Visualizzazioni, aperture e click contano le persone diverse di ogni
-          giorno.
+          {t("Per proteggere chi guarda e vota, i numeri da 1 a 4 compaiono come «<5», la media dei voti appare da 5 voti in su e non esiste giorno per giorno. Visualizzazioni, aperture e click contano le persone diverse di ogni giorno.")}
         </Text>
       </>
     );
@@ -110,16 +109,16 @@ export default function InsightsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <IconButton label="Indietro" onPress={() => (router.canGoBack() ? router.back() : router.replace("/profile"))}>
+        <IconButton label={t("Indietro")} onPress={() => (router.canGoBack() ? router.back() : router.replace("/profile"))}>
           <IconBack color={colors.text} />
         </IconButton>
         <Text style={styles.title} role="heading">
-          Insight
+          {t("Insight")}
         </Text>
         <View style={styles.spacer} />
       </View>
       <ScrollView contentContainerStyle={[styles.content, { maxWidth: MAX_WIDTH }]}>
-        <SegmentedControl label="Periodo" options={PERIODS} value={period} onChange={setPeriod} />
+        <SegmentedControl label={t("Periodo")} options={PERIODS} value={period} onChange={setPeriod} />
         {body}
       </ScrollView>
     </SafeAreaView>
@@ -184,9 +183,9 @@ function TopPost({ post, rank }: { post: InsightPost; rank: number }) {
         <Text style={styles.postStyle}>{post.style}</Text>
       </View>
       <View style={styles.postNumbers}>
-        <Figure value={formatMetric(post.impressions)} label="viste" />
-        <Figure value={formatMetric(post.votes)} label="voti" />
-        <Figure value={post.average === null ? "—" : String(Math.round(post.average))} label="media" />
+        <Figure value={formatMetric(post.impressions)} label={t("viste")} />
+        <Figure value={formatMetric(post.votes)} label={t("voti")} />
+        <Figure value={post.average === null ? "—" : String(Math.round(post.average))} label={t("media")} />
       </View>
     </Pressable>
   );

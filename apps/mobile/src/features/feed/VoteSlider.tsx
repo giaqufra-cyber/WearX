@@ -2,6 +2,7 @@ import { colors, fonts, minTouchTarget, radii } from "@wearx/design-tokens";
 import { voteMood } from "@wearx/design-tokens";
 import { useRef, useState } from "react";
 import { type LayoutChangeEvent, PanResponder, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { t } from "@/lib/i18n";
 
 const THUMB = 28;
 
@@ -79,7 +80,7 @@ export function VoteSlider({ value, onChange, color, label }: Props) {
 
   return (
     <View style={styles.row}>
-      <Pressable role="button" aria-label="Un punto in meno" onPress={() => onChange(clampScore(value - 1))} style={styles.step} hitSlop={6}>
+      <Pressable role="button" aria-label={t("Un punto in meno")} onPress={() => onChange(clampScore(value - 1))} style={styles.step} hitSlop={6}>
         <Text style={styles.stepText}>−</Text>
       </Pressable>
       <View
@@ -109,7 +110,7 @@ export function VoteSlider({ value, onChange, color, label }: Props) {
           style={[styles.thumb, { left: Math.max(0, fraction * width - THUMB / 2), borderColor: color }]}
         />
       </View>
-      <Pressable role="button" aria-label="Un punto in più" onPress={() => onChange(clampScore(value + 1))} style={styles.step} hitSlop={6}>
+      <Pressable role="button" aria-label={t("Un punto in più")} onPress={() => onChange(clampScore(value + 1))} style={styles.step} hitSlop={6}>
         <Text style={styles.stepText}>+</Text>
       </Pressable>
     </View>
