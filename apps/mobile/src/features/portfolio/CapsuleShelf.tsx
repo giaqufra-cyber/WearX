@@ -5,6 +5,7 @@ import { PixelRatio, Pressable, ScrollView, StyleSheet, Text, View } from "react
 
 import { bestVariant } from "@/features/feed/format";
 import { Shade } from "@/ui/Shade";
+import { t } from "@/lib/i18n";
 
 /**
  * Capsule come "collezioni" di un portfolio (seduta 28): una copertina per capsula, più grande
@@ -43,23 +44,23 @@ export function CapsuleShelf({ capsules, total, active, onSelect }: Props) {
   const height = shelfHeight(capsules);
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>CAPSULE</Text>
+      <Text style={styles.label}>{t("CAPSULE")}</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         role="tablist"
-        aria-label="Capsule"
+        aria-label={t("Capsule")}
         contentContainerStyle={[styles.row, { height }]}
       >
         <Pressable
           role="tab"
           aria-selected={active === null}
-          aria-label={`Tutti, ${total} fit`}
+          aria-label={t("Tutti, {total} fit", { total })}
           onPress={() => onSelect(null)}
           style={[styles.all, active === null && styles.selected]}
         >
           <Text style={styles.allCount}>{total}</Text>
-          <Text style={styles.allText}>Tutti</Text>
+          <Text style={styles.allText}>{t("Tutti")}</Text>
         </Pressable>
         {capsules.map((capsule) => {
           const selected = capsule.id === active;
@@ -70,7 +71,7 @@ export function CapsuleShelf({ capsules, total, active, onSelect }: Props) {
               key={capsule.id}
               role="tab"
               aria-selected={selected}
-              aria-label={`${capsule.name}, ${capsule.post_count} fit`}
+              aria-label={t("{name}, {post_count} fit", { name: capsule.name, post_count: capsule.post_count })}
               onPress={() => onSelect(capsule.id)}
               style={[styles.card, { width, height: Math.round(width * RATIO) }, selected && styles.selected]}
             >
@@ -88,7 +89,7 @@ export function CapsuleShelf({ capsules, total, active, onSelect }: Props) {
                 <Text style={styles.name} numberOfLines={2}>
                   {capsule.name}
                 </Text>
-                <Text style={styles.count}>{capsule.post_count === 1 ? "1 FIT" : `${capsule.post_count} FIT`}</Text>
+                <Text style={styles.count}>{capsule.post_count === 1 ? t("1 FIT") : t("{post_count} FIT", { post_count: capsule.post_count })}</Text>
               </View>
             </Pressable>
           );

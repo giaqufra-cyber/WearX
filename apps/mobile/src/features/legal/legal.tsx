@@ -5,14 +5,15 @@ import { StyleSheet, Text, type TextStyle } from "react-native";
 
 import { useAppConfig } from "@/features/styles/useAppConfig";
 import { apiUrl } from "@/lib/api";
+import { N_, t } from "@/lib/i18n";
 
 export type LegalDoc = "terms" | "privacy" | "community_rules" | "feed_explainer";
 
 export const LEGAL_TITLES: Record<LegalDoc, string> = {
-  terms: "Termini di servizio",
-  privacy: "Informativa privacy",
-  community_rules: "Regole della community",
-  feed_explainer: "Come funziona il feed",
+  terms: N_("Termini di servizio"),
+  privacy: N_("Informativa privacy"),
+  community_rules: N_("Regole della community"),
+  feed_explainer: N_("Come funziona il feed"),
 };
 
 const FALLBACK_PATH: Record<LegalDoc, string> = {
@@ -43,7 +44,7 @@ export function LegalLink({ doc, label, style }: { doc: LegalDoc; label?: string
   const links = useLegalLinks();
   return (
     <Text role="link" onPress={() => openLegal(links[doc])} style={[styles.link, style]}>
-      {label ?? LEGAL_TITLES[doc]}
+      {label ?? t(LEGAL_TITLES[doc])}
     </Text>
   );
 }

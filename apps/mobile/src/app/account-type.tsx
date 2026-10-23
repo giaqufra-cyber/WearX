@@ -11,20 +11,21 @@ import { SegmentedControl } from "@/ui/SegmentedControl";
 import { Sheet } from "@/ui/Sheet";
 import { TopBar } from "@/ui/TopBar";
 import { useToast } from "@/ui/Toast";
+import { N_, t } from "@/lib/i18n";
 
 type Kind = "private" | "business";
 
 const POINTS: Record<Kind, string[]> = {
   private: [
-    "I tuoi fit li vedono solo le persone che approvi.",
-    "Nel feed degli altri i tuoi fit sono anonimi.",
-    "Per chi crea il proprio archivio di stile.",
+    N_("I tuoi fit li vedono solo le persone che approvi."),
+    N_("Nel feed degli altri i tuoi fit sono anonimi."),
+    N_("Per chi crea il proprio archivio di stile."),
   ],
   business: [
-    "Profilo pubblico: tutti vedono i tuoi fit e il tuo nome.",
-    "Ti seguono senza richiesta (le richieste in attesa diventano follow).",
-    "Puoi verificare il sito del tuo negozio: i tuoi capi mostrano «negozio verificato».",
-    "Negli Insight vedi i click verso il tuo negozio.",
+    N_("Profilo pubblico: tutti vedono i tuoi fit e il tuo nome."),
+    N_("Ti seguono senza richiesta (le richieste in attesa diventano follow)."),
+    N_("Puoi verificare il sito del tuo negozio: i tuoi capi mostrano «negozio verificato»."),
+    N_("Negli Insight vedi i click verso il tuo negozio."),
   ],
 };
 
@@ -44,65 +45,65 @@ export default function AccountTypeScreen() {
       {
         onSuccess: () => {
           setConfirm(false);
-          toast.show(choice === "business" ? "Ora sei un account Business." : "Ora il tuo account è privato.");
+          toast.show(choice === "business" ? t("Ora sei un account Business.") : t("Ora il tuo account è privato."));
           if (choice === "business") router.replace("/shop-domains");
         },
         onError: () => {
           setConfirm(false);
-          toast.show("Non è riuscito. Riprova.", { tone: "error" });
+          toast.show(t("Non è riuscito. Riprova."), { tone: "error" });
         },
       },
     );
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <TopBar title="Tipo di account" fallback="/settings" />
+      <TopBar title={t("Tipo di account")} fallback="/settings" />
       <ScrollView contentContainerStyle={styles.content}>
         {!adult ? (
-          <Text style={styles.text}>Gli account Business sono per maggiorenni: il tuo account resta privato.</Text>
+          <Text style={styles.text}>{t("Gli account Business sono per maggiorenni: il tuo account resta privato.")}</Text>
         ) : (
           <>
             <SegmentedControl
-              label="Tipo di account"
+              label={t("Tipo di account")}
               options={[
-                { value: "private", label: "Privato" },
-                { value: "business", label: "Business" },
+                { value: "private", label: t("Privato") },
+                { value: "business", label: t("Business") },
               ]}
               value={choice}
               onChange={setChoice}
             />
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>{choice === "business" ? "Business" : "Privato"}</Text>
+              <Text style={styles.cardTitle}>{choice === "business" ? t("Business") : t("Privato")}</Text>
               {POINTS[choice].map((line) => (
                 <Text key={line} style={styles.point}>
-                  — {line}
+                  — {t(line)}
                 </Text>
               ))}
             </View>
             {choice !== current ? (
               <Button
-                label={choice === "business" ? "Passa a Business" : "Torna privato"}
+                label={choice === "business" ? t("Passa a Business") : t("Torna privato")}
                 fullWidth
                 onPress={() => setConfirm(true)}
               />
             ) : (
-              <Text style={styles.text}>Questo è il tuo tipo di account attuale.</Text>
+              <Text style={styles.text}>{t("Questo è il tuo tipo di account attuale.")}</Text>
             )}
           </>
         )}
       </ScrollView>
       <Sheet
         visible={confirm}
-        title={choice === "business" ? "Passare a Business?" : "Tornare privato?"}
+        title={choice === "business" ? t("Passare a Business?") : t("Tornare privato?")}
         onClose={() => setConfirm(false)}
       >
         <Text style={styles.text}>
           {choice === "business"
-            ? "Il tuo profilo e i tuoi fit diventano visibili a tutti. Puoi tornare privato quando vuoi."
-            : "Chi ti segue già continua a seguirti; i nuovi dovranno chiedere. I siti verificati vengono tolti."}
+            ? t("Il tuo profilo e i tuoi fit diventano visibili a tutti. Puoi tornare privato quando vuoi.")
+            : t("Chi ti segue già continua a seguirti; i nuovi dovranno chiedere. I siti verificati vengono tolti.")}
         </Text>
-        <Button label="Conferma" fullWidth loading={update.isPending} onPress={save} />
-        <Button label="Annulla" variant="ghost" fullWidth onPress={() => setConfirm(false)} />
+        <Button label={t("Conferma")} fullWidth loading={update.isPending} onPress={save} />
+        <Button label={t("Annulla")} variant="ghost" fullWidth onPress={() => setConfirm(false)} />
       </Sheet>
     </SafeAreaView>
   );

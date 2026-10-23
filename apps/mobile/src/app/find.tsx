@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { PeopleSearch } from "@/features/people/PeopleSearch";
 import { TopBar } from "@/ui/TopBar";
+import { t } from "@/lib/i18n";
 
 /**
  * Trova persone (dal profilo): la stessa ricerca di Esplora → Persone, con la tastiera già
@@ -12,7 +13,7 @@ import { TopBar } from "@/ui/TopBar";
 export default function FindScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <TopBar title="Trova persone" fallback="/profile" />
+      <TopBar title={t("Trova persone")} fallback="/profile" />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <PeopleSearch autoFocus />
       </ScrollView>

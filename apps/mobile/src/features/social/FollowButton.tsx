@@ -7,6 +7,7 @@ import { followLabel, useFollow } from "@/features/social/api";
 import { Button } from "@/ui/Button";
 import { Sheet } from "@/ui/Sheet";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 /** Segui / Richiesta inviata / Segui già, con conferma prima di perdere l'accesso a un privato. */
 export function FollowButton({ user }: { user: UserProfile }) {
@@ -20,10 +21,10 @@ export function FollowButton({ user }: { user: UserProfile }) {
     if (state === "none") {
       follow.mutate("follow", {
         onSuccess: (now) =>
-          toast.show(now === "pending" ? `Richiesta inviata a @${user.nickname}.` : `Ora segui @${user.nickname}.`),
+          toast.show(now === "pending" ? t("Richiesta inviata a @{nickname}.", { nickname: user.nickname }) : t("Ora segui @{nickname}.", { nickname: user.nickname })),
       });
     } else if (state === "pending") {
-      follow.mutate("unfollow", { onSuccess: () => toast.show("Richiesta ritirata.") });
+      follow.mutate("unfollow", { onSuccess: () => toast.show(t("Richiesta ritirata.")) });
     } else if (isPrivate) {
       setConfirm(true);
     } else {
@@ -39,19 +40,19 @@ export function FollowButton({ user }: { user: UserProfile }) {
         size="md"
         fullWidth
         onPress={press}
-        hint={state === "pending" ? "Tocca per ritirare la richiesta" : state === "accepted" ? "Tocca per smettere di seguire" : undefined}
+        hint={state === "pending" ? t("Tocca per ritirare la richiesta") : state === "accepted" ? t("Tocca per smettere di seguire") : undefined}
       />
-      <Sheet visible={confirm} title={`Smettere di seguire @${user.nickname}?`} onClose={() => setConfirm(false)}>
+      <Sheet visible={confirm} title={t("Smettere di seguire @{nickname}?", { nickname: user.nickname })} onClose={() => setConfirm(false)}>
         <Text style={styles.text}>
-          L'account è privato: non vedrai più il suo portfolio finché non ti accetta di nuovo.
+          {t("L'account è privato: non vedrai più il suo portfolio finché non ti accetta di nuovo.")}
         </Text>
         <View style={styles.row}>
           <View style={styles.flex}>
-            <Button label="Annulla" variant="secondary" size="md" fullWidth onPress={() => setConfirm(false)} />
+            <Button label={t("Annulla")} variant="secondary" size="md" fullWidth onPress={() => setConfirm(false)} />
           </View>
           <View style={styles.flex}>
             <Button
-              label="Smetti di seguire"
+              label={t("Smetti di seguire")}
               variant="danger"
               size="md"
               fullWidth

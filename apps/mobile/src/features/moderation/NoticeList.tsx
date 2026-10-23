@@ -9,17 +9,18 @@ import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { TextField } from "@/ui/TextField";
+import { locale, t } from "@/lib/i18n";
 
 const dateLabel = (iso: string) =>
-  new Date(iso).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
+  new Date(iso).toLocaleDateString(locale(), { day: "numeric", month: "long", year: "numeric" });
 
 /** Ogni decisione della moderazione che ti riguarda, con il motivo e il reclamo (art. 17 e 20 DSA). */
 export function NoticeList({ canOpenPosts = true }: { canOpenPosts?: boolean }) {
   const notices = useNotices();
-  if (notices.isPending) return <Loading label="Carico gli avvisi" />;
+  if (notices.isPending) return <Loading label={t("Carico gli avvisi")} />;
   if (notices.isError) return <ErrorNotice error={notices.error} onRetry={() => void notices.refetch()} />;
   if (notices.data.length === 0) {
-    return <EmptyState title="Nessun avviso" body="Qui trovi le decisioni della moderazione che ti riguardano." />;
+    return <EmptyState title={t("Nessun avviso")} body={t("Qui trovi le decisioni della moderazione che ti riguardano.")} />;
   }
   return (
     <View style={styles.list}>
@@ -44,20 +45,20 @@ function NoticeCard({ notice, canOpenPost }: { notice: ModerationNotice; canOpen
         <Text style={styles.date}>{dateLabel(notice.created_at)}</Text>
       </View>
       <Text style={styles.meta}>
-        {notice.automated ? "DECISIONE AUTOMATICA" : "DECISIONE DI UN MODERATORE"} · {notice.reason.toUpperCase()}
+        {notice.automated ? t("DECISIONE AUTOMATICA") : t("DECISIONE DI UN MODERATORE")} · {notice.reason.toUpperCase()}
       </Text>
       <Text style={styles.statement}>{notice.statement}</Text>
 
       {notice.appeal ? (
         <View style={styles.appeal}>
-          <Text style={styles.appealStatus}>{APPEAL_STATUS[notice.appeal.status]}</Text>
+          <Text style={styles.appealStatus}>{t(APPEAL_STATUS[notice.appeal.status])}</Text>
           {notice.appeal.decision_note ? <Text style={styles.appealNote}>{notice.appeal.decision_note}</Text> : null}
         </View>
       ) : null}
 
       {notice.post_id && canOpenPost ? (
         <Button
-          label="Apri il fit"
+          label={t("Apri il fit")}
           variant="ghost"
           size="sm"
           onPress={() => router.push({ pathname: "/post/[id]", params: { id: notice.post_id! } })}
@@ -65,12 +66,12 @@ function NoticeCard({ notice, canOpenPost }: { notice: ModerationNotice; canOpen
       ) : null}
 
       {notice.can_appeal && !writing ? (
-        <Button label="Fai reclamo" variant="secondary" size="sm" onPress={() => setWriting(true)} />
+        <Button label={t("Fai reclamo")} variant="secondary" size="sm" onPress={() => setWriting(true)} />
       ) : null}
       {writing ? (
         <View style={styles.form}>
           <TextField
-            label="Il tuo reclamo"
+            label={t("Il tuo reclamo")}
             value={text}
             onChangeText={(value) => {
               setText(value);
@@ -78,14 +79,14 @@ function NoticeCard({ notice, canOpenPost }: { notice: ModerationNotice; canOpen
             }}
             multiline
             maxLength={1000}
-            placeholder="Spiega perché pensi che sia un errore"
-            hint="Lo legge un moderatore diverso da chi ha deciso."
+            placeholder={t("Spiega perché pensi che sia un errore")}
+            hint={t("Lo legge un moderatore diverso da chi ha deciso.")}
             error={error}
           />
           <View style={styles.row}>
-            <Button label="Annulla" variant="ghost" size="sm" onPress={() => setWriting(false)} />
+            <Button label={t("Annulla")} variant="ghost" size="sm" onPress={() => setWriting(false)} />
             <Button
-              label="Invia reclamo"
+              label={t("Invia reclamo")}
               size="sm"
               disabled={!text.trim()}
               loading={appeal.isPending}

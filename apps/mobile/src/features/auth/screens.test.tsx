@@ -218,7 +218,7 @@ describe("Conferma dell'email", () => {
     env.emailOtp = true;
     auth.verifyOtp!.mockResolvedValue({ data: {}, error: null });
     await render(<VerifyScreen />, { wrapper: Providers });
-    expect(screen.getByText("francesco@example.com")).toBeOnTheScreen();
+    expect(screen.getByText(/francesco@example\.com/)).toBeOnTheScreen();
     await fireEvent.changeText(screen.getByLabelText("CODICE"), "12 34 56");
     expect(auth.verifyOtp).toHaveBeenCalledWith({ email: "francesco@example.com", token: "123456", type: "email" });
   });

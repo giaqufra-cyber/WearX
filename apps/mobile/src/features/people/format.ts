@@ -1,5 +1,6 @@
 /** Testi della ricerca persone (seduta 31): riga sotto il nickname e parte evidenziata. */
 import type { PersonCard } from "@wearx/api-types";
+import { t, tn } from "@/lib/i18n";
 
 /** Come il server: "@Giulia.R " -> "giulia.r" (nickname minuscoli, senza spazi né simboli). */
 export function normalizeQuery(raw: string): string {
@@ -12,32 +13,31 @@ export function normalizeQuery(raw: string): string {
 }
 
 function followersLabel(count: number): string {
-  // Punto delle migliaia a mano: non tutti i motori JS del telefono hanno le regole italiane.
-  return count === 1 ? "1 follower" : `${String(count).replace(/\B(?=(\d{3})+(?!\d))/g, ".")} follower`;
+  return tn(count, "{count} follower", "{count} follower");
 }
 
 function mutualLine(card: Pick<PersonCard, "mutuals" | "mutual_count">): string {
   const [first, second] = card.mutuals;
   const others = card.mutual_count - card.mutuals.length;
   if (!first) return "";
-  if (!second) return others > 0 ? `Seguito da @${first} e altri ${others}` : `Seguito da @${first}`;
-  if (others > 0) return `Seguito da @${first}, @${second} e altri ${others}`;
-  return `Seguito da @${first} e @${second}`;
+  if (!second) return others > 0 ? t("Seguito da @{first} e altri {others}", { first, others }) : t("Seguito da @{first}", { first });
+  if (others > 0) return t("Seguito da @{first}, @{second} e altri {others}", { first, second, others });
+  return t("Seguito da @{first} e @{second}", { first, second });
 }
 
 /** Solo quanti: quali stili segue una persona resta privato. */
 function stylesLine(count: number): string {
-  return count === 1 ? "1 stile in comune" : `${count} stili in comune`;
+  return tn(count, "{count} stile in comune", "{count} stili in comune");
 }
 
 /** La riga sotto il nickname: il motivo per cui la conosci o te la proponiamo. */
 export function personLine(card: PersonCard): string {
-  if (card.is_self) return "Sei tu";
-  if (card.reason === "popular") return `Tra i più seguiti · ${followersLabel(card.followers)}`;
-  if (card.follows_you && card.following !== "accepted") return "Ti segue";
+  if (card.is_self) return t("Sei tu");
+  if (card.reason === "popular") return t("Tra i più seguiti · {followers}", { followers: followersLabel(card.followers) });
+  if (card.follows_you && card.following !== "accepted") return t("Ti segue");
   if (card.mutual_count > 0) return mutualLine(card);
   if (card.shared_style_count > 0) return stylesLine(card.shared_style_count);
-  if (card.account_type === "business") return `Account business · ${followersLabel(card.followers)}`;
+  if (card.account_type === "business") return t("Account business · {followers}", { followers: followersLabel(card.followers) });
   return followersLabel(card.followers);
 }
 

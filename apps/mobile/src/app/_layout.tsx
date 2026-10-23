@@ -27,6 +27,7 @@ import type { AppRoute } from "@/features/auth/routing";
 import { useAppConfig } from "@/features/styles/useAppConfig";
 import { UpdateRequired } from "@/features/update/UpdateRequired";
 import { APP_VERSION } from "@/lib/api";
+import { loadLanguageChoice, useLanguage } from "@/lib/i18n";
 import { initSentry } from "@/lib/sentry";
 import { isOlder, markUpdateRequired, useUpdateGate } from "@/lib/updateGate";
 import { ToastProvider } from "@/ui/Toast";
@@ -71,8 +72,19 @@ export default function RootLayout() {
     ArchivoExpanded_900: require("../../assets/fonts/ArchivoExpanded-900.ttf"),
   });
 
+  // Lingua scelta in Privacy e sicurezza (se c'è), prima di disegnare l'app.
+  const lang = useLanguage((state) => state.lang);
+  const [langReady, setLangReady] = useState(false);
+  useEffect(() => {
+    void loadLanguageChoice().finally(() => setLangReady(true));
+  }, []);
+  // Cambiando lingua i testi che arrivano dal server si richiedono nella lingua nuova.
+  useEffect(() => {
+    void queryClient.invalidateQueries();
+  }, [lang, queryClient]);
+
   // Se un font non carica si mostra comunque l'app con i font di sistema.
-  const fontsReady = fontsLoaded || Boolean(fontError);
+  const fontsReady = (fontsLoaded || Boolean(fontError)) && langReady;
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -84,7 +96,7 @@ export default function RootLayout() {
           <View role="main" style={styles.main}>
             {/* Solo nella build demo per telefono: prima si sceglie il server (vedi DemoGate). */}
             <DemoGate ready={fontsReady} onServerChange={() => queryClient.clear()}>
-              <AuthProvider>{fontsReady ? <RootNavigator /> : null}</AuthProvider>
+              <AuthProvider>{fontsReady ? <RootNavigator key={lang} /> : null}</AuthProvider>
             </DemoGate>
           </View>
         </ToastProvider>

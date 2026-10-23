@@ -1,5 +1,6 @@
 import { colors, fonts, radii } from "@wearx/design-tokens";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { t } from "@/lib/i18n";
 
 type Option<T extends string> = { value: T; label: string };
 
@@ -11,7 +12,7 @@ type Props<T extends string> = {
   size?: "sm" | "md";
 };
 
-/** Selettore a segmenti (Email/Telefono, Privato/Business). Un solo valore attivo. */
+/** Selettore a segmenti (Email/Telefono, Privato/Business). Un solo valore attivo. Le etichette passano da t(). */
 export function SegmentedControl<T extends string>({ label, options, value, onChange, size = "md" }: Props<T>) {
   return (
     <View role="radiogroup" aria-label={label} style={[styles.group, size === "sm" ? styles.groupSm : null]}>
@@ -21,13 +22,13 @@ export function SegmentedControl<T extends string>({ label, options, value, onCh
           <Pressable
             key={option.value}
             role="radio"
-            aria-label={option.label}
+            aria-label={t(option.label)}
             aria-checked={active}
             onPress={() => onChange(option.value)}
             style={[styles.segment, size === "sm" ? styles.segmentSm : null, active ? styles.active : null]}
           >
             <Text style={[styles.text, size === "sm" ? styles.textSm : null, active ? styles.activeText : null]}>
-              {option.label}
+              {t(option.label)}
             </Text>
           </Pressable>
         );

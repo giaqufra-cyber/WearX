@@ -15,8 +15,9 @@ import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { SearchField } from "@/ui/SearchField";
 import { TopBar } from "@/ui/TopBar";
 import { useToast } from "@/ui/Toast";
+import { N_, t } from "@/lib/i18n";
 
-const categoryLabel = (key: string) => CATEGORIES.find((c) => c.key === key)?.label ?? "Stili";
+const categoryLabel = (key: string) => CATEGORIES.find((c) => c.key === key)?.label ?? N_("Stili");
 
 /** Stili proposti dalla community: chi ne vuole uno nuovo lo propone, gli altri lo chiedono. */
 export default function StyleProposalsScreen() {
@@ -34,7 +35,7 @@ export default function StyleProposalsScreen() {
       {
         onSuccess: (updated) => {
           if (updated.status === "approved") {
-            toast.show(`«${updated.name}» ora è uno stile. Ci sei dentro.`);
+            toast.show(t("«{name}» ora è uno stile. Ci sei dentro.", { name: updated.name }));
             if (updated.style) router.push({ pathname: "/style/[slug]", params: { slug: updated.style } });
           }
         },
@@ -47,7 +48,7 @@ export default function StyleProposalsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <TopBar title="Stili proposti" fallback="/explore" />
+      <TopBar title={t("Stili proposti")} fallback="/explore" />
       <FlatList
         data={items}
         keyExtractor={(p) => p.id}
@@ -56,10 +57,10 @@ export default function StyleProposalsScreen() {
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.lead}>
-              {threshold ? `A ${threshold} richieste diventa uno stile.` : " "}
+              {threshold ? t("A {threshold} richieste diventa uno stile.", { threshold }) : " "}
             </Text>
-            <Button label="Proponi uno stile" onPress={() => setProposing(true)} fullWidth size="md" />
-            <SearchField value={query} onChangeText={setQuery} label="Cerca tra le proposte" placeholder="Cerca tra le proposte" />
+            <Button label={t("Proponi uno stile")} onPress={() => setProposing(true)} fullWidth size="md" />
+            <SearchField value={query} onChangeText={setQuery} label={t("Cerca tra le proposte")} placeholder={t("Cerca tra le proposte")} />
           </View>
         }
         renderItem={({ item }) => (
@@ -67,13 +68,13 @@ export default function StyleProposalsScreen() {
         )}
         ListEmptyComponent={
           list.isPending ? (
-            <Loading label="Carichiamo le proposte…" />
+            <Loading label={t("Carichiamo le proposte…")} />
           ) : list.isError ? (
             <ErrorNotice error={list.error} onRetry={() => void list.refetch()} />
           ) : (
             <EmptyState
-              title={debounced ? "Nessuna proposta con questo nome" : "Ancora nessuna proposta"}
-              body="Proponi tu il primo stile che manca."
+              title={debounced ? t("Nessuna proposta con questo nome") : t("Ancora nessuna proposta")}
+              body={t("Proponi tu il primo stile che manca.")}
             />
           )
         }
@@ -96,20 +97,20 @@ function ProposalRow({ proposal, busy, onToggle }: { proposal: StyleProposal; bu
           {proposal.name}
         </Text>
         <Text style={styles.meta} numberOfLines={1}>
-          {categoryLabel(proposal.category).toUpperCase()}
+          {t(categoryLabel(proposal.category)).toUpperCase()}
           {proposal.tagline ? ` · ${proposal.tagline}` : ""}
         </Text>
-        <View style={styles.bar} role="progressbar" aria-label={`${proposal.name}: ${label} richieste`}>
+        <View style={styles.bar} role="progressbar" aria-label={t("{name}: {label} richieste", { name: proposal.name, label })}>
           <View style={[styles.fill, { width: `${Math.round(ratio * 100)}%` }]} />
         </View>
         <Text style={styles.count}>{label}</Text>
       </View>
       <Button
-        label={proposal.supported ? "Lo vuoi" : "Lo voglio"}
+        label={proposal.supported ? t("Lo vuoi") : t("Lo voglio")}
         variant={proposal.supported ? "inverse" : "secondary"}
         size="sm"
         disabled={busy}
-        hint={proposal.supported ? `Tocca per ritirare la richiesta per ${proposal.name}` : `Chiedi lo stile ${proposal.name}`}
+        hint={proposal.supported ? t("Tocca per ritirare la richiesta per {name}", { name: proposal.name }) : t("Chiedi lo stile {name}", { name: proposal.name })}
         onPress={onToggle}
       />
     </View>

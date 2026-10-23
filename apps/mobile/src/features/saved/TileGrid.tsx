@@ -11,6 +11,7 @@ import { EmptyState } from "@/ui/EmptyState";
 import { ErrorNotice } from "@/ui/LoadState";
 import { Skeleton } from "@/ui/Skeleton";
 import { TopBar } from "@/ui/TopBar";
+import { t } from "@/lib/i18n";
 
 const MAX_WIDTH = 560;
 const SIDE = spacing[4];
@@ -69,7 +70,7 @@ export function TileGrid({ title, query, own, empty, intro }: Props) {
         )}
         ListEmptyComponent={
           query.isPending ? (
-            <View style={styles.row} role="progressbar" aria-label="Carico i fit">
+            <View style={styles.row} role="progressbar" aria-label={t("Carico i fit")}>
               <Skeleton width={width} height={Math.round(width * 1.28)} />
               <Skeleton width={width} height={Math.round(width * 1.28)} />
             </View>

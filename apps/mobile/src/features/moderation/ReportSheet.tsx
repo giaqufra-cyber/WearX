@@ -8,6 +8,7 @@ import { Button } from "@/ui/Button";
 import { IconCheck } from "@/ui/icons";
 import { Sheet } from "@/ui/Sheet";
 import { TextField } from "@/ui/TextField";
+import { t } from "@/lib/i18n";
 
 type Props = { target: ReportTarget; visible: boolean; onClose: () => void };
 
@@ -26,26 +27,27 @@ export function ReportSheet({ target, visible, onClose }: Props) {
     setDone(null);
     setError(null);
   };
-  const title = target.type === "post" ? "Segnala il fit" : `Segnala @${target.nickname}`;
+  const title = target.type === "post" ? t("Segnala il fit") : t("Segnala @{nickname}", { nickname: target.nickname });
 
   return (
-    <Sheet visible={visible} title={done ? "Grazie" : title} onClose={close}>
+    <Sheet visible={visible} title={done ? t("Grazie") : title} onClose={close}>
       {done ? (
         <View style={styles.done} role="alert">
           <Text style={styles.text}>
-            Segnalazione ricevuta: una persona la controlla {reviewLabel(done.review_within_hours)}. Non diciamo a
-            nessuno chi l'ha fatta.
+            {t("Segnalazione ricevuta: una persona la controlla {when}. Non diciamo a nessuno chi l'ha fatta.", {
+              when: reviewLabel(done.review_within_hours),
+            })}
           </Text>
           {reason === "minor_safety" ? (
-            <Text style={styles.urgent}>Se qualcuno è in pericolo adesso, chiama il 112.</Text>
+            <Text style={styles.urgent}>{t("Se qualcuno è in pericolo adesso, chiama il 112.")}</Text>
           ) : null}
-          <Text style={styles.hint}>Puoi anche bloccare la persona dal suo profilo.</Text>
-          <Button label="Chiudi" variant="secondary" size="md" fullWidth onPress={close} />
+          <Text style={styles.hint}>{t("Puoi anche bloccare la persona dal suo profilo.")}</Text>
+          <Button label={t("Chiudi")} variant="secondary" size="md" fullWidth onPress={close} />
         </View>
       ) : (
         <>
           <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
-            <View role="radiogroup" aria-label="Motivo della segnalazione" style={styles.listContent}>
+            <View role="radiogroup" aria-label={t("Motivo della segnalazione")} style={styles.listContent}>
               {REASONS.map((r) => {
                 const selected = r.value === reason;
                 return (
@@ -69,17 +71,17 @@ export function ReportSheet({ target, visible, onClose }: Props) {
           </ScrollView>
           {reason ? (
             <TextField
-              label="Dettagli (facoltativi)"
+              label={t("Dettagli (facoltativi)")}
               value={details}
               onChangeText={setDetails}
               maxLength={500}
               multiline
-              placeholder="Cosa è successo?"
+              placeholder={t("Cosa è successo?")}
               error={error}
             />
           ) : null}
           <Button
-            label="Invia segnalazione"
+            label={t("Invia segnalazione")}
             size="md"
             fullWidth
             disabled={!reason}

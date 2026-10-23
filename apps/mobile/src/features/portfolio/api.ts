@@ -15,6 +15,7 @@ import type { Capsule, PortfolioPage, Post, UserProfile } from "@wearx/api-types
 import { useAuth } from "@/features/auth/AuthProvider";
 import { FEED_KEY, POST_KEY } from "@/features/feed/api";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
+import { N_, t } from "@/lib/i18n";
 
 export const PORTFOLIO_KEY = ["portfolio"] as const;
 const PAGE_SIZE = 60;
@@ -130,8 +131,8 @@ export function useMoveFit(nickname: string, options: { onError?: (message: stri
       for (const [key, data] of context?.snapshot ?? []) client.setQueryData(key, data);
       options.onError?.(
         error instanceof ApiError && error.code === "rate.limited"
-          ? "Troppi spostamenti in poco tempo: riprova tra un po'."
-          : "L'ordine non è stato salvato. Controlla la connessione e riprova.",
+          ? t("Troppi spostamenti in poco tempo: riprova tra un po'.")
+          : t("L'ordine non è stato salvato. Controlla la connessione e riprova."),
       );
     },
     onSettled: () => {
@@ -146,17 +147,17 @@ export function useMoveFit(nickname: string, options: { onError?: (message: stri
 // ---------- Capsule ----------
 
 export const CAPSULE_ERRORS: Record<string, string> = {
-  "capsule.name_taken": "Hai già una capsula con questo nome.",
-  "capsule.limit": "Puoi avere al massimo 12 capsule.",
-  "capsule.name_required": "Dai un nome alla capsula.",
-  "capsule.not_found": "Questa capsula non esiste più.",
-  "text.too_long": "Il nome può avere al massimo 30 caratteri.",
-  "text.invalid_characters": "Il nome contiene caratteri non ammessi.",
+  "capsule.name_taken": N_("Hai già una capsula con questo nome."),
+  "capsule.limit": N_("Puoi avere al massimo 12 capsule."),
+  "capsule.name_required": N_("Dai un nome alla capsula."),
+  "capsule.not_found": N_("Questa capsula non esiste più."),
+  "text.too_long": N_("Il nome può avere al massimo 30 caratteri."),
+  "text.invalid_characters": N_("Il nome contiene caratteri non ammessi."),
 };
 
 export function capsuleError(error: unknown): string {
   const code = error instanceof ApiError ? error.code : "";
-  return CAPSULE_ERRORS[code] ?? "Non riusciamo a salvare. Controlla la connessione e riprova.";
+  return CAPSULE_ERRORS[code] ? t(CAPSULE_ERRORS[code]) : t("Non riusciamo a salvare. Controlla la connessione e riprova.");
 }
 
 export function useCapsules(enabled = true) {

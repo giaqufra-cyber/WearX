@@ -19,6 +19,7 @@ import { SegmentedControl } from "@/ui/SegmentedControl";
 import { Skeleton } from "@/ui/Skeleton";
 import { StyleTile } from "@/ui/StyleTile";
 import { Text } from "@/ui/Text";
+import { N_, t } from "@/lib/i18n";
 
 export const SEARCH_DEBOUNCE_MS = 250;
 
@@ -26,8 +27,8 @@ const openStyle = (slug: string) => router.push({ pathname: "/style/[slug]", par
 
 type Tab = "styles" | "people";
 const TABS = [
-  { value: "styles", label: "Stili" },
-  { value: "people", label: "Persone" },
+  { value: "styles", label: N_("Stili") },
+  { value: "people", label: N_("Persone") },
 ] as const;
 
 /** Cerca: stili (stagionale in evidenza, tutti gli stili) oppure persone (seduta 31). */
@@ -37,9 +38,9 @@ export default function ExploreScreen() {
   return (
     <Screen>
       <Text variant="display" role="heading" style={styles.title}>
-        Esplora
+        {t("Esplora")}
       </Text>
-      <SegmentedControl label="Cosa cercare" options={TABS} value={tab} onChange={setTab} size="sm" />
+      <SegmentedControl label={t("Cosa cercare")} options={TABS} value={tab} onChange={setTab} size="sm" />
       {tab === "styles" ? <StylesPane /> : <PeopleSearch />}
     </Screen>
   );
@@ -62,8 +63,8 @@ function StylesPane() {
       <SearchField
         value={query}
         onChangeText={setQuery}
-        label="Cerca uno stile"
-        placeholder="Cerca: surf, gioielli, emo, galà…"
+        label={t("Cerca uno stile")}
+        placeholder={t("Cerca: surf, gioielli, emo, galà…")}
       />
 
       <CategoryChips value={category} onChange={setCategory} />
@@ -71,7 +72,7 @@ function StylesPane() {
       {featured ? <FeaturedStyle style={featured} /> : null}
 
       <View style={styles.sectionHead}>
-        <RNText style={styles.section}>{debounced ? "RISULTATI" : category ? "I PIÙ SEGUITI" : "TUTTI, DAI PIÙ SEGUITI"}</RNText>
+        <RNText style={styles.section}>{debounced ? t("RISULTATI") : category ? t("I PIÙ SEGUITI") : t("TUTTI, DAI PIÙ SEGUITI")}</RNText>
         {styles_.data ? (
           <RNText style={styles.count} aria-live="polite">
             {stylesCountLabel(items.length)}
@@ -80,7 +81,7 @@ function StylesPane() {
       </View>
 
       {styles_.isPending ? (
-        <View style={styles.grid} aria-label="Carico gli stili" role="progressbar">
+        <View style={styles.grid} aria-label={t("Carico gli stili")} role="progressbar">
           {[0, 1, 2].map((row) => (
             <View key={row} style={styles.row}>
               <View style={styles.cell}>
@@ -96,10 +97,10 @@ function StylesPane() {
       {styles_.isError ? <ErrorNotice error={styles_.error} onRetry={() => void styles_.refetch()} /> : null}
       {styles_.isSuccess && items.length === 0 ? (
         <EmptyState
-          title="Nessuno stile trovato"
-          body="Non c'è? Proponilo: se lo chiedono in tanti, nasce."
+          title={t("Nessuno stile trovato")}
+          body={t("Non c'è? Proponilo: se lo chiedono in tanti, nasce.")}
           action={{
-            label: `Proponi «${debounced}»`,
+            label: t("Proponi «{name}»", { name: debounced }),
             onPress: () => router.push({ pathname: "/style-proposals", params: { name: debounced } }),
           }}
         />
@@ -117,7 +118,7 @@ function StylesPane() {
                 height={150}
                 taglineLines={2}
                 meta={membersLabel(style.member_count).toUpperCase()}
-                status={style.joined ? "Aderito" : undefined}
+                status={style.joined ? t("Aderito") : undefined}
                 onPress={() => openStyle(style.slug)}
               />
             ))}
@@ -132,8 +133,8 @@ function StylesPane() {
           onPress={() => router.push("/style-proposals")}
           style={({ pressed }) => [styles.propose, pressed ? styles.pressed : null]}
         >
-          <RNText style={styles.proposeTitle}>Manca il tuo stile?</RNText>
-          <RNText style={styles.proposeText}>Proponilo o chiedi quelli proposti dagli altri →</RNText>
+          <RNText style={styles.proposeTitle}>{t("Manca il tuo stile?")}</RNText>
+          <RNText style={styles.proposeText}>{t("Proponilo o chiedi quelli proposti dagli altri →")}</RNText>
         </Pressable>
       ) : null}
     </>
@@ -144,7 +145,7 @@ function FeaturedStyle({ style }: { style: StyleCard }) {
   return (
     <Pressable
       role="button"
-      aria-label={`${style.name}, stile stagionale. ${membersLabel(style.member_count)}. ${style.tagline}`}
+      aria-label={t("{name}, stile stagionale. {members}. {tagline}", { name: style.name, members: membersLabel(style.member_count), tagline: style.tagline })}
       onPress={() => openStyle(style.slug)}
       style={({ pressed }) => [styles.featured, { backgroundColor: style.tone }, pressed ? styles.pressed : null]}
     >
@@ -152,7 +153,7 @@ function FeaturedStyle({ style }: { style: StyleCard }) {
         {style.name.charAt(0)}
       </RNText>
       <View style={styles.featuredTop}>
-        <Badge label="Stagionale" />
+        <Badge label={t("Stagionale")} />
         {style.active_until ? <RNText style={styles.until}>{seasonEndLabel(style.active_until)}</RNText> : null}
       </View>
       <View>

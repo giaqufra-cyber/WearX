@@ -16,6 +16,7 @@ import { IconChart, IconShield } from "@/ui/icons";
 import { ErrorNotice } from "@/ui/LoadState";
 import { Skeleton } from "@/ui/Skeleton";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 /**
  * Elenco delle notifiche. Aprendolo, tutte diventano lette; il pallino delle nuove resta visibile
@@ -46,7 +47,7 @@ export function NotificationList() {
   let empty = null;
   if (list.isPending) {
     empty = (
-      <View style={styles.skeleton} role="progressbar" aria-label="Carico le notifiche">
+      <View style={styles.skeleton} role="progressbar" aria-label={t("Carico le notifiche")}>
         {[0, 1, 2, 3].map((i) => (
           <Skeleton key={i} height={56} />
         ))}
@@ -57,8 +58,8 @@ export function NotificationList() {
   } else {
     empty = (
       <EmptyState
-        title="Nessuna notifica"
-        body="Qui trovi chi ti segue, i traguardi dei tuoi fit e gli avvisi della moderazione."
+        title={t("Nessuna notifica")}
+        body={t("Qui trovi chi ti segue, i traguardi dei tuoi fit e gli avvisi della moderazione.")}
       />
     );
   }
@@ -122,7 +123,7 @@ const NotificationRow = memo(function NotificationRow({ item, fresh, deciding, o
         onPress={open}
         disabled={!target || target === "/notifications"}
         role="button"
-        aria-label={`${fresh ? "Nuova. " : ""}${item.title}. ${item.body} ${when}`}
+        aria-label={`${fresh ? `${t("Nuova.")} ` : ""}${item.title}. ${item.body} ${when}`}
         style={({ pressed }) => [styles.main, pressed && styles.pressed]}
       >
         <Avatar item={item} />
@@ -147,8 +148,8 @@ const NotificationRow = memo(function NotificationRow({ item, fresh, deciding, o
       {/* Fuori dall'area toccabile della riga: un pulsante dentro un pulsante non funziona. */}
       {isRequest ? (
         <View style={styles.actions}>
-          <Button label="Accetta" size="sm" variant="primary" loading={deciding} onPress={() => onDecide(true)} />
-          <Button label="Rifiuta" size="sm" variant="secondary" disabled={deciding} onPress={() => onDecide(false)} />
+          <Button label={t("Accetta")} size="sm" variant="primary" loading={deciding} onPress={() => onDecide(true)} />
+          <Button label={t("Rifiuta")} size="sm" variant="secondary" disabled={deciding} onPress={() => onDecide(false)} />
         </View>
       ) : null}
     </View>

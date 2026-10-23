@@ -2,6 +2,7 @@ import { colors, fonts, fontSizes, spacing } from "@wearx/design-tokens";
 import { StyleSheet, Text, View } from "react-native";
 
 import { PASSWORD_LABELS, passwordScore } from "@/lib/validation";
+import { t } from "@/lib/i18n";
 
 const BAR_COLORS = [colors.dangerStrong, colors.warning, colors.accent, colors.accent] as const;
 
@@ -10,15 +11,15 @@ export function PasswordStrength({ password }: { password: string }) {
   const score = passwordScore(password);
   const label =
     password === ""
-      ? "Almeno 10 caratteri, maiuscole e minuscole, un numero e un simbolo."
-      : PASSWORD_LABELS[score];
+      ? t("Almeno 10 caratteri, maiuscole e minuscole, un numero e un simbolo.")
+      : t(PASSWORD_LABELS[score]);
   const fill = BAR_COLORS[Math.max(0, score - 1)];
   return (
     <View
       style={styles.wrap}
       accessible
       role="progressbar"
-      aria-label="Robustezza della password"
+      aria-label={t("Robustezza della password")}
       aria-valuemin={0}
       aria-valuemax={4}
       aria-valuenow={score}

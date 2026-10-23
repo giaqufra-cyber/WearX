@@ -25,18 +25,19 @@ import { IconButton } from "@/ui/IconButton";
 import { SearchField } from "@/ui/SearchField";
 import { Sheet } from "@/ui/Sheet";
 import { useToast } from "@/ui/Toast";
+import { N_, t } from "@/lib/i18n";
 
 /** Stili mostrati senza ricerca, prima di "Tutti gli stili". */
 const STYLE_CHOICES = 14;
 
 const PUBLISH_ERRORS: Record<string, string> = {
-  "link.invalid": "Uno dei link ai negozi non è valido: usa un indirizzo https del sito.",
-  "style.not_found": "Questo stile non è più disponibile: scegline un altro.",
-  "media.unavailable": "Una foto non è più disponibile: toglila e aggiungila di nuovo.",
-  "text.invalid_characters": "C'è un carattere non ammesso nella didascalia o nei capi.",
-  "text.too_long": "Un testo è troppo lungo.",
-  "rate.limited": "Hai pubblicato molto in poco tempo: riprova tra un po'.",
-  "text.not_allowed": "Ci sono parole non ammesse nella didascalia o nei capi.",
+  "link.invalid": N_("Uno dei link ai negozi non è valido: usa un indirizzo https del sito."),
+  "style.not_found": N_("Questo stile non è più disponibile: scegline un altro."),
+  "media.unavailable": N_("Una foto non è più disponibile: toglila e aggiungila di nuovo."),
+  "text.invalid_characters": N_("C'è un carattere non ammesso nella didascalia o nei capi."),
+  "text.too_long": N_("Un testo è troppo lungo."),
+  "rate.limited": N_("Hai pubblicato molto in poco tempo: riprova tra un po'."),
+  "text.not_allowed": N_("Ci sono parole non ammesse nella didascalia o nei capi."),
 };
 
 /** Nuovo fit (prototipo, schermata Create). Si apre a tutto schermo dal "+" della barra. */
@@ -119,13 +120,13 @@ export default function NewPostScreen() {
       draft.reset();
       void queryClient.invalidateQueries({ queryKey: STYLES_KEY });
       void queryClient.invalidateQueries({ queryKey: PORTFOLIO_KEY });
-      toast.show(`Fit pubblicato in ${post.style.name}.`);
+      toast.show(t("Fit pubblicato in {style}.", { style: post.style.name }));
       close();
     } catch (caught) {
       const code = caught instanceof ApiError ? caught.code : "";
       // Pubblicazione sospesa: il messaggio del server ha la data di fine.
       const suspended = caught instanceof ApiError && code === "account.posting_restricted" ? `${caught.title}.` : null;
-      setError(suspended ?? PUBLISH_ERRORS[code] ?? "Non riusciamo a pubblicare. Controlla la connessione e riprova.");
+      setError(suspended ?? t(PUBLISH_ERRORS[code] ?? "Non riusciamo a pubblicare. Controlla la connessione e riprova."));
     } finally {
       setPublishing(false);
     }
@@ -134,13 +135,13 @@ export default function NewPostScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
-        <IconButton label="Annulla" onPress={() => (draftHasContent(draft) ? setConfirmDiscard(true) : close())}>
+        <IconButton label={t("Annulla")} onPress={() => (draftHasContent(draft) ? setConfirmDiscard(true) : close())}>
           <IconClose color={colors.text} size={22} />
         </IconButton>
         <RNText style={styles.title} role="heading">
-          Nuovo fit
+          {t("Nuovo fit")}
         </RNText>
-        <Button label="Pubblica" size="sm" onPress={() => void publish()} disabled={!check.ok} loading={publishing} hint={check.ok ? undefined : check.reason} />
+        <Button label={t("Pubblica")} size="sm" onPress={() => void publish()} disabled={!check.ok} loading={publishing} hint={check.ok ? undefined : check.reason} />
       </View>
       {!check.ok && draft.photos.length > 0 ? (
         <RNText style={styles.status} aria-live="polite">
@@ -150,7 +151,7 @@ export default function NewPostScreen() {
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <Section title="1 · DALLA GALLERIA" aside={`${draft.photos.length} di ${MAX_PHOTOS}`} />
+          <Section title={t("1 · DALLA GALLERIA")} aside={t("{n} di {max}", { n: draft.photos.length, max: MAX_PHOTOS })} />
           <PhotoStrip
             photos={draft.photos}
             onAdd={() => void pick()}
@@ -159,14 +160,14 @@ export default function NewPostScreen() {
             onRetry={retryPhoto}
           />
 
-          <Section title="2 · STILE DEL FIT" />
+          <Section title={t("2 · STILE DEL FIT")} />
           <SearchField
             value={styleQuery}
             onChangeText={setStyleQuery}
-            label="Cerca lo stile del fit"
-            placeholder="Cerca: surf, gioielli, galà…"
+            label={t("Cerca lo stile del fit")}
+            placeholder={t("Cerca: surf, gioielli, galà…")}
           />
-          <View style={styles.styles} role="radiogroup" aria-label="Stile del fit">
+          <View style={styles.styles} role="radiogroup" aria-label={t("Stile del fit")}>
             {choices.items.map((style: StyleCard) => {
               const selected = draft.style === style.slug;
               return (
@@ -188,19 +189,19 @@ export default function NewPostScreen() {
                 onPress={() => setAllStyles(true)}
                 style={({ pressed }) => [styles.styleChip, styles.moreChip, pressed ? styles.pressed : null]}
               >
-                <RNText style={styles.moreText}>Tutti gli stili (+{choices.more})</RNText>
+                <RNText style={styles.moreText}>{t("Tutti gli stili (+{n})", { n: choices.more })}</RNText>
               </Pressable>
             ) : null}
           </View>
           {styleQuery.trim() && choices.items.length === 0 ? (
             <Pressable role="button" onPress={() => setProposing(true)} hitSlop={6}>
               <RNText style={styles.note}>
-                Nessuno stile con questo nome. <RNText style={styles.noteLink}>Proponi «{styleQuery.trim()}»</RNText>
+                {t("Nessuno stile con questo nome.")}{" "}<RNText style={styles.noteLink}>{t("Proponi «{name}»", { name: styleQuery.trim() })}</RNText>
               </RNText>
             </Pressable>
           ) : null}
 
-          <Section title="3 · I CAPI" />
+          <Section title={t("3 · I CAPI")} />
           <View style={styles.items}>
             {draft.items.map((item, index) => (
               <ItemCard
@@ -216,16 +217,16 @@ export default function NewPostScreen() {
           </View>
           {draft.items.length < MAX_ITEMS ? (
             <Pressable role="button" onPress={draft.addItem} style={({ pressed }) => [styles.addItem, pressed ? styles.pressed : null]}>
-              <RNText style={styles.addItemText}>+ Aggiungi un capo</RNText>
+              <RNText style={styles.addItemText}>{t("+ Aggiungi un capo")}</RNText>
             </Pressable>
           ) : null}
 
-          <Section title="4 · DIDASCALIA" aside={`${draft.caption.length}/${CAPTION_MAX}`} />
+          <Section title={t("4 · DIDASCALIA")} aside={`${draft.caption.length}/${CAPTION_MAX}`} />
           <TextInput
-            aria-label="Didascalia"
+            aria-label={t("Didascalia")}
             value={draft.caption}
             onChangeText={draft.setCaption}
-            placeholder="Dove l'hai indossato?"
+            placeholder={t("Dove l'hai indossato?")}
             placeholderTextColor={colors.textTertiary}
             selectionColor={colors.accent}
             maxLength={CAPTION_MAX}
@@ -242,8 +243,7 @@ export default function NewPostScreen() {
           <View style={styles.privacy}>
             <IconLock color={colors.textTertiary} />
             <RNText style={styles.privacyText}>
-              Togliamo in automatico posizione GPS, modello del telefono e ogni altro dato nascosto dalle foto prima di
-              pubblicarle.
+              {t("Togliamo in automatico posizione GPS, modello del telefono e ogni altro dato nascosto dalle foto prima di pubblicarle.")}
             </RNText>
           </View>
         </ScrollView>
@@ -258,10 +258,10 @@ export default function NewPostScreen() {
           setStyleQuery("");
         }}
       />
-      <Sheet visible={confirmDiscard} title="Scartare il fit?" onClose={() => setConfirmDiscard(false)}>
-        <RNText style={styles.sheetText}>Foto, capi e didascalia andranno persi.</RNText>
-        <Button label="Scarta" variant="danger" onPress={discard} fullWidth />
-        <Button label="Continua a modificare" variant="secondary" onPress={() => setConfirmDiscard(false)} fullWidth />
+      <Sheet visible={confirmDiscard} title={t("Scartare il fit?")} onClose={() => setConfirmDiscard(false)}>
+        <RNText style={styles.sheetText}>{t("Foto, capi e didascalia andranno persi.")}</RNText>
+        <Button label={t("Scarta")} variant="danger" onPress={discard} fullWidth />
+        <Button label={t("Continua a modificare")} variant="secondary" onPress={() => setConfirmDiscard(false)} fullWidth />
       </Sheet>
     </SafeAreaView>
   );

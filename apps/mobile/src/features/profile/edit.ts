@@ -8,6 +8,7 @@ import type { Profile, ProfileUpdate } from "@wearx/api-types";
 import { ME_QUERY_KEY, useAuth } from "@/features/auth/AuthProvider";
 import { PORTFOLIO_KEY } from "@/features/portfolio/api";
 import { ApiError, apiRequest } from "@/lib/api";
+import { t } from "@/lib/i18n";
 
 export const BIO_MAX_CHARS = 150;
 export const BIO_MAX_LINES = 4;
@@ -20,20 +21,20 @@ export function bioLength(text: string): number {
 export function bioProblem(text: string): string | null {
   const clean = text.normalize("NFC").trim();
   if (!clean) return null;
-  if (bioLength(clean) > BIO_MAX_CHARS) return `Massimo ${BIO_MAX_CHARS} caratteri.`;
-  if (clean.split("\n").length > BIO_MAX_LINES) return `Massimo ${BIO_MAX_LINES} righe.`;
+  if (bioLength(clean) > BIO_MAX_CHARS) return t("Massimo {BIO_MAX_CHARS} caratteri.", { BIO_MAX_CHARS });
+  if (clean.split("\n").length > BIO_MAX_LINES) return t("Massimo {BIO_MAX_LINES} righe.", { BIO_MAX_LINES });
   return null;
 }
 
 export function saveError(error: unknown): string {
   if (error instanceof ApiError) {
-    if (error.code === "avatar.not_allowed") return "Questa foto non può essere usata come foto profilo.";
-    if (error.code === "avatar.unavailable") return "La foto non è pronta. Riprova a sceglierla.";
-    if (error.code === "text.not_allowed") return "La bio contiene parole non ammesse.";
+    if (error.code === "avatar.not_allowed") return t("Questa foto non può essere usata come foto profilo.");
+    if (error.code === "avatar.unavailable") return t("La foto non è pronta. Riprova a sceglierla.");
+    if (error.code === "text.not_allowed") return t("La bio contiene parole non ammesse.");
     if (error.code.startsWith("text.")) return error.title;
-    if (error.status === 429) return "Troppe modifiche in poco tempo. Riprova più tardi.";
+    if (error.status === 429) return t("Troppe modifiche in poco tempo. Riprova più tardi.");
   }
-  return "Modifiche non salvate. Controlla la connessione e riprova.";
+  return t("Modifiche non salvate. Controlla la connessione e riprova.");
 }
 
 /** Salva bio e/o foto; aggiorna il profilo in memoria e la pagina del profilo. */

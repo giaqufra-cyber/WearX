@@ -11,6 +11,7 @@ import { FEED_KEY, patchPost } from "@/features/feed/api";
 import { PORTFOLIO_KEY, postKey } from "@/features/portfolio/api";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 export const SAVED_KEY = ["saved"] as const;
 export const ARCHIVE_KEY = ["archive"] as const;
@@ -37,9 +38,9 @@ export const useArchivedFits = () => useTiles(ARCHIVE_KEY, "/v1/me/archive");
 
 export function saveError(error: unknown): string {
   const code = error instanceof ApiError ? error.code : "";
-  if (code === "post.not_found") return "Questo fit non è più disponibile.";
-  if (code === "rate.limited") return "Hai salvato tantissimo in poco tempo: riprova più tardi.";
-  return "Non riusciamo a salvarlo. Controlla la connessione e riprova.";
+  if (code === "post.not_found") return t("Questo fit non è più disponibile.");
+  if (code === "rate.limited") return t("Hai salvato tantissimo in poco tempo: riprova più tardi.");
+  return t("Non riusciamo a salvarlo. Controlla la connessione e riprova.");
 }
 
 /** Salva / togli dai salvati. */
@@ -69,7 +70,7 @@ export function useSaveHandler(): (post: Post) => void {
     (post: Post) =>
       mutate(
         { postId: post.id, on: !post.saved },
-        { onSuccess: (on) => (on ? toast.show("Salvato. Lo ritrovi nel tuo profilo, in Salvati.") : undefined) },
+        { onSuccess: (on) => (on ? toast.show(t("Salvato. Lo ritrovi nel tuo profilo, in Salvati.")) : undefined) },
       ),
     [mutate, toast],
   );

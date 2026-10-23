@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { logoSize } from "@/features/auth/logo";
 import { LegalLink } from "@/features/legal/legal";
 import { Button } from "@/ui/Button";
+import { t } from "@/lib/i18n";
 
 /** Benvenuto (prototipo, schermata Splash). */
 export default function WelcomeScreen() {
@@ -13,14 +14,14 @@ export default function WelcomeScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.top}>
-        <Text style={styles.kicker}>FIT · CHECK · VOTE</Text>
-        <View style={styles.badge} aria-label="Solo dai 16 anni in su">
+        <Text style={styles.kicker}>{t("FIT · CHECK · VOTE")}</Text>
+        <View style={styles.badge} aria-label={t("Solo dai 16 anni in su")}>
           <Text style={styles.badgeText}>16+</Text>
         </View>
       </View>
 
       <View>
-        <Text style={styles.serifSmall}>il tuo stile,</Text>
+        <Text style={styles.serifSmall}>{t("il tuo stile,")}</Text>
         <Text
           style={[styles.logo, { fontSize: size, lineHeight: size * 0.92, letterSpacing: -size * 0.045 }]}
           numberOfLines={1}
@@ -35,19 +36,19 @@ export default function WelcomeScreen() {
         >
           WEAR<Text style={{ color: colors.accent }}>X</Text>
         </Text>
-        <Text style={styles.serifLarge}>votato da chi{"\n"}lo capisce.</Text>
+        <Text style={styles.serifLarge}>{t("votato da chi\nlo capisce.")}</Text>
         <Text style={styles.lead}>
-          Posta i tuoi fit, entra negli stili che ti rappresentano e ricevi un voto da 1 a 100. Niente commenti.
-          Solo stile.
+          {t("Posta i tuoi fit, entra negli stili che ti rappresentano e ricevi un voto da 1 a 100. Niente commenti. Solo stile.")}
         </Text>
       </View>
 
       <View style={styles.actions}>
-        <Button label="Crea il tuo account" onPress={() => router.push("/signup")} fullWidth />
-        <Button label="Ho già un account" variant="secondary" onPress={() => router.push("/login")} fullWidth />
+        <Button label={t("Crea il tuo account")} onPress={() => router.push("/signup")} fullWidth />
+        <Button label={t("Ho già un account")} variant="secondary" onPress={() => router.push("/login")} fullWidth />
         <Text style={styles.legal}>
-          Continuando accetti i <LegalLink doc="terms" label="Termini" /> (come usiamo i dati:{" "}
-          <LegalLink doc="privacy" label="Informativa privacy" />).{"\n"}WearX è riservata a chi ha almeno 16 anni.
+          {t("Continuando accetti i")} <LegalLink doc="terms" label={t("Termini")} /> ({t("come usiamo i dati:")}{" "}
+          <LegalLink doc="privacy" label={t("Informativa privacy")} />).{"\n"}
+          {t("WearX è riservata a chi ha almeno 16 anni.")}
         </Text>
       </View>
     </SafeAreaView>

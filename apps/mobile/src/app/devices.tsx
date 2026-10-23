@@ -11,6 +11,7 @@ import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { Sheet } from "@/ui/Sheet";
 import { TopBar } from "@/ui/TopBar";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 const PLATFORM: Record<Device["platform"], string> = { ios: "iOS", android: "Android", web: "Web" };
 
@@ -29,10 +30,10 @@ export default function DevicesScreen() {
     try {
       if (confirm === "others") await signOutOtherDevices();
       else await revoke.mutateAsync(confirm.id);
-      toast.show(confirm === "others" ? "Sei uscito da tutti gli altri dispositivi." : `Uscito da ${confirm.label}.`);
+      toast.show(confirm === "others" ? t("Sei uscito da tutti gli altri dispositivi.") : t("Uscito da {device}.", { device: confirm.label }));
       void devices.refetch();
     } catch {
-      toast.show("Non è riuscito. Riprova.", { tone: "error" });
+      toast.show(t("Non è riuscito. Riprova."), { tone: "error" });
     } finally {
       setBusy(false);
       setConfirm(null);
@@ -40,7 +41,7 @@ export default function DevicesScreen() {
   };
 
   let body;
-  if (devices.isPending) body = <Loading label="Carico i dispositivi" />;
+  if (devices.isPending) body = <Loading label={t("Carico i dispositivi")} />;
   else if (devices.isError) body = <ErrorNotice error={devices.error} onRetry={() => void devices.refetch()} />;
   else
     body = (
@@ -51,39 +52,38 @@ export default function DevicesScreen() {
               <Text style={styles.label}>{d.label}</Text>
               <Text style={styles.meta}>
                 {PLATFORM[d.platform]}
-                {d.app_version ? ` · app ${d.app_version}` : ""} ·{" "}
-                {d.current ? "questo dispositivo" : lastSeen(d.last_seen)}
+                {d.app_version ? ` ${t("· app {app_version}", { app_version: d.app_version })}` : ""} ·{" "}
+                {d.current ? t("questo dispositivo") : lastSeen(d.last_seen)}
               </Text>
             </View>
             {d.current ? (
-              <Text style={styles.current}>QUI</Text>
+              <Text style={styles.current}>{t("QUI")}</Text>
             ) : (
-              <Button label="Esci" size="sm" variant="secondary" onPress={() => setConfirm(d)} />
+              <Button label={t("Esci")} size="sm" variant="secondary" onPress={() => setConfirm(d)} />
             )}
           </View>
         ))}
         {others.length > 0 ? (
-          <Button label="Esci da tutti gli altri dispositivi" variant="secondary" fullWidth onPress={() => setConfirm("others")} />
+          <Button label={t("Esci da tutti gli altri dispositivi")} variant="secondary" fullWidth onPress={() => setConfirm("others")} />
         ) : null}
         <Text style={styles.note}>
-          Se non riconosci un dispositivo, esci da lì e cambia la password. Dopo un cambio di password esci da solo da
-          tutti gli altri.
+          {t("Se non riconosci un dispositivo, esci da lì e cambia la password. Dopo un cambio di password esci da solo da tutti gli altri.")}
         </Text>
       </>
     );
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <TopBar title="Dispositivi" fallback="/settings" />
+      <TopBar title={t("Dispositivi")} fallback="/settings" />
       <ScrollView contentContainerStyle={styles.content}>{body}</ScrollView>
       <Sheet
         visible={confirm !== null}
-        title={confirm === "others" ? "Uscire da tutti gli altri?" : `Uscire da ${confirm?.label ?? ""}?`}
+        title={confirm === "others" ? t("Uscire da tutti gli altri?") : t("Uscire da {device}?", { device: confirm?.label ?? "" })}
         onClose={() => setConfirm(null)}
       >
-        <Text style={styles.note}>Lì dovrai accedere di nuovo con email e password.</Text>
-        <Button label="Esci" variant="danger" loading={busy} onPress={() => void run()} fullWidth />
-        <Button label="Annulla" variant="ghost" onPress={() => setConfirm(null)} fullWidth />
+        <Text style={styles.note}>{t("Lì dovrai accedere di nuovo con email e password.")}</Text>
+        <Button label={t("Esci")} variant="danger" loading={busy} onPress={() => void run()} fullWidth />
+        <Button label={t("Annulla")} variant="ghost" onPress={() => setConfirm(null)} fullWidth />
       </Sheet>
     </SafeAreaView>
   );

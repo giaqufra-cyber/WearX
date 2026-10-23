@@ -5,6 +5,7 @@ import type { NotificationPage, NotificationSettings, NotificationSettingsUpdate
 import { useAuth } from "@/features/auth/AuthProvider";
 import { NOTIFICATIONS_KEY, notificationsKey, settingsKey, unreadKey } from "@/features/notifications/keys";
 import { apiGet, apiRequest } from "@/lib/api";
+import { language, locale, t } from "@/lib/i18n";
 
 export { NOTIFICATIONS_KEY };
 
@@ -90,13 +91,13 @@ function stripNulls(patch: NotificationSettingsUpdate): Partial<NotificationSett
 export function timeAgo(iso: string, now: Date = new Date()): string {
   const then = new Date(iso);
   const seconds = Math.max(0, Math.round((now.getTime() - then.getTime()) / 1000));
-  if (seconds < 60) return "adesso";
+  if (seconds < 60) return t("adesso");
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes} min`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours} h`;
   const days = Math.floor(hours / 24);
-  if (days === 1) return "ieri";
-  if (days < 7) return `${days} g`;
-  return then.toLocaleDateString("it-IT", { day: "numeric", month: "short" });
+  if (days === 1) return t("ieri");
+  if (days < 7) return language() === "en" ? `${days} d` : `${days} g`;
+  return then.toLocaleDateString(locale(), { day: "numeric", month: "short" });
 }

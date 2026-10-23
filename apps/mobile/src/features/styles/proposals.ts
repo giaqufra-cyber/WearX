@@ -10,6 +10,7 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import type { StyleCategory } from "@/features/styles/catalog";
 import { STYLES_KEY } from "@/features/styles/api";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
+import { t } from "@/lib/i18n";
 
 export const PROPOSALS_KEY = ["style-proposals"] as const;
 
@@ -74,21 +75,21 @@ export function existingStyle(error: unknown): string | null {
 
 export function proposalError(error: unknown): string {
   if (error instanceof ApiError) {
-    if (error.code === "style.exists") return "Questo stile c'è già.";
-    if (error.code === "proposal.limit") return "Hai già 3 proposte aperte: aspetta che arrivino alla soglia.";
-    if (error.code === "proposal.bad_name") return "Scrivi un nome di almeno due lettere.";
-    if (error.code === "proposal.not_found") return "Questa proposta non c'è più.";
-    if (error.code === "text.not_allowed") return "Il nome contiene parole non ammesse.";
+    if (error.code === "style.exists") return t("Questo stile c'è già.");
+    if (error.code === "proposal.limit") return t("Hai già 3 proposte aperte: aspetta che arrivino alla soglia.");
+    if (error.code === "proposal.bad_name") return t("Scrivi un nome di almeno due lettere.");
+    if (error.code === "proposal.not_found") return t("Questa proposta non c'è più.");
+    if (error.code === "text.not_allowed") return t("Il nome contiene parole non ammesse.");
     if (error.code.startsWith("text.")) return error.title;
-    if (error.status === 429) return "Troppe proposte in poco tempo. Riprova domani.";
+    if (error.status === 429) return t("Troppe proposte in poco tempo. Riprova domani.");
   }
-  return "Non è andata. Controlla la connessione e riprova.";
+  return t("Non è andata. Controlla la connessione e riprova.");
 }
 
 /** "12 su 25" e la quota (0-1) per la barra. */
 export function progress(proposal: Pick<StyleProposal, "supports" | "threshold">): { label: string; ratio: number } {
   return {
-    label: `${proposal.supports} su ${proposal.threshold}`,
+    label: t("{supports} su {threshold}", { supports: proposal.supports, threshold: proposal.threshold }),
     ratio: Math.min(1, proposal.threshold > 0 ? proposal.supports / proposal.threshold : 0),
   };
 }

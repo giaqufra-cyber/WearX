@@ -17,14 +17,15 @@ import { SegmentedControl } from "@/ui/SegmentedControl";
 import { Skeleton } from "@/ui/Skeleton";
 import { Text } from "@/ui/Text";
 import { useToast } from "@/ui/Toast";
+import { N_, t } from "@/lib/i18n";
 
 const back = () => (router.canGoBack() ? router.back() : router.replace("/explore"));
 const GAP = 8;
 const SIDE = spacing[4];
 const MAX_WIDTH = 560;
 const SORTS: { value: StyleSort; label: string }[] = [
-  { value: "top", label: "In evidenza" },
-  { value: "new", label: "Recenti" },
+  { value: "top", label: N_("In evidenza") },
+  { value: "new", label: N_("Recenti") },
 ];
 const noop = () => undefined;
 
@@ -53,7 +54,7 @@ export default function StylePage() {
     return (
       <SafeAreaView style={styles.safe}>
         <TopBar />
-        <Loading label="Carico lo stile…" />
+        <Loading label={t("Carico lo stile…")} />
       </SafeAreaView>
     );
   }
@@ -64,9 +65,9 @@ export default function StylePage() {
         <TopBar />
         {missing ? (
           <EmptyState
-            title="Stile non disponibile"
-            body="Potrebbe essere finita la sua stagione."
-            action={{ label: "Torna a Esplora", onPress: () => router.replace("/explore") }}
+            title={t("Stile non disponibile")}
+            body={t("Potrebbe essere finita la sua stagione.")}
+            action={{ label: t("Torna a Esplora"), onPress: () => router.replace("/explore") }}
           />
         ) : (
           <ErrorNotice error={style.error} onRetry={() => void style.refetch()} />
@@ -82,7 +83,7 @@ export default function StylePage() {
       { slug: data.slug, join: !joined },
       {
         onSuccess: () =>
-          toast.show(joined ? `Sei uscito da ${data.name}.` : `Sei entrato in ${data.name}. Lo trovi nel feed.`),
+          toast.show(joined ? t("Sei uscito da {name}.", { name: data.name }) : t("Sei entrato in {name}. Lo trovi nel feed.", { name: data.name })),
       },
     );
   };
@@ -97,16 +98,16 @@ export default function StylePage() {
           <TopBar />
           <View>
             {data.seasonal && data.active_until ? (
-              <RNText style={styles.kicker}>STAGIONALE · {seasonEndLabel(data.active_until)}</RNText>
+              <RNText style={styles.kicker}>{t("STAGIONALE")} · {seasonEndLabel(data.active_until)}</RNText>
             ) : null}
-            <RNText style={styles.kicker}>STILE · {membersLabel(data.member_count).toUpperCase()}</RNText>
+            <RNText style={styles.kicker}>{t("STILE")} · {membersLabel(data.member_count).toUpperCase()}</RNText>
             <RNText style={styles.name} role="heading">
               {data.name}
             </RNText>
             <RNText style={styles.tagline}>{data.tagline}</RNText>
             <Pressable
               role="button"
-              aria-label={joined ? `Sei dentro ${data.name}. Tocca per uscire` : `Entra in ${data.name}`}
+              aria-label={joined ? t("Sei dentro {name}. Tocca per uscire", { name: data.name }) : t("Entra in {name}", { name: data.name })}
               aria-busy={membership.isPending}
               disabled={membership.isPending}
               onPress={toggle}
@@ -118,7 +119,7 @@ export default function StylePage() {
             >
               {joined ? <IconCheck color={colors.text} size={16} /> : null}
               <RNText style={[styles.toggleText, joined ? styles.toggleTextJoined : null]}>
-                {joined ? "Sei dentro" : "Entra nello stile"}
+                {joined ? t("Sei dentro") : t("Entra nello stile")}
               </RNText>
             </Pressable>
           </View>
@@ -128,10 +129,10 @@ export default function StylePage() {
       <View style={styles.body}>
         <View style={styles.sectionRow}>
           <Text variant="label" style={styles.section}>
-            {data.posts_last_7_days === 1 ? "1 FIT QUESTA SETTIMANA" : `${data.posts_last_7_days} FIT QUESTA SETTIMANA`}
+            {data.posts_last_7_days === 1 ? t("1 FIT QUESTA SETTIMANA") : t("{posts_last_7_days} FIT QUESTA SETTIMANA", { posts_last_7_days: data.posts_last_7_days })}
           </Text>
         </View>
-        <SegmentedControl label="Ordina i fit" options={SORTS} value={sort} onChange={setSort} size="sm" />
+        <SegmentedControl label={t("Ordina i fit")} options={SORTS} value={sort} onChange={setSort} size="sm" />
       </View>
     </View>
   );
@@ -139,7 +140,7 @@ export default function StylePage() {
   let empty = null;
   if (posts.isPending) {
     empty = (
-      <View style={styles.gridSkeleton} role="progressbar" aria-label="Carico i fit">
+      <View style={styles.gridSkeleton} role="progressbar" aria-label={t("Carico i fit")}>
         <Skeleton height={Math.round(tileWidth * 1.28)} width={tileWidth} />
         <Skeleton height={Math.round(tileWidth * 1.28)} width={tileWidth} />
       </View>
@@ -149,9 +150,9 @@ export default function StylePage() {
   } else {
     empty = (
       <EmptyState
-        title="Ancora nessun fit in questo stile"
-        body={joined ? "Sii il primo a postarne uno." : "Entra nello stile e sii il primo a postarne uno."}
-        action={{ label: "Pubblica un fit", onPress: () => router.push("/new-post") }}
+        title={t("Ancora nessun fit in questo stile")}
+        body={joined ? t("Sii il primo a postarne uno.") : t("Entra nello stile e sii il primo a postarne uno.")}
+        action={{ label: t("Pubblica un fit"), onPress: () => router.push("/new-post") }}
       />
     );
   }
@@ -197,7 +198,7 @@ export default function StylePage() {
 function TopBar() {
   return (
     <View style={styles.topBar}>
-      <IconButton label="Indietro" variant="scrim" onPress={back}>
+      <IconButton label={t("Indietro")} variant="scrim" onPress={back}>
         <IconBack color={colors.text} size={22} />
       </IconButton>
     </View>

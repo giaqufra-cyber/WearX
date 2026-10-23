@@ -6,6 +6,7 @@ import type { DraftPhoto } from "@/features/create/draft";
 import { BRAND_MAX, type ItemDraft, itemErrors, NAME_MAX } from "@/features/create/form";
 import { PinSheet } from "@/features/create/PinSheet";
 import { IconTag } from "@/ui/icons";
+import { t } from "@/lib/i18n";
 
 type Props = {
   index: number;
@@ -34,23 +35,23 @@ export function ItemCard({ index, item, photos, canRemove, onChange, onRemove }:
   const [pinning, setPinning] = useState(false);
   const errors = itemErrors(item);
   const pinPhoto = item.pin ? photos.findIndex((p) => p.localId === item.pin!.photo) : -1;
-  const label = [item.brand.trim(), item.name.trim()].filter(Boolean).join(" ") || `capo ${index + 1}`;
+  const label = [item.brand.trim(), item.name.trim()].filter(Boolean).join(" ") || t("capo {n}", { n: index + 1 });
   const messages = [errors.brand, errors.name, errors.price, errors.link].filter(Boolean);
   return (
     <View style={styles.card}>
       <View style={styles.head}>
-        <Text style={styles.title}>Capo {index + 1}</Text>
+        <Text style={styles.title}>{t("Capo {n}", { n: index + 1 })}</Text>
         {canRemove ? (
-          <Pressable role="button" aria-label={`Rimuovi il capo ${index + 1}`} onPress={onRemove} hitSlop={8}>
-            <Text style={styles.remove}>Rimuovi</Text>
+          <Pressable role="button" aria-label={t("Rimuovi il capo {n}", { n: index + 1 })} onPress={onRemove} hitSlop={8}>
+            <Text style={styles.remove}>{t("Rimuovi")}</Text>
           </Pressable>
         ) : null}
       </View>
       <View style={styles.grid}>
         <View style={styles.cell}>
           <Field
-            aria-label={`Brand del capo ${index + 1}`}
-            placeholder="Brand"
+            aria-label={t("Brand del capo {n}", { n: index + 1 })}
+            placeholder={t("Brand")}
             value={item.brand}
             onChangeText={(brand) => onChange({ brand })}
             maxLength={BRAND_MAX}
@@ -60,8 +61,8 @@ export function ItemCard({ index, item, photos, canRemove, onChange, onRemove }:
         </View>
         <View style={styles.cell}>
           <Field
-            aria-label={`Nome del capo ${index + 1}`}
-            placeholder="Capo (es. blazer)"
+            aria-label={t("Nome del capo {n}", { n: index + 1 })}
+            placeholder={t("Capo (es. blazer)")}
             value={item.name}
             onChangeText={(name) => onChange({ name })}
             maxLength={NAME_MAX}
@@ -72,8 +73,8 @@ export function ItemCard({ index, item, photos, canRemove, onChange, onRemove }:
       <View style={styles.grid}>
         <View style={styles.cell}>
           <Field
-            aria-label={`Prezzo in euro del capo ${index + 1}`}
-            placeholder="Prezzo € (opz.)"
+            aria-label={t("Prezzo in euro del capo {n}", { n: index + 1 })}
+            placeholder={t("Prezzo € (opz.)")}
             value={item.price}
             onChangeText={(price) => onChange({ price })}
             keyboardType="decimal-pad"
@@ -83,8 +84,8 @@ export function ItemCard({ index, item, photos, canRemove, onChange, onRemove }:
         </View>
         <View style={styles.cell}>
           <Field
-            aria-label={`Link del negozio del capo ${index + 1}`}
-            placeholder="Link shop (opz.)"
+            aria-label={t("Link del negozio del capo {n}", { n: index + 1 })}
+            placeholder={t("Link shop (opz.)")}
             value={item.link}
             onChangeText={(link) => onChange({ link })}
             keyboardType="url"
@@ -99,15 +100,15 @@ export function ItemCard({ index, item, photos, canRemove, onChange, onRemove }:
           role="button"
           aria-label={
             pinPhoto >= 0
-              ? `Capo ${index + 1} segnato sulla foto ${pinPhoto + 1}: cambia il punto`
-              : `Segna il capo ${index + 1} sulla foto`
+              ? t("Capo {n} segnato sulla foto {n2}: cambia il punto", { n: index + 1, n2: pinPhoto + 1 })
+              : t("Segna il capo {n} sulla foto", { n: index + 1 })
           }
           onPress={() => setPinning(true)}
           style={({ pressed }) => [styles.pin, pinPhoto >= 0 ? styles.pinSet : null, pressed ? styles.pressed : null]}
         >
           <IconTag color={pinPhoto >= 0 ? colors.text : colors.textSecondary} />
           <Text style={[styles.pinText, pinPhoto >= 0 ? styles.pinTextSet : null]}>
-            {pinPhoto >= 0 ? `Sulla foto ${pinPhoto + 1} · Cambia` : "Segna sulla foto (opz.)"}
+            {pinPhoto >= 0 ? t("Sulla foto {n} · Cambia", { n: pinPhoto + 1 }) : t("Segna sulla foto (opz.)")}
           </Text>
         </Pressable>
       ) : null}

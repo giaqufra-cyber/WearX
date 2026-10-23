@@ -21,11 +21,12 @@ import { StyleTile } from "@/ui/StyleTile";
 import { Text } from "@/ui/Text";
 import { TextField } from "@/ui/TextField";
 import { useToast } from "@/ui/Toast";
+import { N_, t, tn } from "@/lib/i18n";
 
 const NICK_ERRORS: Record<string, string> = {
-  "nickname.taken": "Nel frattempo qualcuno ha preso questo nickname. Scegline un altro.",
-  "nickname.reserved": "Questo nickname non è disponibile. Scegline un altro.",
-  "nickname.invalid": "Questo nickname non è valido. Scegline un altro.",
+  "nickname.taken": N_("Nel frattempo qualcuno ha preso questo nickname. Scegline un altro."),
+  "nickname.reserved": N_("Questo nickname non è disponibile. Scegline un altro."),
+  "nickname.invalid": N_("Questo nickname non è valido. Scegline un altro."),
 };
 
 /** Passo 4 di 4: stili da seguire, poi si crea il profilo (prototipo, "In che stile ti senti oggi?"). */
@@ -57,14 +58,14 @@ export default function PickStylesScreen() {
   if (config.isPending || age.isPending) {
     return (
       <Screen>
-        <Loading label="Carichiamo gli stili…" />
+        <Loading label={t("Carichiamo gli stili…")} />
       </Screen>
     );
   }
   if (config.isError || age.isError) {
     return (
       <Screen>
-        <AuthHeader step="PASSO 4 DI 4" />
+        <AuthHeader step={t("PASSO {n} DI 4", { n: 4 })} />
         <ErrorNotice error={config.error ?? age.error} />
       </Screen>
     );
@@ -89,12 +90,12 @@ export default function PickStylesScreen() {
       });
       useSignupDraft.getState().clear(); // la data di nascita sparisce dalla memoria
       await queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY });
-      toast.show(`Benvenuto su WearX, @${profile.nickname}.`);
+      toast.show(t("Benvenuto su WearX, @{nick}.", { nick: profile.nickname }));
     } catch (caught) {
       const code = caught instanceof ApiError ? caught.code : "";
       if (NICK_ERRORS[code]) {
         setEditNick(true);
-        setNickError(NICK_ERRORS[code]);
+        setNickError(t(NICK_ERRORS[code]));
       } else if (code === "age.verification_required") {
         router.replace("/age");
       } else if (code === "profile.exists") {
@@ -102,9 +103,9 @@ export default function PickStylesScreen() {
       } else if (code === "terms.outdated" || code === "style.not_found" || code === "style.age_restricted") {
         await config.refetch();
         setSelected([]);
-        setError("Qualcosa è cambiato nel frattempo: controlla la scelta e riprova.");
+        setError(t("Qualcosa è cambiato nel frattempo: controlla la scelta e riprova."));
       } else {
-        setError("Non riusciamo a creare il profilo. Controlla la connessione e riprova.");
+        setError(t("Non riusciamo a creare il profilo. Controlla la connessione e riprova."));
       }
     } finally {
       setSubmitting(false);
@@ -120,17 +121,17 @@ export default function PickStylesScreen() {
   return (
     <View style={styles.root}>
       <Screen>
-        <AuthHeader step="PASSO 4 DI 4" />
+        <AuthHeader step={t("PASSO {n} DI 4", { n: 4 })} />
         <Text variant="display" role="heading">
-          In che stile{"\n"}ti senti oggi?
+          {t("In che stile\nti senti oggi?")}
         </Text>
         <Text variant="secondary">
-          Nel feed vedrai solo fit di questi stili. Puoi entrare e uscire quando vuoi, anche solo per una serata.
+          {t("Nel feed vedrai solo fit di questi stili. Puoi entrare e uscire quando vuoi, anche solo per una serata.")}
         </Text>
 
         {editNick ? (
           <TextField
-            label="NICKNAME"
+            label={t("NICKNAME")}
             prefix="@"
             value={nickname}
             onChangeText={(value) => {
@@ -141,9 +142,9 @@ export default function PickStylesScreen() {
             autoCorrect={false}
             maxLength={20}
             error={
-              nickError ?? (availability === "taken" ? "Già preso. Prova una variante." : null)
+              nickError ?? (availability === "taken" ? t("Già preso. Prova una variante.") : null)
             }
-            hint={availability === "available" ? "Libero." : "Minuscole, numeri, punto e underscore."}
+            hint={availability === "available" ? t("Libero.") : t("Minuscole, numeri, punto e underscore.")}
             hintColor={availability === "available" ? colors.accent : undefined}
           />
         ) : null}
@@ -163,7 +164,7 @@ export default function PickStylesScreen() {
                   selectable
                   selected={selected.includes(style.slug)}
                   onPress={() => toggle(style.slug)}
-                  badge={style.seasonal ? "Stagionale" : style.min_age_band === "18_plus" ? "18+" : undefined}
+                  badge={style.seasonal ? t("Stagionale") : style.min_age_band === "18_plus" ? "18+" : undefined}
                 />
               ))}
               {row.length === 1 ? <View style={styles.filler} /> : null}
@@ -180,10 +181,10 @@ export default function PickStylesScreen() {
 
       <SafeAreaView edges={["bottom"]} style={styles.bar}>
         <Text style={styles.count} aria-live="polite">
-          {selected.length === 1 ? "1 STILE" : `${selected.length} STILI`}
+          {tn(selected.length, "{count} STILE", "{count} STILI")}
         </Text>
         <Button
-          label="Entra in WearX"
+          label={t("Entra in WearX")}
           onPress={() => void submit()}
           disabled={selected.length === 0 || nickBlocked}
           loading={submitting}

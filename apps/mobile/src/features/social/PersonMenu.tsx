@@ -7,6 +7,7 @@ import { socialError, useBlock } from "@/features/social/api";
 import { Button } from "@/ui/Button";
 import { Sheet } from "@/ui/Sheet";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 /** Azioni su un'altra persona: segnala, blocca. */
 export function PersonMenu({
@@ -33,11 +34,10 @@ export function PersonMenu({
       {confirm ? (
         <>
           <Text style={styles.text}>
-            Non vi vedrete più: profilo, fit e feed. I follow tra voi vengono tolti e non riceve nessun avviso.
-            Puoi sbloccare quando vuoi da Account › Account bloccati.
+            {t("Non vi vedrete più: profilo, fit e feed. I follow tra voi vengono tolti e non riceve nessun avviso. Puoi sbloccare quando vuoi da Account › Account bloccati.")}
           </Text>
           <Button
-            label={`Blocca @${nickname}`}
+            label={t("Blocca @{nickname}", { nickname })}
             variant="danger"
             size="md"
             fullWidth
@@ -46,19 +46,19 @@ export function PersonMenu({
               block.mutate(undefined, {
                 onSuccess: () => {
                   close();
-                  toast.show(`@${nickname} bloccato.`);
+                  toast.show(t("@{nick} bloccato.", { nick: nickname }));
                   if (router.canGoBack()) router.back();
                 },
                 onError: (error) => toast.show(socialError(error), { tone: "error" }),
               })
             }
           />
-          <Button label="Annulla" variant="ghost" size="md" fullWidth onPress={() => setConfirm(false)} />
+          <Button label={t("Annulla")} variant="ghost" size="md" fullWidth onPress={() => setConfirm(false)} />
         </>
       ) : (
         <>
           <Button
-            label="Segnala"
+            label={t("Segnala")}
             variant="secondary"
             size="md"
             fullWidth
@@ -67,7 +67,7 @@ export function PersonMenu({
               onReport();
             }}
           />
-          <Button label="Blocca" variant="danger" size="md" fullWidth onPress={() => setConfirm(true)} />
+          <Button label={t("Blocca")} variant="danger" size="md" fullWidth onPress={() => setConfirm(true)} />
         </>
       )}
     </Sheet>

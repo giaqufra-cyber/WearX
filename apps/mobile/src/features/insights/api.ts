@@ -4,6 +4,7 @@ import type { InsightMetric, InsightPeriod, Insights } from "@wearx/api-types";
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { apiGet } from "@/lib/api";
+import { locale } from "@/lib/i18n";
 
 export const INSIGHTS_KEY = ["insights"] as const;
 
@@ -39,9 +40,9 @@ export function formatChange(metric: InsightMetric): string | null {
 
 export function shortDate(iso: string): string {
   // Le date dell'API sono giorni ("2026-10-04"): mezzogiorno evita salti di fuso.
-  return new Date(`${iso}T12:00:00`).toLocaleDateString("it-IT", { day: "numeric", month: "short" });
+  return new Date(`${iso}T12:00:00`).toLocaleDateString(locale(), { day: "numeric", month: "short" });
 }
 
 export function weekdayDate(iso: string): string {
-  return new Date(`${iso}T12:00:00`).toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" });
+  return new Date(`${iso}T12:00:00`).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" });
 }

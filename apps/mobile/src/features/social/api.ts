@@ -10,6 +10,7 @@ import { FEED_KEY, POST_KEY } from "@/features/feed/api";
 import { NOTIFICATIONS_KEY } from "@/features/notifications/keys";
 import { PORTFOLIO_KEY, userKey } from "@/features/portfolio/api";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
+import { N_, t } from "@/lib/i18n";
 
 export const PEOPLE_KEY = ["people"] as const;
 export type PeopleKind = "requests" | "followers" | "following" | "blocks";
@@ -46,22 +47,22 @@ export function usePeople(kind: PeopleKind) {
 
 /** Testo del pulsante Segui nei suoi stati. */
 export function followLabel(state: FollowState, followsYou: boolean): string {
-  if (state === "accepted") return "Segui già";
-  if (state === "pending") return "Richiesta inviata";
-  return followsYou ? "Segui anche tu" : "Segui";
+  if (state === "accepted") return t("Segui già");
+  if (state === "pending") return t("Richiesta inviata");
+  return followsYou ? t("Segui anche tu") : t("Segui");
 }
 
 export const SOCIAL_ERRORS: Record<string, string> = {
-  "user.not_found": "Questo profilo non è più disponibile.",
-  "follow.self": "Non puoi seguire te stesso.",
-  "follow.not_allowed": "Questa persona non può seguirti.",
-  "follow.request_not_found": "La richiesta non c'è più.",
-  "rate.limited": "Troppe azioni in poco tempo: riprova più tardi.",
+  "user.not_found": N_("Questo profilo non è più disponibile."),
+  "follow.self": N_("Non puoi seguire te stesso."),
+  "follow.not_allowed": N_("Questa persona non può seguirti."),
+  "follow.request_not_found": N_("La richiesta non c'è più."),
+  "rate.limited": N_("Troppe azioni in poco tempo: riprova più tardi."),
 };
 
 export function socialError(error: unknown): string {
   const code = error instanceof ApiError ? error.code : "";
-  return SOCIAL_ERRORS[code] ?? "Non riusciamo a raggiungere WearX. Controlla la connessione e riprova.";
+  return SOCIAL_ERRORS[code] ? t(SOCIAL_ERRORS[code]) : t("Non riusciamo a raggiungere WearX. Controlla la connessione e riprova.");
 }
 
 /** Segui / smetti / ritira la richiesta, sul profilo di `nickname`. */

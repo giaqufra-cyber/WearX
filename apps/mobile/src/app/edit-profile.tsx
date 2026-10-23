@@ -14,6 +14,7 @@ import { Avatar } from "@/ui/Avatar";
 import { Button } from "@/ui/Button";
 import { TopBar } from "@/ui/TopBar";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 const AVATAR = 112;
 
@@ -85,7 +86,7 @@ export default function EditProfileScreen() {
           if (current.kind !== "new" || current.uri !== asset.uri) return current;
           if (u.status === "ready") return { ...current, status: "ready", progress: 1, uploadId: u.uploadId };
           if (u.status === "error" || u.status === "rejected") {
-            return { ...current, status: "error", message: u.message ?? "Caricamento non riuscito." };
+            return { ...current, status: "error", message: u.message ?? t("Caricamento non riuscito.") };
           }
           return { ...current, progress: u.progress ?? current.progress };
         });
@@ -109,7 +110,7 @@ export default function EditProfileScreen() {
     save.mutate(patch, {
       onSuccess: () => {
         unsaved.current = null;
-        toast.show("Profilo aggiornato.");
+        toast.show(t("Profilo aggiornato."));
         if (router.canGoBack()) router.back();
         else router.replace("/profile");
       },
@@ -120,22 +121,22 @@ export default function EditProfileScreen() {
   const status =
     photo.kind === "new"
       ? photo.status === "uploading"
-        ? `Carichiamo la foto… ${Math.round(photo.progress * 100)}%`
+        ? t("Carichiamo la foto… {pct}%", { pct: Math.round(photo.progress * 100) })
         : photo.status === "error"
           ? photo.message
-          : "Foto pronta: tocca Salva."
+          : t("Foto pronta: tocca Salva.")
       : photo.kind === "remove"
-        ? "Foto tolta: tocca Salva. Tornano le iniziali."
+        ? t("Foto tolta: tocca Salva. Tornano le iniziali.")
         : null;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <TopBar
-        title="Modifica profilo"
+        title={t("Modifica profilo")}
         right={
           <View style={styles.save}>
             <Button
-              label="Salva"
+              label={t("Salva")}
               size="sm"
               onPress={submit}
               disabled={(!bioChanged && !photoChanged) || Boolean(problem) || uploading}
@@ -155,12 +156,12 @@ export default function EditProfileScreen() {
             />
             <View style={styles.photoButtons}>
               <Button
-                label={hasPhoto ? "Cambia foto" : "Scegli una foto"}
+                label={hasPhoto ? t("Cambia foto") : t("Scegli una foto")}
                 variant="secondary"
                 size="sm"
                 onPress={() => void pick()}
               />
-              {hasPhoto ? <Button label="Togli foto" variant="ghost" size="sm" onPress={removePhoto} /> : null}
+              {hasPhoto ? <Button label={t("Togli foto")} variant="ghost" size="sm" onPress={removePhoto} /> : null}
             </View>
             {status ? (
               <Text style={[styles.status, photo.kind === "new" && photo.status === "error" && styles.error]} aria-live="polite">
@@ -171,16 +172,16 @@ export default function EditProfileScreen() {
 
           <View style={styles.field}>
             <View style={styles.labelRow}>
-              <Text style={styles.label}>BIO</Text>
+              <Text style={styles.label}>{t("BIO")}</Text>
               <Text style={[styles.label, problem ? styles.error : null]}>
                 {bioLength(bio)}/{BIO_MAX_CHARS}
               </Text>
             </View>
             <TextInput
-              aria-label="Bio"
+              aria-label={t("Bio")}
               value={bio}
               onChangeText={setBio}
-              placeholder="Due righe su di te e sul tuo stile"
+              placeholder={t("Due righe su di te e sul tuo stile")}
               placeholderTextColor={colors.textTertiary}
               selectionColor={colors.accent}
               multiline
@@ -189,14 +190,14 @@ export default function EditProfileScreen() {
               style={[styles.bio, problem ? styles.bioError : null]}
             />
             <Text style={[styles.hint, problem ? styles.error : null]} role={problem ? "alert" : undefined}>
-              {problem ?? "Fino a 4 righe. La vede chi apre il tuo profilo."}
+              {problem ?? t("Fino a 4 righe. La vede chi apre il tuo profilo.")}
             </Text>
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>NICKNAME</Text>
+            <Text style={styles.label}>{t("NICKNAME")}</Text>
             <Text style={styles.value}>@{profile.nickname}</Text>
-            <Text style={styles.hint}>Per ora il nickname non si può cambiare.</Text>
+            <Text style={styles.hint}>{t("Per ora il nickname non si può cambiare.")}</Text>
           </View>
 
 

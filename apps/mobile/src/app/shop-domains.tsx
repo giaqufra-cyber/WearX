@@ -13,6 +13,7 @@ import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { TextField } from "@/ui/TextField";
 import { TopBar } from "@/ui/TopBar";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 /** I siti del tuo negozio: aggiungi, pubblica il file con il codice, verifica. */
 export default function ShopDomainsScreen() {
@@ -27,9 +28,9 @@ export default function ShopDomainsScreen() {
   if (!business) {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        <TopBar title="I tuoi negozi" fallback="/settings" />
+        <TopBar title={t("I tuoi negozi")} fallback="/settings" />
         <View style={styles.content}>
-          <Text style={styles.text}>I negozi verificati sono per gli account Business.</Text>
+          <Text style={styles.text}>{t("I negozi verificati sono per gli account Business.")}</Text>
         </View>
       </SafeAreaView>
     );
@@ -39,20 +40,19 @@ export default function ShopDomainsScreen() {
     verify.mutate(domain, {
       onSuccess: () => {
         setErrors((e) => ({ ...e, [domain]: "" }));
-        toast.show(`${domain} verificato.`);
+        toast.show(t("{domain} verificato.", { domain }));
       },
       onError: (error) => setErrors((e) => ({ ...e, [domain]: shopError(error) })),
     });
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <TopBar title="I tuoi negozi" fallback="/settings" />
+      <TopBar title={t("I tuoi negozi")} fallback="/settings" />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.lead}>
-          Verifica il sito del tuo negozio: i capi che puntano lì mostrano il segno di negozio verificato, e chi li apre
-          lo sa.
+          {t("Verifica il sito del tuo negozio: i capi che puntano lì mostrano il segno di negozio verificato, e chi li apre lo sa.")}
         </Text>
-        {domains.isPending ? <Loading label="Carico i tuoi siti" /> : null}
+        {domains.isPending ? <Loading label={t("Carico i tuoi siti")} /> : null}
         {domains.isError ? <ErrorNotice error={domains.error} onRetry={() => void domains.refetch()} /> : null}
         {(domains.data ?? []).map((d) => (
           <DomainCard
@@ -67,17 +67,17 @@ export default function ShopDomainsScreen() {
         {(domains.data?.length ?? 0) < 5 ? (
           <View style={styles.add}>
             <TextField
-              label="AGGIUNGI UN SITO"
+              label={t("AGGIUNGI UN SITO")}
               value={draft}
               onChangeText={setDraft}
-              placeholder="tuonegozio.it"
+              placeholder={t("tuonegozio.it")}
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="url"
               error={add.isError ? shopError(add.error) : null}
             />
             <Button
-              label="Aggiungi"
+              label={t("Aggiungi")}
               variant="secondary"
               disabled={draft.trim().length < 3}
               loading={add.isPending}
@@ -110,36 +110,36 @@ function DomainCard({
         {domain.verified ? (
           <View style={styles.badge}>
             <IconCheck color={colors.onAccent} size={11} strokeWidth={3.2} />
-            <Text style={styles.badgeText}>VERIFICATO</Text>
+            <Text style={styles.badgeText}>{t("VERIFICATO")}</Text>
           </View>
         ) : (
-          <Text style={styles.pending}>DA VERIFICARE</Text>
+          <Text style={styles.pending}>{t("DA VERIFICARE")}</Text>
         )}
       </View>
       {domain.verified ? (
-        <Text style={styles.text}>Verificato il {domain.verified_at ? longDate(domain.verified_at) : ""}.</Text>
+        <Text style={styles.text}>{t("Verificato il {date}.", { date: domain.verified_at ? longDate(domain.verified_at) : "" })}</Text>
       ) : (
         <>
-          <Text style={styles.text}>Pubblica sul tuo sito un file di testo a questo indirizzo:</Text>
+          <Text style={styles.text}>{t("Pubblica sul tuo sito un file di testo a questo indirizzo:")}</Text>
           <Text style={styles.code} selectable>
             {domain.file_url}
           </Text>
-          <Text style={styles.text}>con dentro questa riga:</Text>
+          <Text style={styles.text}>{t("con dentro questa riga:")}</Text>
           <Text style={styles.code} selectable>
             {domain.file_content}
           </Text>
           <Text style={styles.hint}>
-            Chi gestisce il sito (o il tuo servizio di e-commerce) sa come farlo. Poi tocca Verifica.
+            {t("Chi gestisce il sito (o il tuo servizio di e-commerce) sa come farlo. Poi tocca Verifica.")}
           </Text>
           {error ? (
             <Text style={styles.error} role="alert">
               {error}
             </Text>
           ) : null}
-          <Button label="Verifica" size="sm" loading={verifying} onPress={onVerify} />
+          <Button label={t("Verifica")} size="sm" loading={verifying} onPress={onVerify} />
         </>
       )}
-      <Button label="Rimuovi" size="sm" variant="ghost" onPress={onRemove} />
+      <Button label={t("Rimuovi")} size="sm" variant="ghost" onPress={onRemove} />
     </View>
   );
 }

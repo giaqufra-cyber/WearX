@@ -8,6 +8,7 @@ import { bestVariant } from "@/features/feed/format";
 import { positionLabel, tileScore, tileStatus } from "@/features/portfolio/format";
 import { IconChevronLeft, IconChevronRight } from "@/ui/icons";
 import { Shade } from "@/ui/Shade";
+import { t } from "@/lib/i18n";
 
 type Props = {
   tile: PortfolioTile;
@@ -55,12 +56,12 @@ export const FitTile = memo(function FitTile({
   // Senza didascalia niente titolo: prima ripeteva il nome dello stile due volte.
   const title = tile.caption;
   const label = [
-    numbered ? `Fit ${index + 1}` : "Fit",
+    numbered ? t("Fit {n}", { n: index + 1 }) : "Fit",
     byline,
     isCover ? "copertina" : null,
     tile.style.name,
     tile.caption,
-    tile.average !== null ? `media ${Math.round(tile.average)}` : null,
+    tile.average !== null ? t("media {v}", { v: Math.round(tile.average) }) : null,
     status?.toLowerCase(),
   ]
     .filter(Boolean)
@@ -101,7 +102,7 @@ export const FitTile = memo(function FitTile({
           </Text>
         ) : null}
         <View style={styles.badges}>
-          {isCover ? <Text style={[styles.badge, styles.cover]}>COPERTINA</Text> : null}
+          {isCover ? <Text style={[styles.badge, styles.cover]}>{t("COPERTINA")}</Text> : null}
           {status ? <Text style={[styles.badge, styles.status]}>{status}</Text> : null}
         </View>
         {tile.media_count > 1 ? <Text style={styles.count}>1/{tile.media_count}</Text> : null}
@@ -130,7 +131,7 @@ export const FitTile = memo(function FitTile({
         <View style={styles.edit}>
           <Pressable
             role="button"
-            aria-label={`Sposta prima: fit ${index + 1}`}
+            aria-label={t("Sposta prima: fit {n}", { n: index + 1 })}
             aria-disabled={!canPrev}
             disabled={!canPrev}
             onPress={() => onPrev(tile, index)}
@@ -141,7 +142,7 @@ export const FitTile = memo(function FitTile({
           </Pressable>
           <Pressable
             role="button"
-            aria-label={`Sposta dopo: fit ${index + 1}`}
+            aria-label={t("Sposta dopo: fit {n}", { n: index + 1 })}
             aria-disabled={!canNext}
             disabled={!canNext}
             onPress={() => onNext(tile, index)}

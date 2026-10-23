@@ -9,6 +9,7 @@ import { IconButton } from "@/ui/IconButton";
 import { IconPencil, IconTrash } from "@/ui/icons";
 import { Sheet } from "@/ui/Sheet";
 import { TextField } from "@/ui/TextField";
+import { t } from "@/lib/i18n";
 
 export const MAX_CAPSULES = 12;
 const NAME_MAX = 30;
@@ -33,35 +34,35 @@ export function CapsuleManager({ visible, onClose }: Props) {
   };
 
   return (
-    <Sheet visible={visible} title="Capsule" onClose={onClose}>
+    <Sheet visible={visible} title={t("Capsule")} onClose={onClose}>
       <Text style={styles.intro}>
-        Raccolte dentro il portfolio, come Estate, Serate, Ufficio. Ogni fit sta in una capsula al massimo.
+        {t("Raccolte dentro il portfolio, come Estate, Serate, Ufficio. Ogni fit sta in una capsula al massimo.")}
       </Text>
       <View style={styles.newRow}>
         <View style={styles.flex}>
           <TextField
-            label={`Nuova capsula · ${list.length} di ${MAX_CAPSULES}`}
+            label={t("Nuova capsula · {length} di {MAX_CAPSULES}", { length: list.length, MAX_CAPSULES })}
             value={name}
             onChangeText={(value) => {
               setName(value);
               setError(null);
             }}
-            placeholder="Es. Serate"
+            placeholder={t("Es. Serate")}
             maxLength={NAME_MAX}
             editable={!full}
             error={error}
-            hint={full ? "Hai raggiunto il massimo di capsule." : undefined}
+            hint={full ? t("Hai raggiunto il massimo di capsule.") : undefined}
             returnKeyType="done"
             onSubmitEditing={() => name.trim() && !full && add()}
           />
         </View>
         <View style={styles.addButton}>
-          <Button label="Aggiungi" size="md" onPress={add} disabled={!name.trim() || full} loading={create.isPending} />
+          <Button label={t("Aggiungi")} size="md" onPress={add} disabled={!name.trim() || full} loading={create.isPending} />
         </View>
       </View>
       <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
         {list.length === 0 && capsules.isSuccess ? (
-          <Text style={styles.empty}>Ancora nessuna capsula.</Text>
+          <Text style={styles.empty}>{t("Ancora nessuna capsula.")}</Text>
         ) : null}
         {list.map((capsule) => (
           <CapsuleRow key={capsule.id} capsule={capsule} />
@@ -76,13 +77,13 @@ function CapsuleRow({ capsule }: { capsule: Capsule }) {
   const [mode, setMode] = useState<"view" | "edit" | "delete">("view");
   const [name, setName] = useState(capsule.name);
   const [error, setError] = useState<string | null>(null);
-  const count = capsule.post_count === 1 ? "1 fit" : `${capsule.post_count} fit`;
+  const count = capsule.post_count === 1 ? "1 fit" : t("{post_count} fit", { post_count: capsule.post_count });
 
   if (mode === "edit") {
     return (
       <View style={styles.rowEdit}>
         <TextField
-          label="Rinomina"
+          label={t("Rinomina")}
           value={name}
           onChangeText={(value) => {
             setName(value);
@@ -93,9 +94,9 @@ function CapsuleRow({ capsule }: { capsule: Capsule }) {
           autoFocus
         />
         <View style={styles.actions}>
-          <Button label="Annulla" variant="ghost" size="sm" onPress={() => setMode("view")} />
+          <Button label={t("Annulla")} variant="ghost" size="sm" onPress={() => setMode("view")} />
           <Button
-            label="Salva"
+            label={t("Salva")}
             size="sm"
             disabled={!name.trim()}
             loading={rename.isPending}
@@ -115,13 +116,13 @@ function CapsuleRow({ capsule }: { capsule: Capsule }) {
     return (
       <View style={styles.rowEdit} role="alert">
         <Text style={styles.confirm}>
-          Eliminare «{capsule.name}»? I fit restano nel portfolio, escono solo dalla capsula.
+          {t("Eliminare «{name}»? I fit restano nel portfolio, escono solo dalla capsula.", { name: capsule.name })}
         </Text>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <View style={styles.actions}>
-          <Button label="Annulla" variant="ghost" size="sm" onPress={() => setMode("view")} />
+          <Button label={t("Annulla")} variant="ghost" size="sm" onPress={() => setMode("view")} />
           <Button
-            label="Elimina"
+            label={t("Elimina")}
             variant="danger"
             size="sm"
             loading={remove.isPending}
@@ -140,10 +141,10 @@ function CapsuleRow({ capsule }: { capsule: Capsule }) {
         </Text>
         <Text style={styles.count}>{count}</Text>
       </View>
-      <IconButton label={`Rinomina ${capsule.name}`} onPress={() => setMode("edit")}>
+      <IconButton label={t("Rinomina {name}", { name: capsule.name })} onPress={() => setMode("edit")}>
         <IconPencil color={colors.textSecondary} />
       </IconButton>
-      <IconButton label={`Elimina ${capsule.name}`} onPress={() => setMode("delete")}>
+      <IconButton label={t("Elimina {name}", { name: capsule.name })} onPress={() => setMode("delete")}>
         <IconTrash color={colors.textSecondary} />
       </IconButton>
     </View>

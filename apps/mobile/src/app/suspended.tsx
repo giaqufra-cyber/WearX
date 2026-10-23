@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { NoticeList } from "@/features/moderation/NoticeList";
 import { Button } from "@/ui/Button";
+import { t } from "@/lib/i18n";
 
 /** Account sospeso o chiuso dalla moderazione: il motivo e il reclamo, senza entrare nell'app. */
 export default function SuspendedScreen() {
@@ -13,14 +14,13 @@ export default function SuspendedScreen() {
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.title} role="heading">
-          Account sospeso
+          {t("Account sospeso")}
         </Text>
         <Text style={styles.text}>
-          Qui sotto trovi la decisione, il motivo e come fare reclamo. Il reclamo lo legge un moderatore diverso da
-          chi ha deciso.
+          {t("Qui sotto trovi la decisione, il motivo e come fare reclamo. Il reclamo lo legge un moderatore diverso da chi ha deciso.")}
         </Text>
         <NoticeList canOpenPosts={false} />
-        <Button label="Esci" variant="secondary" size="md" onPress={() => void signOut()} />
+        <Button label={t("Esci")} variant="secondary" size="md" onPress={() => void signOut()} />
       </ScrollView>
     </SafeAreaView>
   );

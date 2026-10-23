@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { IconBack } from "@/ui/icons";
 import { IconButton } from "@/ui/IconButton";
+import { t } from "@/lib/i18n";
 
 /** Barra in alto dei passi di registrazione: indietro a sinistra, "PASSO N DI 4" a destra. */
 export function AuthHeader({ step, onBack }: { step?: string; onBack?: (() => void) | null }) {
@@ -12,7 +13,7 @@ export function AuthHeader({ step, onBack }: { step?: string; onBack?: (() => vo
   return (
     <View style={styles.row}>
       {back ? (
-        <IconButton label="Indietro" onPress={back}>
+        <IconButton label={t("Indietro")} onPress={back}>
           <IconBack color={colors.text} size={22} />
         </IconButton>
       ) : (

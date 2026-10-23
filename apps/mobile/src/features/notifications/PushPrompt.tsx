@@ -8,6 +8,7 @@ import { enablePush, pushStatus } from "@/features/notifications/push";
 import { Button } from "@/ui/Button";
 import { IconBell } from "@/ui/icons";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 const STATUS_KEY = [...NOTIFICATIONS_KEY, "push-status"] as const;
 
@@ -33,20 +34,19 @@ export function PushPrompt({ compact = false }: { compact?: boolean }) {
           <IconBell color={colors.onAccent} size={20} />
         </View>
         <View style={styles.text}>
-          <Text style={styles.title}>Attiva le notifiche sul telefono</Text>
+          <Text style={styles.title}>{t("Attiva le notifiche sul telefono")}</Text>
           <Text style={styles.body}>
-            Ti avvisiamo quando qualcuno ti segue, quando un tuo fit raggiunge nuovi voti e per gli avvisi della
-            moderazione. Mai pubblicità.
+            {t("Ti avvisiamo quando qualcuno ti segue, quando un tuo fit raggiunge nuovi voti e per gli avvisi della moderazione. Mai pubblicità.")}
           </Text>
           <View style={styles.action}>
             <Button
-              label="Attiva"
+              label={t("Attiva")}
               size="sm"
               onPress={async () => {
                 try {
                   if (session) await enablePush(session.access_token, { ask: true });
                 } catch {
-                  toast.show("Non siamo riusciti ad attivare le notifiche. Riprova più tardi.", { tone: "error" });
+                  toast.show(t("Non siamo riusciti ad attivare le notifiche. Riprova più tardi."), { tone: "error" });
                 }
                 void client.invalidateQueries({ queryKey: STATUS_KEY });
               }}
@@ -60,10 +60,10 @@ export function PushPrompt({ compact = false }: { compact?: boolean }) {
     return (
       <View style={[styles.card, styles.muted, compact && styles.compact]}>
         <View style={styles.text}>
-          <Text style={styles.title}>Notifiche spente sul telefono</Text>
-          <Text style={styles.body}>Le trovi comunque qui. Per riceverle, attivale nelle impostazioni del telefono.</Text>
+          <Text style={styles.title}>{t("Notifiche spente sul telefono")}</Text>
+          <Text style={styles.body}>{t("Le trovi comunque qui. Per riceverle, attivale nelle impostazioni del telefono.")}</Text>
           <View style={styles.action}>
-            <Button label="Apri impostazioni" size="sm" variant="secondary" onPress={() => void Linking.openSettings()} />
+            <Button label={t("Apri impostazioni")} size="sm" variant="secondary" onPress={() => void Linking.openSettings()} />
           </View>
         </View>
       </View>

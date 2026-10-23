@@ -2,6 +2,7 @@
 import type { Post, VoteSummary } from "@wearx/api-types";
 
 import { formatPrice } from "@/features/create/form";
+import { locale, t, tn } from "@/lib/i18n";
 
 /** Iniziali per l'avatar: "fra.prova" -> "FP"; anonimo -> "". */
 export function initials(nickname: string | undefined): string {
@@ -13,7 +14,7 @@ export function initials(nickname: string | undefined): string {
 
 /** "97% match" quando ci sono abbastanza conferme dello stile. */
 export function matchLabel(match: number | null | undefined): string | null {
-  return match === null || match === undefined ? null : `${Math.round(match * 100)}% match`;
+  return match === null || match === undefined ? null : t("{pct}% match", { pct: Math.round(match * 100) });
 }
 
 /** Totale dei prezzi visibili (solo EUR), null se nessun prezzo. */
@@ -28,16 +29,16 @@ export function totalPrice(items: Post["items"]): string | null {
  */
 export function statsNote(vote: Pick<VoteSummary, "average_note" | "stats_updated_at">): string {
   const at = vote.stats_updated_at
-    ? new Date(vote.stats_updated_at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+    ? new Date(vote.stats_updated_at).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" })
     : null;
-  const when = at ? `aggiornati alle ${at}` : "si aggiornano ogni ora";
-  if (vote.average_note === "few_votes") return `La media compare da 5 voti · ${when}`;
-  if (vote.average_note === "next_update") return `Media in aggiornamento · ${when}`;
-  return at ? `Voti aggiornati ogni ora · ultimo alle ${at}` : "Voti aggiornati ogni ora";
+  const when = at ? t("aggiornati alle {at}", { at }) : t("si aggiornano ogni ora");
+  if (vote.average_note === "few_votes") return t("La media compare da 5 voti · {when}", { when });
+  if (vote.average_note === "next_update") return t("Media in aggiornamento · {when}", { when });
+  return at ? t("Voti aggiornati ogni ora · ultimo alle {at}", { at }) : t("Voti aggiornati ogni ora");
 }
 
 export function votesLabel(count: number): string {
-  return count === 1 ? "1 voto" : `${count.toLocaleString("it-IT")} voti`;
+  return tn(count, "{count} voto", "{count} voti");
 }
 
 /** URL della variante più adatta alla larghezza in pixel fisici. */

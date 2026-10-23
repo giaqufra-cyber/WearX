@@ -14,6 +14,7 @@ import { Text } from "@/ui/Text";
 import { TextField } from "@/ui/TextField";
 import { TopBar } from "@/ui/TopBar";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 /** Cambia password: serve quella attuale; poi si esce da tutti gli altri dispositivi. */
 export default function ChangePasswordScreen() {
@@ -23,32 +24,32 @@ export default function ChangePasswordScreen() {
   const email = session?.user.email;
 
   const save = async (password: string): Promise<string | null> => {
-    if (!email) return "Il cambio password è disponibile per gli account con email.";
+    if (!email) return t("Il cambio password è disponibile per gli account con email.");
     const check = await supabase.auth.signInWithPassword({ email, password: current });
-    if (check.error) return "La password attuale non è corretta.";
+    if (check.error) return t("La password attuale non è corretta.");
     const failed = await saveNewPassword(password);
     if (failed) return authErrorMessage(failed);
     const { data } = await supabase.auth.getSession();
     if (data.session) await pingDevice(data.session.access_token).catch(() => undefined);
-    toast.show("Password cambiata. Sei uscito da tutti gli altri dispositivi.");
+    toast.show(t("Password cambiata. Sei uscito da tutti gli altri dispositivi."));
     router.back();
     return null;
   };
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <TopBar title="Cambia password" fallback="/settings" />
+      <TopBar title={t("Cambia password")} fallback="/settings" />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text variant="secondary">
-          Dopo il cambio esci da tutti gli altri dispositivi: lì servirà la nuova password.
+          {t("Dopo il cambio esci da tutti gli altri dispositivi: lì servirà la nuova password.")}
         </Text>
         <NewPasswordFields
-          submitLabel="Salva la nuova password"
+          submitLabel={t("Salva la nuova password")}
           onSubmit={save}
           ready={current.length > 0}
           before={
             <TextField
-              label="PASSWORD ATTUALE"
+              label={t("PASSWORD ATTUALE")}
               value={current}
               onChangeText={setCurrent}
               secure

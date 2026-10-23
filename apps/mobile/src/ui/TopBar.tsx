@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { IconButton } from "@/ui/IconButton";
 import { IconBack } from "@/ui/icons";
+import { t } from "@/lib/i18n";
 
 type Props = { title: string; fallback?: string; right?: ReactNode };
 
@@ -12,7 +13,7 @@ type Props = { title: string; fallback?: string; right?: ReactNode };
 export function TopBar({ title, fallback = "/profile", right }: Props) {
   return (
     <View style={styles.bar}>
-      <IconButton label="Indietro" onPress={() => (router.canGoBack() ? router.back() : router.replace(fallback as never))}>
+      <IconButton label={t("Indietro")} onPress={() => (router.canGoBack() ? router.back() : router.replace(fallback as never))}>
         <IconBack color={colors.text} />
       </IconButton>
       <Text style={styles.title} role="heading" numberOfLines={1}>

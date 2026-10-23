@@ -8,6 +8,7 @@ import { Button } from "@/ui/Button";
 import { PasswordStrength } from "@/ui/PasswordStrength";
 import { Text } from "@/ui/Text";
 import { TextField } from "@/ui/TextField";
+import { t } from "@/lib/i18n";
 
 type Props = {
   submitLabel: string;
@@ -37,7 +38,7 @@ export function NewPasswordFields({ submitLabel, onSubmit, before, ready = true 
     setError(null);
     try {
       if ((await checkPasswordLeak(password)) === "compromised") {
-        setError("Questa password è comparsa in una violazione di dati online. Scegline un'altra.");
+        setError(t("Questa password è comparsa in una violazione di dati online. Scegline un'altra."));
         return;
       }
       setError(await onSubmit(password));
@@ -50,7 +51,7 @@ export function NewPasswordFields({ submitLabel, onSubmit, before, ready = true 
     <View style={styles.form}>
       {before}
       <TextField
-        label="NUOVA PASSWORD"
+        label={t("NUOVA PASSWORD")}
         value={password}
         onChangeText={(value) => {
           setPassword(value);
@@ -64,7 +65,7 @@ export function NewPasswordFields({ submitLabel, onSubmit, before, ready = true 
       />
       <PasswordStrength password={password} />
       <TextField
-        label="RIPETI LA PASSWORD"
+        label={t("RIPETI LA PASSWORD")}
         value={repeat}
         onChangeText={(value) => {
           setRepeat(value);
@@ -75,7 +76,7 @@ export function NewPasswordFields({ submitLabel, onSubmit, before, ready = true 
         autoCorrect={false}
         autoComplete="new-password"
         textContentType="newPassword"
-        error={repeat.length > 0 && !same ? "Le due password non coincidono." : null}
+        error={repeat.length > 0 && !same ? t("Le due password non coincidono.") : null}
         onSubmitEditing={() => void submit()}
       />
       {error ? (

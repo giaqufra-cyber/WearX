@@ -8,6 +8,7 @@ import { create } from "zustand";
 import { normalizeServer, serverReachable } from "@/features/demo/server";
 import { setDemoServer } from "@/lib/env";
 import { recreateSupabase } from "@/lib/supabase";
+import { N_ } from "@/lib/i18n";
 
 export const DEMO_SERVER_KEY = "wearx.demo.server";
 
@@ -30,9 +31,10 @@ export const useDemoStore = create<DemoState>(() => ({
   problem: null,
 }));
 
-const UNREACHABLE =
-  "Il server della demo non risponde. Il link cambia a ogni avvio: controlla che la demo sia accesa sul computer e usa il link nuovo.";
-const INVALID = "Questo non sembra il link della demo (deve iniziare con https://).";
+const UNREACHABLE = N_(
+  "Il server della demo non risponde. Il link cambia a ogni avvio: controlla che la demo sia accesa sul computer e usa il link nuovo.",
+);
+const INVALID = N_("Questo non sembra il link della demo (deve iniziare con https://).");
 
 /** Prova a collegarsi; se riesce l'app riparte da capo verso quel server. */
 export async function connectDemo(input: string): Promise<boolean> {

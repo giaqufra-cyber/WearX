@@ -9,6 +9,7 @@ import Constants from "expo-constants";
 
 import { env } from "@/lib/env";
 import { markUpdateRequired } from "@/lib/updateGate";
+import { language } from "@/lib/i18n";
 
 /** Indirizzo dell'API. Letto a ogni chiamata: nella demo cambia quando si sceglie il server. */
 export function apiUrl(): string {
@@ -59,6 +60,8 @@ export type RequestOptions = {
 export async function apiRequest<T>(method: Method, path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = {
     Accept: "application/json",
+    // Lingua dell'app (seduta 33): il server risponde con i suoi testi in quella lingua.
+    "Accept-Language": language(),
     "X-App-Version": APP_VERSION,
   };
   if (options.body !== undefined) headers["Content-Type"] = "application/json";

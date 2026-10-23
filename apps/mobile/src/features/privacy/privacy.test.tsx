@@ -21,6 +21,8 @@ import { ApiError, apiGet, apiRequest } from "@/lib/api";
 import { env } from "@/lib/env";
 import { supabase } from "@/lib/supabase";
 import { ToastProvider } from "@/ui/Toast";
+import { setLanguageForTests, t, useLanguage } from "@/lib/i18n";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 jest.mock("@/lib/supabase", () => ({
   supabase: {
@@ -138,6 +140,18 @@ test("impostazioni: interruttori e voci", async () => {
   expect(openBrowserAsync).toHaveBeenCalledWith(expect.stringMatching(/\/legal\/come-funziona-il-feed$/));
   await user.press(screen.getByRole("button", { name: "Esci" }));
   expect(mockSignOut).toHaveBeenCalled();
+});
+
+test("lingua: si sceglie in Privacy e sicurezza e resta sul telefono", async () => {
+  const user = userEvent.setup();
+  await render(<SettingsScreen />, { wrapper: Providers });
+  expect(screen.getByRole("radio", { name: "Automatica" })).toBeChecked();
+  await user.press(screen.getByRole("radio", { name: "English" }));
+  expect(useLanguage.getState()).toMatchObject({ choice: "en", lang: "en" });
+  expect(t("Nascondi i prezzi")).toBe("Hide prices");
+  expect(await AsyncStorage.getItem("wearx.language")).toBe("en");
+  setLanguageForTests("it");
+  useLanguage.setState({ choice: "auto" });
 });
 
 describe("Segnala un problema", () => {

@@ -11,17 +11,18 @@ import { SegmentedControl } from "@/ui/SegmentedControl";
 import { Text } from "@/ui/Text";
 import { TopBar } from "@/ui/TopBar";
 import { useToast } from "@/ui/Toast";
+import { N_, t } from "@/lib/i18n";
 
 const MAX = 2000;
 const KINDS = [
-  { value: "bug", label: "Non funziona" },
-  { value: "idea", label: "Un'idea" },
-  { value: "other", label: "Altro" },
+  { value: "bug", label: N_("Non funziona") },
+  { value: "idea", label: N_("Un'idea") },
+  { value: "other", label: N_("Altro") },
 ] as const;
 const PLACEHOLDER: Record<FeedbackKind, string> = {
-  bug: "Cosa stavi facendo, cosa ti aspettavi, cosa è successo invece.",
-  idea: "Cosa ti piacerebbe trovare in WearX?",
-  other: "Scrivi qui.",
+  bug: N_("Cosa stavi facendo, cosa ti aspettavi, cosa è successo invece."),
+  idea: N_("Cosa ti piacerebbe trovare in WearX?"),
+  other: N_("Scrivi qui."),
 };
 
 /** Segnala un problema (beta, seduta 25): il messaggio arriva al team nel pannello dello staff. */
@@ -41,7 +42,7 @@ export default function FeedbackScreen() {
       { kind, message, screen: typeof from === "string" ? from : null },
       {
         onSuccess: () => {
-          toast.show("Grazie! Il messaggio è arrivato al team di WearX.");
+          toast.show(t("Grazie! Il messaggio è arrivato al team di WearX."));
           router.back();
         },
       },
@@ -49,26 +50,26 @@ export default function FeedbackScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <TopBar title="Segnala un problema" fallback="/settings" />
+      <TopBar title={t("Segnala un problema")} fallback="/settings" />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text variant="secondary">
-          WearX è in prova: ogni messaggio lo leggiamo noi del team. Non serve essere precisi, basta raccontare.
+          {t("WearX è in prova: ogni messaggio lo leggiamo noi del team. Non serve essere precisi, basta raccontare.")}
         </Text>
-        <SegmentedControl label="Di cosa si tratta" options={KINDS} value={kind} onChange={setKind} />
+        <SegmentedControl label={t("Di cosa si tratta")} options={KINDS} value={kind} onChange={setKind} />
         <View style={styles.field}>
           <Text variant="label" nativeID="feedback-label">
-            IL TUO MESSAGGIO
+            {t("IL TUO MESSAGGIO")}
           </Text>
           <TextInput
             value={message}
             onChangeText={setMessage}
-            placeholder={PLACEHOLDER[kind]}
+            placeholder={t(PLACEHOLDER[kind])}
             placeholderTextColor={colors.textTertiary}
             selectionColor={colors.accent}
             maxLength={MAX}
             multiline
             textAlignVertical="top"
-            aria-label="Il tuo messaggio"
+            aria-label={t("Il tuo messaggio")}
             style={styles.input}
           />
           <Text variant="label" style={styles.counter}>
@@ -76,20 +77,24 @@ export default function FeedbackScreen() {
           </Text>
         </View>
         <Text variant="secondary" style={styles.note}>
-          Insieme al messaggio mandiamo solo la versione dell&apos;app ({info.app_version}), il sistema ({system}
-          {info.os_version ? ` ${info.os_version}` : ""}){from ? " e la schermata da cui sei partito" : ""}.
-          {info.platform === "ios" ? " Per mostrarci una schermata: screenshot e invio da TestFlight." : ""}
+          {t(
+            from
+              ? "Insieme al messaggio mandiamo solo la versione dell'app ({version}), il sistema ({system}) e la schermata da cui sei partito."
+              : "Insieme al messaggio mandiamo solo la versione dell'app ({version}), il sistema ({system}).",
+            { version: info.app_version, system: info.os_version ? `${system} ${info.os_version}` : system },
+          )}
+          {info.platform === "ios" ? ` ${t("Per mostrarci una schermata: screenshot e invio da TestFlight.")}` : ""}
         </Text>
         {tooMany ? (
           <Text color={colors.danger} role="alert">
-            Hai già mandato 10 messaggi oggi: riprova domani.
+            {t("Hai già mandato 10 messaggi oggi: riprova domani.")}
           </Text>
         ) : send.isError ? (
           <Text color={colors.danger} role="alert">
-            Messaggio non inviato. Controlla la connessione e riprova.
+            {t("Messaggio non inviato. Controlla la connessione e riprova.")}
           </Text>
         ) : null}
-        <Button label="Invia al team" onPress={submit} disabled={!ready} loading={send.isPending} fullWidth />
+        <Button label={t("Invia al team")} onPress={submit} disabled={!ready} loading={send.isPending} fullWidth />
       </ScrollView>
     </SafeAreaView>
   );

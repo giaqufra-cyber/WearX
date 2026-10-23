@@ -6,6 +6,7 @@ import { longDate, useDeletion, useDeletionStatus } from "@/features/privacy/api
 import { Button } from "@/ui/Button";
 import { Screen } from "@/ui/Screen";
 import { useToast } from "@/ui/Toast";
+import { t } from "@/lib/i18n";
 
 /** Account in cancellazione: unica schermata raggiungibile finché non si annulla o si esce. */
 export default function DeletingScreen() {
@@ -18,30 +19,32 @@ export default function DeletingScreen() {
   return (
     <Screen scroll={false}>
       <View style={styles.body}>
-        <Text style={styles.kicker}>ACCOUNT IN CANCELLAZIONE</Text>
+        <Text style={styles.kicker}>{t("ACCOUNT IN CANCELLAZIONE")}</Text>
         <Text style={styles.title} role="heading">
           @{profile?.nickname}
         </Text>
         <Text style={styles.text}>
           {when
-            ? `Il tuo account verrà cancellato per sempre il ${longDate(when)}. Fino ad allora nessuno vede il tuo profilo e i tuoi fit.`
-            : "Il tuo account è in cancellazione. Nessuno vede il tuo profilo e i tuoi fit."}
+            ? t("Il tuo account verrà cancellato per sempre il {date}. Fino ad allora nessuno vede il tuo profilo e i tuoi fit.", {
+                date: longDate(when),
+              })
+            : t("Il tuo account è in cancellazione. Nessuno vede il tuo profilo e i tuoi fit.")}
         </Text>
-        <Text style={styles.text}>Ci hai ripensato? Annulla e tutto torna com&apos;era.</Text>
+        <Text style={styles.text}>{t("Ci hai ripensato? Annulla e tutto torna com'era.")}</Text>
       </View>
       <View style={styles.actions}>
         <Button
-          label="Annulla la cancellazione"
+          label={t("Annulla la cancellazione")}
           fullWidth
           loading={cancel.isPending}
           onPress={() =>
             cancel.mutate(undefined, {
-              onSuccess: () => toast.show("Bentornato! Il tuo account è di nuovo attivo."),
-              onError: () => toast.show("Non è riuscito. Riprova.", { tone: "error" }),
+              onSuccess: () => toast.show(t("Bentornato! Il tuo account è di nuovo attivo.")),
+              onError: () => toast.show(t("Non è riuscito. Riprova."), { tone: "error" }),
             })
           }
         />
-        <Button label="Esci" variant="ghost" fullWidth onPress={() => void signOut()} />
+        <Button label={t("Esci")} variant="ghost" fullWidth onPress={() => void signOut()} />
       </View>
     </Screen>
   );

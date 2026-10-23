@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 import { IconEye, IconEyeOff } from "@/ui/icons";
+import { t } from "@/lib/i18n";
 
 type Props = Omit<TextInputProps, "style" | "placeholderTextColor" | "secureTextEntry"> & {
   label: string;
@@ -99,7 +100,7 @@ export const TextField = forwardRef<TextInput, Props>(function TextField(
         {secure ? (
           <Pressable
             role="button"
-            aria-label={revealed ? "Nascondi password" : "Mostra password"}
+            aria-label={revealed ? t("Nascondi password") : t("Mostra password")}
             onPress={() => setRevealed((v) => !v)}
             style={styles.reveal}
           >

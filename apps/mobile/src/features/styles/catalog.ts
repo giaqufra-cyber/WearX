@@ -3,16 +3,17 @@
  * Il server manda gli stili già ordinati dai più seguiti; qui si filtra senza cambiare l'ordine.
  */
 import type { StyleCard } from "@wearx/api-types";
+import { N_ } from "@/lib/i18n";
 
 export type StyleCategory = NonNullable<StyleCard["category"]>;
 
 export const CATEGORIES: { key: StyleCategory; label: string }[] = [
-  { key: "stili", label: "Stili" },
-  { key: "sport", label: "Sport" },
-  { key: "accessori", label: "Accessori" },
-  { key: "beauty", label: "Beauty" },
-  { key: "sottoculture", label: "Sottoculture" },
-  { key: "occasioni", label: "Occasioni" },
+  { key: "stili", label: N_("Stili") },
+  { key: "sport", label: N_("Sport") },
+  { key: "accessori", label: N_("Accessori") },
+  { key: "beauty", label: N_("Beauty") },
+  { key: "sottoculture", label: N_("Sottoculture") },
+  { key: "occasioni", label: N_("Occasioni") },
 ];
 
 /** Minuscole e senza accenti: "Galà" e "gala" sono la stessa parola. */

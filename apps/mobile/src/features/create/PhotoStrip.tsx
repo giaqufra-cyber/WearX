@@ -4,6 +4,7 @@ import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View
 import type { DraftPhoto } from "@/features/create/draft";
 import { MAX_PHOTOS } from "@/features/create/form";
 import { IconBack, IconClose, IconPlus } from "@/ui/icons";
+import { N_, t } from "@/lib/i18n";
 
 type Props = {
   photos: DraftPhoto[];
@@ -14,13 +15,13 @@ type Props = {
 };
 
 const STATUS_LABEL: Record<DraftPhoto["status"], string> = {
-  queued: "In coda",
-  preparing: "Preparo la foto",
-  uploading: "Caricamento",
-  processing: "Togliamo GPS e dati",
-  ready: "Pronta",
-  error: "Non caricata",
-  rejected: "Non utilizzabile",
+  queued: N_("In coda"),
+  preparing: N_("Preparo la foto"),
+  uploading: N_("Caricamento"),
+  processing: N_("Togliamo GPS e dati"),
+  ready: N_("Pronta"),
+  error: N_("Non caricata"),
+  rejected: N_("Non utilizzabile"),
 };
 
 /** Le foto scelte, nell'ordine del carosello, con lo stato del caricamento di ognuna. */
@@ -30,7 +31,7 @@ export function PhotoStrip({ photos, onAdd, onRemove, onMove, onRetry }: Props) 
       {photos.map((photo, index) => {
         const busy = photo.status === "queued" || photo.status === "preparing" || photo.status === "uploading" || photo.status === "processing";
         const failed = photo.status === "error" || photo.status === "rejected";
-        const label = `Foto ${index + 1} di ${photos.length}: ${STATUS_LABEL[photo.status]}${photo.message ? `. ${photo.message}` : ""}`;
+        const label = `${t("Foto {n} di {total}: {status}", { n: index + 1, total: photos.length, status: t(STATUS_LABEL[photo.status]) })}${photo.message ? `. ${photo.message}` : ""}`;
         return (
           <View key={photo.localId} style={styles.tileWrap}>
             <View style={[styles.tile, failed ? styles.tileFailed : null]} aria-label={label}>
@@ -41,7 +42,7 @@ export function PhotoStrip({ photos, onAdd, onRemove, onMove, onRetry }: Props) 
               {busy ? (
                 <View style={styles.overlay}>
                   {photo.status === "uploading" ? null : <ActivityIndicator color={colors.text} size="small" />}
-                  <Text style={styles.overlayText}>{STATUS_LABEL[photo.status]}</Text>
+                  <Text style={styles.overlayText}>{t(STATUS_LABEL[photo.status])}</Text>
                   {photo.status === "uploading" ? (
                     <View style={styles.bar}>
                       <View style={[styles.barFill, { width: `${Math.round(photo.progress * 100)}%` }]} />
@@ -52,11 +53,11 @@ export function PhotoStrip({ photos, onAdd, onRemove, onMove, onRetry }: Props) 
               {failed ? (
                 <View style={[styles.overlay, styles.overlayFailed]}>
                   <Text style={styles.overlayText} numberOfLines={3}>
-                    {photo.message ?? STATUS_LABEL[photo.status]}
+                    {photo.message ?? t(STATUS_LABEL[photo.status])}
                   </Text>
                   {photo.status === "error" ? (
-                    <Pressable role="button" aria-label={`Riprova la foto ${index + 1}`} onPress={() => onRetry(photo.localId)} style={styles.retry}>
-                      <Text style={styles.retryText}>Riprova</Text>
+                    <Pressable role="button" aria-label={t("Riprova la foto {n}", { n: index + 1 })} onPress={() => onRetry(photo.localId)} style={styles.retry}>
+                      <Text style={styles.retryText}>{t("Riprova")}</Text>
                     </Pressable>
                   ) : null}
                 </View>
@@ -64,7 +65,7 @@ export function PhotoStrip({ photos, onAdd, onRemove, onMove, onRetry }: Props) 
               {/* Per ultimo: deve restare toccabile anche sopra l'avviso di errore. */}
               <Pressable
                 role="button"
-                aria-label={`Togli la foto ${index + 1}`}
+                aria-label={t("Togli la foto {n}", { n: index + 1 })}
                 onPress={() => onRemove(photo.localId)}
                 style={styles.remove}
                 hitSlop={8}
@@ -75,7 +76,7 @@ export function PhotoStrip({ photos, onAdd, onRemove, onMove, onRetry }: Props) 
             <View style={styles.moves}>
               <Pressable
                 role="button"
-                aria-label={`Sposta la foto ${index + 1} prima`}
+                aria-label={t("Sposta la foto {n} prima", { n: index + 1 })}
                 aria-disabled={index === 0}
                 disabled={index === 0}
                 onPress={() => onMove(photo.localId, -1)}
@@ -85,7 +86,7 @@ export function PhotoStrip({ photos, onAdd, onRemove, onMove, onRetry }: Props) 
               </Pressable>
               <Pressable
                 role="button"
-                aria-label={`Sposta la foto ${index + 1} dopo`}
+                aria-label={t("Sposta la foto {n} dopo", { n: index + 1 })}
                 aria-disabled={index === photos.length - 1}
                 disabled={index === photos.length - 1}
                 onPress={() => onMove(photo.localId, 1)}
@@ -100,12 +101,12 @@ export function PhotoStrip({ photos, onAdd, onRemove, onMove, onRetry }: Props) 
       {photos.length < MAX_PHOTOS ? (
         <Pressable
           role="button"
-          aria-label={photos.length ? "Aggiungi altre foto" : "Scegli le foto dalla galleria"}
+          aria-label={photos.length ? t("Aggiungi altre foto") : t("Scegli le foto dalla galleria")}
           onPress={onAdd}
           style={({ pressed }) => [styles.tile, styles.add, pressed ? styles.pressed : null]}
         >
           <IconPlus color={colors.textSecondary} />
-          <Text style={styles.addText}>{photos.length ? "Aggiungi" : "Galleria"}</Text>
+          <Text style={styles.addText}>{photos.length ? t("Aggiungi") : t("Galleria")}</Text>
         </Pressable>
       ) : null}
     </ScrollView>

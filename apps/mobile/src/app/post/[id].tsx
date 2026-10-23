@@ -20,6 +20,7 @@ import { IconArchive, IconBack, IconFolder, IconStar, IconTrash } from "@/ui/ico
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { Sheet } from "@/ui/Sheet";
 import { useToast } from "@/ui/Toast";
+import { t, tn } from "@/lib/i18n";
 
 const MAX_WIDTH = 560;
 
@@ -43,11 +44,11 @@ export default function PostScreen() {
   const back = () => (router.canGoBack() ? router.back() : router.replace("/profile"));
 
   let body;
-  if (post.isPending) body = <Loading label="Carico il fit" />;
+  if (post.isPending) body = <Loading label={t("Carico il fit")} />;
   else if (post.isError) {
     body =
       post.error instanceof ApiError && post.error.status === 404 ? (
-        <EmptyState title="Fit non disponibile" body="È stato eliminato o non è più visibile." />
+        <EmptyState title={t("Fit non disponibile")} body={t("È stato eliminato o non è più visibile.")} />
       ) : (
         <ErrorNotice error={post.error} onRetry={() => void post.refetch()} />
       );
@@ -63,11 +64,11 @@ export default function PostScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <IconButton label="Indietro" onPress={back}>
+        <IconButton label={t("Indietro")} onPress={back}>
           <IconBack color={colors.text} />
         </IconButton>
         <Text style={styles.title} role="heading">
-          {post.data?.is_own ? "Il tuo fit" : "Il fit"}
+          {post.data?.is_own ? t("Il tuo fit") : t("Il fit")}
         </Text>
         <View style={styles.headerSpacer} />
       </View>
@@ -97,23 +98,23 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
     <View style={styles.actions}>
       {post.status === "hidden_moderation" ? (
         <View style={styles.hidden} role="alert">
-          <Text style={styles.hiddenTitle}>Nascosto dalla moderazione</Text>
-          <Text style={styles.hiddenText}>Gli altri non lo vedono. Trovi il motivo e puoi fare reclamo.</Text>
-          <Button label="Vedi il motivo" variant="secondary" size="sm" onPress={() => router.push("/moderation")} />
+          <Text style={styles.hiddenTitle}>{t("Nascosto dalla moderazione")}</Text>
+          <Text style={styles.hiddenText}>{t("Gli altri non lo vedono. Trovi il motivo e puoi fare reclamo.")}</Text>
+          <Button label={t("Vedi il motivo")} variant="secondary" size="sm" onPress={() => router.push("/moderation")} />
         </View>
       ) : null}
       {archived ? (
         <View style={styles.archived} role="alert">
-          <Text style={styles.archivedTitle}>Archiviato</Text>
-          <Text style={styles.hiddenText}>Lo vedi solo tu. Voti, capi e capsula restano come sono.</Text>
+          <Text style={styles.archivedTitle}>{t("Archiviato")}</Text>
+          <Text style={styles.hiddenText}>{t("Lo vedi solo tu. Voti, capi e capsula restano come sono.")}</Text>
         </View>
       ) : null}
       {saves > 0 ? (
-        <Text style={styles.saves}>{saves === 1 ? "Salvato da 1 persona" : `Salvato da ${saves} persone`}</Text>
+        <Text style={styles.saves}>{tn(saves, "Salvato da {count} persona", "Salvato da {count} persone")}</Text>
       ) : null}
-      <Text style={styles.kicker}>IL TUO PORTFOLIO</Text>
+      <Text style={styles.kicker}>{t("IL TUO PORTFOLIO")}</Text>
       <Button
-        label={capsuleName ? `Capsula: ${capsuleName}` : "Aggiungi a una capsula"}
+        label={capsuleName ? t("Capsula: {name}", { name: capsuleName }) : t("Aggiungi a una capsula")}
         variant="secondary"
         size="md"
         fullWidth
@@ -122,7 +123,7 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
       />
       {archived ? null : (
       <Button
-        label={isCover ? "È la copertina del portfolio" : "Metti in copertina"}
+        label={isCover ? t("È la copertina del portfolio") : t("Metti in copertina")}
         variant="secondary"
         size="md"
         fullWidth
@@ -132,29 +133,29 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
         onPress={() =>
           move.mutate(
             { postId: post.id, afterId: null },
-            { onSuccess: () => toast.show("Ora è la copertina del tuo portfolio.") },
+            { onSuccess: () => toast.show(t("Ora è la copertina del tuo portfolio.")) },
           )
         }
       />
       )}
       <Button
-        label={archived ? "Rimetti nel profilo" : "Archivia"}
+        label={archived ? t("Rimetti nel profilo") : t("Archivia")}
         variant="secondary"
         size="md"
         fullWidth
         loading={archive.isPending}
         icon={<IconArchive color={colors.text} />}
-        hint={archived ? "Torna nel portfolio al posto di prima" : "Lo togli dal profilo senza eliminarlo: lo vedi solo tu"}
+        hint={archived ? t("Torna nel portfolio al posto di prima") : t("Lo togli dal profilo senza eliminarlo: lo vedi solo tu")}
         onPress={() =>
           archive.mutate(!archived, {
             onSuccess: () =>
-              toast.show(archived ? "Fit rimesso nel profilo." : "Fit archiviato. Lo ritrovi in Account → Archivio."),
-            onError: () => toast.show("Non riusciamo a salvare. Riprova.", { tone: "error" }),
+              toast.show(archived ? t("Fit rimesso nel profilo.") : t("Fit archiviato. Lo ritrovi in Account → Archivio.")),
+            onError: () => toast.show(t("Non riusciamo a salvare. Riprova."), { tone: "error" }),
           })
         }
       />
       <Button
-        label="Elimina fit"
+        label={t("Elimina fit")}
         variant="ghost"
         size="md"
         fullWidth
@@ -171,21 +172,21 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
           setCapsule.mutate(capsuleId, {
             onSuccess: () => {
               setPicking(false);
-              toast.show(capsuleId ? "Fit aggiunto alla capsula." : "Fit tolto dalla capsula.");
+              toast.show(capsuleId ? t("Fit aggiunto alla capsula.") : t("Fit tolto dalla capsula."));
             },
-            onError: () => toast.show("Non riusciamo a salvare. Riprova.", { tone: "error" }),
+            onError: () => toast.show(t("Non riusciamo a salvare. Riprova."), { tone: "error" }),
           })
         }
       />
-      <Sheet visible={confirmDelete} title="Eliminare il fit?" onClose={() => setConfirmDelete(false)}>
-        <Text style={styles.sheetText}>Foto, capi e voti spariscono per sempre. Non si può annullare.</Text>
+      <Sheet visible={confirmDelete} title={t("Eliminare il fit?")} onClose={() => setConfirmDelete(false)}>
+        <Text style={styles.sheetText}>{t("Foto, capi e voti spariscono per sempre. Non si può annullare.")}</Text>
         <View style={styles.sheetButtons}>
           <View style={styles.flex}>
-            <Button label="Annulla" variant="secondary" size="md" fullWidth onPress={() => setConfirmDelete(false)} />
+            <Button label={t("Annulla")} variant="secondary" size="md" fullWidth onPress={() => setConfirmDelete(false)} />
           </View>
           <View style={styles.flex}>
             <Button
-              label="Elimina"
+              label={t("Elimina")}
               variant="danger"
               size="md"
               fullWidth
@@ -194,10 +195,10 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
                 remove.mutate(undefined, {
                   onSuccess: () => {
                     setConfirmDelete(false);
-                    toast.show("Fit eliminato.");
+                    toast.show(t("Fit eliminato."));
                     onDeleted();
                   },
-                  onError: () => toast.show("Non riusciamo a eliminarlo. Riprova.", { tone: "error" }),
+                  onError: () => toast.show(t("Non riusciamo a eliminarlo. Riprova."), { tone: "error" }),
                 })
               }
             />

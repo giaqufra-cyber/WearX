@@ -3,6 +3,7 @@ import { router, Tabs } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import { IconPlus, IconSearch, IconStyles, IconUser } from "@/ui/icons";
+import { t } from "@/lib/i18n";
 
 /** Barra in basso come nel prototipo: Stili, Cerca, + (nuovo fit), Account. */
 export default function TabsLayout() {
@@ -20,16 +21,16 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "STILI",
-          tabBarAccessibilityLabel: "Feed dei tuoi stili",
+          title: t("STILI"),
+          tabBarAccessibilityLabel: t("Feed dei tuoi stili"),
           tabBarIcon: ({ color }) => <IconStyles color={color} />,
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: "CERCA",
-          tabBarAccessibilityLabel: "Cerca stili e persone",
+          title: t("CERCA"),
+          tabBarAccessibilityLabel: t("Cerca stili e persone"),
           tabBarIcon: ({ color }) => <IconSearch color={color} />,
         }}
       />
@@ -44,7 +45,7 @@ export default function TabsLayout() {
         }}
         options={{
           title: "",
-          tabBarAccessibilityLabel: "Pubblica un fit",
+          tabBarAccessibilityLabel: t("Pubblica un fit"),
           tabBarIcon: ({ focused }) => (
             <View style={[styles.create, focused && styles.createFocused]}>
               <IconPlus color={colors.onAccent} />
@@ -55,8 +56,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "ACCOUNT",
-          tabBarAccessibilityLabel: "Il tuo profilo",
+          title: t("ACCOUNT"),
+          tabBarAccessibilityLabel: t("Il tuo profilo"),
           tabBarIcon: ({ color }) => <IconUser color={color} />,
         }}
       />

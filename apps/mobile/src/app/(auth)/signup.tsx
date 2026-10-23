@@ -22,19 +22,20 @@ import { Screen } from "@/ui/Screen";
 import { SegmentedControl } from "@/ui/SegmentedControl";
 import { Text } from "@/ui/Text";
 import { TextField } from "@/ui/TextField";
+import { N_, t } from "@/lib/i18n";
 
 const CONTACT_OPTIONS = [
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Telefono" },
+  { value: "email", label: N_("Email") },
+  { value: "phone", label: N_("Telefono") },
 ] as const;
 
 const NICK_HINTS: Record<NicknameAvailability, { text: string; color?: string }> = {
-  idle: { text: "Minuscole, numeri, punto e underscore." },
-  checking: { text: "Controllo…" },
-  available: { text: "Libero. È tuo se lo vuoi.", color: colors.accent },
-  taken: { text: "Già preso. Prova una variante.", color: colors.danger },
-  reserved: { text: "Questo nickname non è disponibile.", color: colors.danger },
-  unknown: { text: "Non riusciamo a controllarlo ora: lo verifichiamo alla fine." },
+  idle: { text: N_("Minuscole, numeri, punto e underscore.") },
+  checking: { text: N_("Controllo…") },
+  available: { text: N_("Libero. È tuo se lo vuoi."), color: colors.accent },
+  taken: { text: N_("Già preso. Prova una variante."), color: colors.danger },
+  reserved: { text: N_("Questo nickname non è disponibile."), color: colors.danger },
+  unknown: { text: N_("Non riusciamo a controllarlo ora: lo verifichiamo alla fine.") },
 };
 
 /** Registrazione, passo 1 di 4 (prototipo, schermata "Crea account"). */
@@ -63,7 +64,7 @@ export default function SignupScreen() {
     setFormError(null);
     try {
       if ((await checkPasswordLeak(form.password)) === "compromised") {
-        setLeakError("Questa password è comparsa in una violazione di dati online. Scegline un'altra.");
+        setLeakError(t("Questa password è comparsa in una violazione di dati online. Scegline un'altra."));
         return;
       }
       const { data, error } = await supabase.auth.signUp(
@@ -93,21 +94,21 @@ export default function SignupScreen() {
 
   return (
     <Screen>
-      <AuthHeader step="PASSO 1 DI 4" />
+      <AuthHeader step={t("PASSO {n} DI 4", { n: 1 })} />
       <Text variant="display" role="heading">
-        Crea account
+        {t("Crea account")}
       </Text>
       <Text variant="secondary" style={styles.lead}>
-        Nickname pubblico, dati di contatto privati. Nessuno vede la tua mail o il tuo numero.
+        {t("Nickname pubblico, dati di contatto privati. Nessuno vede la tua mail o il tuo numero.")}
       </Text>
 
       <View style={styles.fields}>
         <TextField
-          label="NICKNAME"
+          label={t("NICKNAME")}
           prefix="@"
           value={form.nickname}
           onChangeText={(nickname) => update({ nickname: nickname.toLowerCase() })}
-          placeholder="il.tuo.nick"
+          placeholder={t("il.tuo.nick")}
           autoCapitalize="none"
           autoCorrect={false}
           autoComplete="username-new"
@@ -115,15 +116,15 @@ export default function SignupScreen() {
           maxLength={20}
           returnKeyType="next"
           onSubmitEditing={() => contactRef.current?.focus()}
-          error={check.errors.nickname ?? (nickBlocked ? nickHint.text : null)}
-          hint={nickHint.text}
+          error={check.errors.nickname ?? (nickBlocked ? t(nickHint.text) : null)}
+          hint={t(nickHint.text)}
           hintColor={nickHint.color}
         />
 
         <View style={styles.group}>
           {env.phoneSignupEnabled ? (
             <SegmentedControl
-              label="Come vuoi registrarti"
+              label={t("Come vuoi registrarti")}
               options={CONTACT_OPTIONS}
               value={form.contactMode}
               onChange={(contactMode) => update({ contactMode, contact: "" })}
@@ -132,10 +133,10 @@ export default function SignupScreen() {
           ) : null}
           <TextField
             ref={contactRef}
-            label={isEmail ? "EMAIL" : "TELEFONO"}
+            label={isEmail ? t("EMAIL") : t("TELEFONO")}
             value={form.contact}
             onChangeText={(contact) => update({ contact })}
-            placeholder={isEmail ? "nome@esempio.it" : "+39 333 123 4567"}
+            placeholder={isEmail ? t("nome@esempio.it") : "+39 333 123 4567"}
             keyboardType={isEmail ? "email-address" : "phone-pad"}
             autoCapitalize="none"
             autoCorrect={false}
@@ -144,14 +145,14 @@ export default function SignupScreen() {
             returnKeyType="next"
             onSubmitEditing={() => passwordRef.current?.focus()}
             error={check.errors.contact}
-            hint="Ti mandiamo un codice di conferma. Serve anche per recuperare l'account."
+            hint={t("Ti mandiamo un codice di conferma. Serve anche per recuperare l'account.")}
           />
         </View>
 
         <View style={styles.group}>
           <TextField
             ref={passwordRef}
-            label="PASSWORD"
+            label={t("PASSWORD")}
             value={form.password}
             onChangeText={(password) => update({ password })}
             secure
@@ -171,12 +172,12 @@ export default function SignupScreen() {
 
         <View style={styles.consents}>
           <Checkbox
-            label="Ho letto l'Informativa privacy (GDPR) e accetto i Termini di WearX."
+            label={t("Ho letto l'Informativa privacy (GDPR) e accetto i Termini di WearX.")}
             checked={form.acceptTerms}
             onChange={(acceptTerms) => update({ acceptTerms })}
           />
           <Checkbox
-            label="Accetto le regole della community: si vota, non si insulta."
+            label={t("Accetto le regole della community: si vota, non si insulta.")}
             checked={form.acceptRules}
             onChange={(acceptRules) => update({ acceptRules })}
           />
@@ -190,7 +191,7 @@ export default function SignupScreen() {
         ) : null}
 
         <Button
-          label="Continua"
+          label={t("Continua")}
           onPress={() => void submit()}
           disabled={!check.canSubmit || nickBlocked}
           loading={submitting}
@@ -212,18 +213,18 @@ function BirthNote({ underage, ok, error }: { underage: boolean; ok: boolean; er
   if (underage) {
     return (
       <Text variant="secondary" color={colors.danger} role="alert">
-        WearX è riservata a chi ha almeno 16 anni. Non salviamo i dati che hai inserito.
+        {t("WearX è riservata a chi ha almeno 16 anni. Non salviamo i dati che hai inserito.")}
       </Text>
     );
   }
   if (ok) {
     return (
       <Text variant="secondary" color={colors.accent}>
-        Età compatibile. La confermiamo al prossimo passo.
+        {t("Età compatibile. La confermiamo al prossimo passo.")}
       </Text>
     );
   }
-  return <Text variant="secondary">Serve per confermare che hai almeno 16 anni. Non è pubblica.</Text>;
+  return <Text variant="secondary">{t("Serve per confermare che hai almeno 16 anni. Non è pubblica.")}</Text>;
 }
 
 const styles = StyleSheet.create({
