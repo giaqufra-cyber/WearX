@@ -45,6 +45,7 @@ async def purge_post(session: AsyncSession, post_id: uuid.UUID, author_id: uuid.
     )
     await after_post_deleted(session, author_id, post_id)
     await session.execute(text("delete from app.post_items where post_id = :id"), {"id": post_id})
+    await session.execute(text("delete from app.saved_posts where post_id = :id"), {"id": post_id})
     await session.execute(text("delete from app.post_media where post_id = :id"), {"id": post_id})
     uploads = [m["upload_id"] for m in media if m["upload_id"] is not None]
     if uploads:

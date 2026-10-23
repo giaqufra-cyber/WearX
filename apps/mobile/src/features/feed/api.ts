@@ -45,14 +45,14 @@ export function useFeed(style: string | null) {
   });
 }
 
-type Snapshot = [readonly unknown[], unknown][];
+export type Snapshot = [readonly unknown[], unknown][];
 
-/** Applica una modifica al riepilogo del voto di un post nel feed e nel dettaglio in cache. */
-export function patchVote(client: QueryClient, postId: string, patch: (vote: VoteSummary) => VoteSummary): Snapshot {
+/** Applica una modifica a un post nel feed e nel dettaglio in cache; restituisce com'era prima. */
+export function patchPost(client: QueryClient, postId: string, patch: (post: Post) => Post): Snapshot {
   const details: Snapshot = client.getQueriesData({ queryKey: POST_KEY });
   for (const [key, data] of details) {
     const post = data as Post | undefined;
-    if (post?.id === postId) client.setQueryData(key, { ...post, vote: patch(post.vote) });
+    if (post?.id === postId) client.setQueryData(key, patch(post));
   }
   const snapshot = client.getQueriesData({ queryKey: FEED_KEY });
   for (const [key, data] of snapshot) {
@@ -62,11 +62,16 @@ export function patchVote(client: QueryClient, postId: string, patch: (vote: Vot
       ...feed,
       pages: feed.pages.map((page) => ({
         ...page,
-        items: page.items.map((post: Post) => (post.id === postId ? { ...post, vote: patch(post.vote) } : post)),
+        items: page.items.map((post: Post) => (post.id === postId ? patch(post) : post)),
       })),
     });
   }
   return [...snapshot, ...details];
+}
+
+/** Applica una modifica al riepilogo del voto di un post nel feed e nel dettaglio in cache. */
+export function patchVote(client: QueryClient, postId: string, patch: (vote: VoteSummary) => VoteSummary): Snapshot {
+  return patchPost(client, postId, (post) => ({ ...post, vote: patch(post.vote) }));
 }
 
 export const VOTE_ERRORS: Record<string, string> = {

@@ -42,6 +42,11 @@ stili avete in comune, mai quali. Ricordiamo chi hai tolto dai suggerimenti, per
 riproportelo. I profili che apri dalla ricerca ("Recenti") restano solo
 sul tuo telefono.
 
+**Salvati e archivio.** I fit degli altri che salvi li vedi solo tu: chi li ha pubblicati vede
+quante volte un suo fit è stato salvato, mai da chi, e non riceve notifiche. Un tuo fit
+archiviato non lo vede più nessuno tranne te, ma resta conservato (con voti e capi) finché non
+lo rimetti nel profilo o lo elimini.
+
 **Età.** Ci servono la tua fascia d'età (16-17 anni oppure 18 e più) e la data in cui compirai 18
 anni. La data di nascita che inserisci serve a calcolarle e poi la cancelliamo. Se l'età viene
 verificata da un fornitore esterno (stima da selfie, documento, SPID o CIE, quando disponibili),

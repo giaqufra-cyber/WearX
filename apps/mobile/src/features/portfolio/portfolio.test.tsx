@@ -295,6 +295,7 @@ describe("Dettaglio del proprio fit", () => {
   const own: Post = {
     id: "p2",
     status: "active",
+    saved: false,
     style: { slug: "gala", name: "Galà", tone: "#3A1418" },
     author: { nickname: "fra.fit", account_type: "private" },
     is_own: true,

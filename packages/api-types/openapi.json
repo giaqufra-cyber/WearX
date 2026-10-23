@@ -3195,6 +3195,16 @@
       },
       "PortfolioTile": {
         "properties": {
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuthorRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "average": {
             "anyOf": [
               {
@@ -3442,6 +3452,17 @@
       },
       "PostOut": {
         "properties": {
+          "archived": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived"
+          },
           "author": {
             "anyOf": [
               {
@@ -3525,6 +3546,22 @@
               }
             ],
             "title": "Restyle Available"
+          },
+          "save_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Save Count"
+          },
+          "saved": {
+            "default": false,
+            "title": "Saved",
+            "type": "boolean"
           },
           "status": {
             "enum": [
@@ -4485,6 +4522,19 @@
         "title": "SanctionIn",
         "type": "object"
       },
+      "SavedOut": {
+        "properties": {
+          "saved": {
+            "title": "Saved",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "saved"
+        ],
+        "title": "SavedOut",
+        "type": "object"
+      },
       "ShopClick": {
         "additionalProperties": false,
         "properties": {
@@ -5288,6 +5338,34 @@
           "items"
         ],
         "title": "Suggestions",
+        "type": "object"
+      },
+      "TilePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioTile"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "TilePage",
         "type": "object"
       },
       "UnreadOut": {
@@ -7474,6 +7552,69 @@
         ]
       }
     },
+    "/v1/me/archive": {
+      "get": {
+        "description": "I tuoi fit archiviati, dall'ultimo archiviato.",
+        "operationId": "list_archive_v1_me_archive_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 60,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TilePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Archive",
+        "tags": [
+          "saved"
+        ]
+      }
+    },
     "/v1/me/attest": {
       "get": {
         "operationId": "attest_status_v1_me_attest_get",
@@ -8569,6 +8710,69 @@
         ]
       }
     },
+    "/v1/me/saved": {
+      "get": {
+        "description": "I fit salvati, dal più recente. Solo quelli che puoi ancora vedere.",
+        "operationId": "list_saved_v1_me_saved_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 60,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TilePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Saved",
+        "tags": [
+          "saved"
+        ]
+      }
+    },
     "/v1/me/shop-domains": {
       "get": {
         "operationId": "list_domains_v1_me_shop_domains_get",
@@ -9325,6 +9529,169 @@
         "summary": "Update Post",
         "tags": [
           "posts"
+        ]
+      }
+    },
+    "/v1/posts/{post_id}/archive": {
+      "delete": {
+        "description": "Rimetti nel portfolio: torna al posto di prima (l'ordine non è cambiato).",
+        "operationId": "unarchive_post_v1_posts__post_id__archive_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "post_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Post Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unarchive Post",
+        "tags": [
+          "saved"
+        ]
+      },
+      "post": {
+        "operationId": "archive_post_v1_posts__post_id__archive_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "post_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Post Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Archive Post",
+        "tags": [
+          "saved"
+        ]
+      }
+    },
+    "/v1/posts/{post_id}/save": {
+      "delete": {
+        "description": "Ripetibile, e funziona anche su un fit che non vedi più.",
+        "operationId": "unsave_post_v1_posts__post_id__save_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "post_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Post Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unsave Post",
+        "tags": [
+          "saved"
+        ]
+      },
+      "put": {
+        "operationId": "save_post_v1_posts__post_id__save_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "post_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Post Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save Post",
+        "tags": [
+          "saved"
         ]
       }
     },

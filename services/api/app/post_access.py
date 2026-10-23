@@ -2,10 +2,10 @@
 
 Parametri attesi: :viewer (uuid) e :adult (bool) del profilo che guarda.
 - Il proprio post si vede sempre (tranne se eliminato), qualunque sia lo stato.
-- Un post altrui si vede se: attivo (o fuori stile), autore attivo, stile permesso alla
-  fascia d'età di chi guarda (i 16-17 non vedono i post degli stili 18+), pubblicato da un
-  adulto oppure chi guarda ha 16-17 anni (i fit dei 16-17 restano tra 16-17), nessun blocco
-  in nessuna direzione.
+- Un post altrui si vede se: attivo (o fuori stile), non archiviato, autore attivo, stile
+  permesso alla fascia d'età di chi guarda (i 16-17 non vedono i post degli stili 18+),
+  pubblicato da un adulto oppure chi guarda ha 16-17 anni (i fit dei 16-17 restano tra 16-17),
+  nessun blocco in nessuna direzione.
 - L'autore compare se: account Business, oppure sei tu, oppure lo segui (richiesta accettata).
   Altrimenti il post è anonimo (sez. 6.6: i profili privati restano anonimi nei feed).
 """
@@ -16,6 +16,8 @@ POST_VISIBLE_SQL = """
   or (
     -- style_rejected: fuori dalla pagina dello stile ma ancora nel portfolio dell'autore.
     p.status in ('active', 'style_rejected')
+    -- Archiviato (seduta 32): lo vede solo chi l'ha pubblicato, nell'Archivio.
+    and p.archived_at is null
     and a.status = 'active'
     and (cast(:adult as boolean) or s.min_age_band <> '18_plus')
     -- Fit pubblicati da un 16-17enne: solo per altri 16-17 (sez. 14.1).
@@ -39,3 +41,7 @@ AUTHOR_SHOWN_SQL = """
   )
 )
 """
+
+# Griglia del profilo, capsule, pagina dello stile: i fit archiviati non ci sono, nemmeno per chi
+# li ha pubblicati (li ritrova in Archivio). Il dettaglio di un proprio fit archiviato si apre.
+NOT_ARCHIVED_SQL = "p.archived_at is null"

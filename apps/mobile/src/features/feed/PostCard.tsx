@@ -12,7 +12,7 @@ import { VotePanel } from "@/features/feed/VotePanel";
 import { ReportSheet } from "@/features/moderation/ReportSheet";
 import { Avatar } from "@/ui/Avatar";
 import { IconButton } from "@/ui/IconButton";
-import { IconArrowUpRight, IconCheck, IconMore, IconShield } from "@/ui/icons";
+import { IconArrowUpRight, IconBookmark, IconCheck, IconMore, IconShield } from "@/ui/icons";
 import { track } from "@/lib/events";
 
 type Props = {
@@ -20,10 +20,12 @@ type Props = {
   width: number;
   onVote: (post: Post, score: number, styleConfirm: boolean | null) => void;
   voting: boolean;
+  /** Salva / togli dai salvati (seduta 32). Senza, il segnalibro non c'è. */
+  onToggleSave?: (post: Post) => void;
 };
 
 /** Card di un fit nel feed (prototipo, schermata Feed). */
-export const PostCard = memo(function PostCard({ post, width, onVote, voting }: Props) {
+export const PostCard = memo(function PostCard({ post, width, onVote, voting, onToggleSave }: Props) {
   const name = post.author ? `@${post.author.nickname}` : "Fit anonimo";
   const match = matchLabel(post.vote.style_match);
   const total = totalPrice(post.items);
@@ -69,6 +71,11 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting }: 
             ) : null}
           </View>
         </View>
+        {!post.is_own && onToggleSave ? (
+          <IconButton label={post.saved ? "Togli dai salvati" : "Salva il fit"} onPress={() => onToggleSave(post)}>
+            <IconBookmark color={post.saved ? colors.accent : colors.textSecondary} filled={post.saved} />
+          </IconButton>
+        ) : null}
         {!post.is_own ? (
           <IconButton label="Segnala il fit" onPress={() => setReporting(true)}>
             <IconMore color={colors.textSecondary} />

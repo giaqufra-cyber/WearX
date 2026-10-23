@@ -50,7 +50,8 @@ Questo archivio contiene i dati che WearX conserva su di te alla data indicata i
 profilo.json         nickname, bio, fascia d'eta', impostazioni, consensi, verifica dell'eta'
                      (solo l'esito: nessuna immagine o data di nascita)
 stili.json           gli stili a cui aderisci
-fit.json             i tuoi fit con didascalia, stile, capi, prezzi e link
+fit.json             i tuoi fit con didascalia, stile, capi, prezzi e link (anche archiviati)
+salvati.json         i fit degli altri che hai salvato
 capsule.json         le tue capsule
 persone.json         chi segui, chi ti segue, richieste, account bloccati
 voti.json            i voti che hai dato (sono anonimi per gli altri)
@@ -121,7 +122,9 @@ async def collect(session: AsyncSession, user_id: uuid.UUID) -> dict[str, Any]:
                   st.shown_count as voti_ricevuti,
                   case when st.shown_wcount > 0
                        then round((st.shown_wsum / st.shown_wcount)::numeric, 1) end as media,
-                  c.name as capsula
+                  c.name as capsula, p.archived_at as archiviato_il,
+                  (select count(*) from app.saved_posts sv where sv.post_id = p.id)
+                    as salvato_da_altri
              from app.posts p
              join app.styles s on s.id = p.style_id
              left join app.post_stats st on st.post_id = p.id
@@ -187,6 +190,12 @@ async def collect(session: AsyncSession, user_id: uuid.UUID) -> dict[str, Any]:
             **me,
         ),
         "fit.json": posts,
+        "salvati.json": await _rows(
+            session,
+            """select sv.post_id as fit, sv.created_at as salvato_il
+                 from app.saved_posts sv where sv.user_id = :me order by sv.created_at""",
+            **me,
+        ),
         "capsule.json": await _rows(
             session,
             "select name as nome, created_at as creata_il from app.capsules where owner_id = :me",
