@@ -575,6 +575,26 @@ export interface paths {
         patch: operations["update_me_v1_me_patch"];
         trace?: never;
     };
+    "/v1/me/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Archive
+         * @description I tuoi fit archiviati, dall'ultimo archiviato.
+         */
+        get: operations["list_archive_v1_me_archive_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/attest": {
         parameters: {
             query?: never;
@@ -1045,6 +1065,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/saved": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Saved
+         * @description I fit salvati, dal più recente. Solo quelli che puoi ancora vedere.
+         */
+        get: operations["list_saved_v1_me_saved_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/shop-domains": {
         parameters: {
             query?: never;
@@ -1328,6 +1368,48 @@ export interface paths {
         head?: never;
         /** Update Post */
         patch: operations["update_post_v1_posts__post_id__patch"];
+        trace?: never;
+    };
+    "/v1/posts/{post_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive Post */
+        post: operations["archive_post_v1_posts__post_id__archive_post"];
+        /**
+         * Unarchive Post
+         * @description Rimetti nel portfolio: torna al posto di prima (l'ordine non è cambiato).
+         */
+        delete: operations["unarchive_post_v1_posts__post_id__archive_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/posts/{post_id}/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Post */
+        put: operations["save_post_v1_posts__post_id__save_put"];
+        post?: never;
+        /**
+         * Unsave Post
+         * @description Ripetibile, e funziona anche su un fit che non vedi più.
+         */
+        delete: operations["unsave_post_v1_posts__post_id__save_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/posts/{post_id}/vote": {
@@ -2645,6 +2727,7 @@ export interface components {
         };
         /** PortfolioTile */
         PortfolioTile: {
+            author?: components["schemas"]["AuthorRef"] | null;
             /** Average */
             average: number | null;
             /** Capsule Id */
@@ -2728,6 +2811,8 @@ export interface components {
         };
         /** PostOut */
         PostOut: {
+            /** Archived */
+            archived?: boolean | null;
             author: components["schemas"]["AuthorRef"] | null;
             /** Capsule Id */
             capsule_id?: string | null;
@@ -2753,6 +2838,13 @@ export interface components {
             published_at: string | null;
             /** Restyle Available */
             restyle_available?: boolean | null;
+            /** Save Count */
+            save_count?: number | null;
+            /**
+             * Saved
+             * @default false
+             */
+            saved: boolean;
             /**
              * Status
              * @enum {string}
@@ -3071,6 +3163,11 @@ export interface components {
              */
             sanction: "warn" | "limit_posting" | "ban";
         };
+        /** SavedOut */
+        SavedOut: {
+            /** Saved */
+            saved: boolean;
+        };
         /** ShopClick */
         ShopClick: {
             /** At */
@@ -3322,6 +3419,13 @@ export interface components {
         Suggestions: {
             /** Items */
             items: components["schemas"]["PersonCard"][];
+        };
+        /** TilePage */
+        TilePage: {
+            /** Items */
+            items: components["schemas"]["PortfolioTile"][];
+            /** Next Cursor */
+            next_cursor: string | null;
         };
         /** UnreadOut */
         UnreadOut: {
@@ -4618,6 +4722,38 @@ export interface operations {
             };
         };
     };
+    list_archive_v1_me_archive_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TilePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     attest_status_v1_me_attest_get: {
         parameters: {
             query?: never;
@@ -5494,6 +5630,38 @@ export interface operations {
             };
         };
     };
+    list_saved_v1_me_saved_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TilePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_domains_v1_me_shop_domains_get: {
         parameters: {
             query?: never;
@@ -6064,6 +6232,128 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PostOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_post_v1_posts__post_id__archive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unarchive_post_v1_posts__post_id__archive_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_post_v1_posts__post_id__save_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unsave_post_v1_posts__post_id__save_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

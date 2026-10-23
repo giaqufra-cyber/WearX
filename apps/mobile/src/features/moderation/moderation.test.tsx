@@ -114,6 +114,7 @@ describe("Segnala", () => {
     const post: Post = {
       id: "p1",
       status: "active",
+      saved: false,
       style: { slug: "gala", name: "Galà", tone: "#3A1418" },
       author: null,
       is_own: false,

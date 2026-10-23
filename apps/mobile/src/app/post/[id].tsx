@@ -10,19 +10,20 @@ import { useVote } from "@/features/feed/api";
 import { PostCard } from "@/features/feed/PostCard";
 import { useCapsules, useMoveFit, usePortfolio, usePost, usePostActions } from "@/features/portfolio/api";
 import { CapsulePicker } from "@/features/portfolio/CapsulePicker";
+import { useArchive, useSaveHandler } from "@/features/saved/api";
 import { ApiError } from "@/lib/api";
 import { track } from "@/lib/events";
 import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { IconButton } from "@/ui/IconButton";
-import { IconBack, IconFolder, IconStar, IconTrash } from "@/ui/icons";
+import { IconArchive, IconBack, IconFolder, IconStar, IconTrash } from "@/ui/icons";
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { Sheet } from "@/ui/Sheet";
 import { useToast } from "@/ui/Toast";
 
 const MAX_WIDTH = 560;
 
-/** Un fit a tutto schermo; se è tuo: capsula, copertina, elimina. */
+/** Un fit a tutto schermo; se è tuo: capsula, copertina, archivio, elimina. */
 export default function PostScreen() {
   const { id = "", from } = useLocalSearchParams<{ id: string; from?: string }>();
   const post = usePost(id);
@@ -31,6 +32,7 @@ export default function PostScreen() {
     if (loaded) track({ name: "post_open", post_id: loaded, source: from === "style" || from === "feed" ? from : "profile" });
   }, [loaded, from]);
   const toast = useToast();
+  const onToggleSave = useSaveHandler();
   const vote = useVote({ onError: (message) => toast.show(message, { tone: "error" }) });
   const { width: screen } = useWindowDimensions();
   const width = Math.min(screen, MAX_WIDTH);
@@ -52,7 +54,7 @@ export default function PostScreen() {
   } else {
     body = (
       <>
-        <PostCard post={post.data} width={width} onVote={onVote} voting={vote.isPending} />
+        <PostCard post={post.data} width={width} onVote={onVote} voting={vote.isPending} onToggleSave={onToggleSave} />
         {post.data.is_own ? <OwnerActions post={post.data} onDeleted={back} /> : null}
       </>
     );
@@ -82,6 +84,9 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
   const portfolio = usePortfolio(nickname, null);
   const move = useMoveFit(nickname, { onError: (message) => toast.show(message, { tone: "error" }) });
   const { setCapsule, remove } = usePostActions(post.id);
+  const archive = useArchive(post.id);
+  const archived = post.archived === true;
+  const saves = post.save_count ?? 0;
   const [picking, setPicking] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -97,6 +102,15 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
           <Button label="Vedi il motivo" variant="secondary" size="sm" onPress={() => router.push("/moderation")} />
         </View>
       ) : null}
+      {archived ? (
+        <View style={styles.archived} role="alert">
+          <Text style={styles.archivedTitle}>Archiviato</Text>
+          <Text style={styles.hiddenText}>Lo vedi solo tu. Voti, capi e capsula restano come sono.</Text>
+        </View>
+      ) : null}
+      {saves > 0 ? (
+        <Text style={styles.saves}>{saves === 1 ? "Salvato da 1 persona" : `Salvato da ${saves} persone`}</Text>
+      ) : null}
       <Text style={styles.kicker}>IL TUO PORTFOLIO</Text>
       <Button
         label={capsuleName ? `Capsula: ${capsuleName}` : "Aggiungi a una capsula"}
@@ -106,6 +120,7 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
         icon={<IconFolder color={colors.text} />}
         onPress={() => setPicking(true)}
       />
+      {archived ? null : (
       <Button
         label={isCover ? "È la copertina del portfolio" : "Metti in copertina"}
         variant="secondary"
@@ -119,6 +134,23 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
             { postId: post.id, afterId: null },
             { onSuccess: () => toast.show("Ora è la copertina del tuo portfolio.") },
           )
+        }
+      />
+      )}
+      <Button
+        label={archived ? "Rimetti nel profilo" : "Archivia"}
+        variant="secondary"
+        size="md"
+        fullWidth
+        loading={archive.isPending}
+        icon={<IconArchive color={colors.text} />}
+        hint={archived ? "Torna nel portfolio al posto di prima" : "Lo togli dal profilo senza eliminarlo: lo vedi solo tu"}
+        onPress={() =>
+          archive.mutate(!archived, {
+            onSuccess: () =>
+              toast.show(archived ? "Fit rimesso nel profilo." : "Fit archiviato. Lo ritrovi in Account → Archivio."),
+            onError: () => toast.show("Non riusciamo a salvare. Riprova.", { tone: "error" }),
+          })
         }
       />
       <Button
@@ -193,6 +225,16 @@ const styles = StyleSheet.create({
   },
   hiddenTitle: { fontFamily: fonts.uiBold, fontSize: 15, color: colors.warning },
   hiddenText: { fontFamily: fonts.ui, fontSize: 13, lineHeight: 18, color: colors.textSecondary },
+  archived: {
+    gap: spacing[1],
+    padding: spacing[4],
+    marginBottom: spacing[3],
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  archivedTitle: { fontFamily: fonts.uiBold, fontSize: 15, color: colors.text },
+  saves: { fontFamily: fonts.ui, fontSize: 13, color: colors.textSecondary, marginBottom: spacing[2] },
   kicker: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 1.5, color: colors.textSecondary, marginBottom: 2 },
   sheetText: { fontFamily: fonts.ui, fontSize: 14, lineHeight: 20, color: colors.textSecondary },
   sheetButtons: { flexDirection: "row", gap: spacing[2] },

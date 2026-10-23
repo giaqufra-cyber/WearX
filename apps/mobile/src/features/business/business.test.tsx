@@ -53,6 +53,7 @@ afterEach(() => client.clear());
 const post = (): Post => ({
   id: "p1",
   status: "active",
+  saved: false,
   style: { slug: "gala", name: "Galà", tone: "#3A1418" },
   author: { nickname: "studio.nove", account_type: "business" },
   is_own: false,

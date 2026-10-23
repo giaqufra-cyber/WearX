@@ -595,6 +595,24 @@ async def demo_seed(auth: Any, client: Any, store: Any) -> dict[str, Any]:
     await follow("giulia.rossi", "tommaso.galli", accept=True)
     await follow("elena.conti", "tommaso.galli", accept=True)
 
+    # Salvati e archivio (seduta 32): l'ospite ha salvato tre fit di altri e ha un suo fit in
+    # archivio; i fit dell'ospite sono stati salvati qualche volta.
+    others_posts = [p for p in posts if p[1] != GUEST["nickname"]]
+    for post_id, _, _ in others_posts[:3]:
+        r = await client.put(f"/v1/posts/{post_id}/save", headers=auth_header(GUEST["nickname"]))
+        r.raise_for_status()
+    guest_posts = [p[0] for p in posts if p[1] == GUEST["nickname"]]
+    for k, post_id in enumerate(guest_posts[:3]):
+        for nick in [p["nickname"] for p in PEOPLE[1 : 2 + k]]:
+            r = await client.put(f"/v1/posts/{post_id}/save", headers=auth_header(nick))
+            if r.status_code != 404:  # chi non lo vede (privato, 16-17...) non lo salva
+                r.raise_for_status()
+    if len(guest_posts) > 1:
+        r = await client.post(
+            f"/v1/posts/{guest_posts[-1]}/archive", headers=auth_header(GUEST["nickname"])
+        )
+        r.raise_for_status()
+
     await run_periodic_jobs()
     control["posts"] = [p[0] for p in posts]
     return control

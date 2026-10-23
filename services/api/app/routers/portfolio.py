@@ -31,8 +31,8 @@ from app.db import get_session
 from app.errors import ApiError
 from app.people import FollowState, find_person
 from app.portfolio import lock_portfolio, move_after
-from app.post_access import POST_VISIBLE_SQL
-from app.post_views import MediaOut, StyleRef
+from app.post_access import NOT_ARCHIVED_SQL, POST_VISIBLE_SQL
+from app.post_views import AuthorRef, MediaOut, StyleRef
 from app.profiles import VISIBLE_STYLE_SQL, CurrentProfile, Profile
 from app.ratelimit import rate_limit
 from app.routers.media import MediaUrls, media_urls
@@ -114,6 +114,8 @@ class PortfolioTile(BaseModel):
     vote_count: int | None
     # Fit di chi guarda (nella pagina di uno stile i fit sono di persone diverse).
     own: bool = False
+    # Solo nei Salvati: l'autore, se chi guarda può vederlo (stesse regole del feed).
+    author: AuthorRef | None = None
 
 
 class PortfolioPage(BaseModel):
@@ -166,7 +168,8 @@ async def get_user(nickname: str, viewer: CurrentProfile, session: Session) -> U
                           join app.profiles a on a.id = p.author_id
                           join app.styles s on s.id = p.style_id
                           left join app.post_stats st on st.post_id = p.id
-                         where p.author_id = :author and {POST_VISIBLE_SQL}"""
+                         where p.author_id = :author and {POST_VISIBLE_SQL}
+                           and {NOT_ARCHIVED_SQL}"""
                 ),
                 params,
             )
@@ -259,7 +262,7 @@ async def _capsules(
                       left join (app.posts p
                                  join app.profiles a on a.id = p.author_id
                                  join app.styles s on s.id = p.style_id)
-                        on p.capsule_id = c.id and {POST_VISIBLE_SQL}
+                        on p.capsule_id = c.id and {POST_VISIBLE_SQL} and {NOT_ARCHIVED_SQL}
                      where c.owner_id = :owner
                      group by c.id
                      order by c.position, c.created_at"""
@@ -280,6 +283,7 @@ async def _capsules(
                           join app.styles s on s.id = p.style_id
                           join app.post_media m on m.post_id = p.id and m.position = 0
                          where p.capsule_id = any(:ids) and {POST_VISIBLE_SQL}
+                           and {NOT_ARCHIVED_SQL}
                          order by p.capsule_id, p.portfolio_rank desc, p.id desc"""
                 ),
                 {**_visible(viewer), "ids": with_posts},
@@ -347,7 +351,8 @@ async def get_user_posts(
     base = f"""from app.posts p
                  join app.profiles a on a.id = p.author_id
                  join app.styles s on s.id = p.style_id
-                where p.author_id = :author and {POST_VISIBLE_SQL}"""
+                where p.author_id = :author and {POST_VISIBLE_SQL}
+                  and {NOT_ARCHIVED_SQL}"""
     rows = (
         (
             await session.execute(
@@ -368,6 +373,7 @@ async def get_user_posts(
                           left join app.votes v on v.post_id = p.id and v.voter_key = :k
                           left join app.post_media m on m.post_id = p.id and m.position = 0
                          where p.author_id = :author and {POST_VISIBLE_SQL}
+                           and {NOT_ARCHIVED_SQL}
                            and (cast(:capsule as uuid) is null or p.capsule_id = :capsule)
                            and (cast(:r as text) is null
                                 or (p.portfolio_rank, p.id)
@@ -388,7 +394,7 @@ async def get_user_posts(
     own = bool(target.is_self)
     page = rows[:limit]
     return PortfolioPage(
-        items=[_tile(row, own) for row in page],
+        items=[make_tile(row, own) for row in page],
         next_cursor=_encode_cursor(str(page[-1]["portfolio_rank"]), page[-1]["id"])
         if len(rows) > limit
         else None,
@@ -472,6 +478,7 @@ async def get_style_posts(
                           left join app.votes v on v.post_id = p.id and v.voter_key = :k
                           left join app.post_media m on m.post_id = p.id and m.position = 0
                          where s.slug = :slug and p.status = 'active' and {POST_VISIBLE_SQL}
+                           and {NOT_ARCHIVED_SQL}
                            and (cast(:key as double precision) is null
                                 or ({key_sql}, p.id)
                                    < (cast(:key as double precision), cast(:cid as uuid)))
@@ -493,21 +500,23 @@ async def get_style_posts(
     )
     page = rows[:limit]
     return StylePostsPage(
-        items=[_tile(row, row["author_id"] == viewer.id) for row in page],
+        items=[make_tile(row, row["author_id"] == viewer.id) for row in page],
         next_cursor=_encode_style_cursor(sort, float(page[-1]["sort_key"]), page[-1]["id"])
         if len(rows) > limit
         else None,
     )
 
 
-def _tile(row: Any, own: bool) -> PortfolioTile:
+def make_tile(row: Any, own: bool, author: AuthorRef | None = None) -> PortfolioTile:
+    """Una casella della griglia. `row` ha le colonne delle query di questo modulo."""
     reveal = own or row["mine"] is not None
     return PortfolioTile(
         id=row["id"],
         status=row["status"],
         style=StyleRef(slug=row["slug"], name=row["name"], tone=row["tone"]),
         caption=row["caption"],
-        capsule_id=row["capsule_id"],
+        # La capsula di un fit altrui non riguarda chi guarda.
+        capsule_id=row["capsule_id"] if own else None,
         media_count=int(row["media_count"]),
         photo=MediaOut(
             position=0,
@@ -524,6 +533,7 @@ def _tile(row: Any, own: bool) -> PortfolioTile:
         if own or (reveal and not row["hide_vote_count"])
         else None,
         own=own,
+        author=author,
     )
 
 
@@ -534,7 +544,8 @@ async def _own_alive(session: AsyncSession, profile: Profile, post_id: uuid.UUID
     found = await session.scalar(
         text(
             """select 1 from app.posts
-                where id = :id and author_id = :uid and status <> 'deleted'"""
+                where id = :id and author_id = :uid and status <> 'deleted'
+                  and archived_at is null"""
         ),
         {"id": post_id, "uid": profile.id},
     )

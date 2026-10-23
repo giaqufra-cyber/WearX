@@ -274,3 +274,25 @@ export function IconBell({ color, size = 24 }: IconProps) {
     </Svg>
   );
 }
+
+/** Salva (segnalibro). Pieno quando il fit è salvato. */
+export function IconBookmark({ color, size = 22, filled = false }: IconProps & { filled?: boolean }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : "none"} stroke={color}
+      strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M6 4h12v17l-6-4.5L6 21z" />
+    </Svg>
+  );
+}
+
+/** Archivio (scatola). */
+export function IconArchive({ color, size = 22 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <Rect x={3} y={4} width={18} height={5} rx={1} />
+      <Path d="M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9" />
+      <Path d="M10 13h4" />
+    </Svg>
+  );
+}

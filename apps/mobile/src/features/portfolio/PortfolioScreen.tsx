@@ -29,7 +29,17 @@ import { Avatar } from "@/ui/Avatar";
 import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { IconButton } from "@/ui/IconButton";
-import { IconBack, IconChart, IconCheck, IconFolder, IconLock, IconMore, IconSliders, IconUserPlus } from "@/ui/icons";
+import {
+  IconBack,
+  IconBookmark,
+  IconChart,
+  IconCheck,
+  IconFolder,
+  IconLock,
+  IconMore,
+  IconSliders,
+  IconUserPlus,
+} from "@/ui/icons";
 import { ErrorNotice } from "@/ui/LoadState";
 import { Sheet } from "@/ui/Sheet";
 import { Skeleton } from "@/ui/Skeleton";
@@ -141,6 +151,9 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
         {own ? (
           <>
             <InsightButton />
+            <IconButton label="Salvati" onPress={() => router.push("/saved")}>
+              <IconBookmark color={colors.text} />
+            </IconButton>
             <IconButton label="Trova persone" onPress={() => router.push("/find")}>
               <IconUserPlus color={colors.text} />
             </IconButton>
@@ -481,6 +494,24 @@ function AccountSheet({ visible, onClose }: { visible: boolean; onClose: () => v
   const { signOut } = useAuth();
   return (
     <Sheet visible={visible} title="Account" onClose={onClose}>
+      <Button
+        label="Salvati"
+        variant="secondary"
+        size="md"
+        onPress={() => {
+          onClose();
+          router.push("/saved");
+        }}
+      />
+      <Button
+        label="Archivio"
+        variant="secondary"
+        size="md"
+        onPress={() => {
+          onClose();
+          router.push("/archive");
+        }}
+      />
       <Button
         label="Notifiche"
         variant="secondary"

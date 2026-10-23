@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useFeed, useVote } from "@/features/feed/api";
 import { PostCard } from "@/features/feed/PostCard";
+import { useSaveHandler } from "@/features/saved/api";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
 import { useMyStyles } from "@/features/styles/api";
 import { track } from "@/lib/events";
@@ -58,6 +59,7 @@ export default function FeedScreen() {
     }
   }).current;
 
+  const onToggleSave = useSaveHandler();
   const onVote = useCallback(
     (post: Post, score: number, styleConfirm: boolean | null) => vote.mutate({ postId: post.id, score, styleConfirm }),
     [vote],
@@ -147,7 +149,13 @@ export default function FeedScreen() {
         keyExtractor={(post) => post.id}
         renderItem={({ item }) => (
           <View style={styles.cardWrap}>
-            <PostCard post={item} width={width} onVote={onVote} voting={vote.isPending && vote.variables?.postId === item.id} />
+            <PostCard
+              post={item}
+              width={width}
+              onVote={onVote}
+              voting={vote.isPending && vote.variables?.postId === item.id}
+              onToggleSave={onToggleSave}
+            />
           </View>
         )}
         ListHeaderComponent={header}

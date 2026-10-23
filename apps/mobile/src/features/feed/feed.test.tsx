@@ -48,6 +48,7 @@ const media = (position: number) => ({
 const post = (id: string, extra: Partial<Post> = {}): Post => ({
   id,
   status: "active",
+  saved: false,
   style: { slug: "gala", name: "Galà", tone: "#3A1418" },
   author: { nickname: "giulia.rossi", account_type: "private" },
   is_own: false,

@@ -25,6 +25,8 @@ type Props = {
   numbered?: boolean;
   /** Nome dello stile sopra il titolo: inutile nella pagina dello stile stesso. */
   showStyle?: boolean;
+  /** In alto a sinistra al posto del numero, per esempio "@giulia.rossi" nei Salvati. */
+  byline?: string | null;
 };
 
 const RATIO = 1.28; // 175 x 224 come nel prototipo
@@ -44,6 +46,7 @@ export const FitTile = memo(function FitTile({
   onNext,
   numbered = true,
   showStyle = true,
+  byline = null,
 }: Props) {
   const height = Math.round(width * RATIO);
   const url = tile.photo ? bestVariant(tile.photo.urls.variants, width * PixelRatio.get()) : undefined;
@@ -53,6 +56,7 @@ export const FitTile = memo(function FitTile({
   const title = tile.caption;
   const label = [
     numbered ? `Fit ${index + 1}` : "Fit",
+    byline,
     isCover ? "copertina" : null,
     tile.style.name,
     tile.caption,
@@ -91,6 +95,11 @@ export const FitTile = memo(function FitTile({
         <Shade from="bottom" max={0.88} style={{ ...styles.shade, height: height * 0.62 }} />
 
         {numbered ? <Text style={styles.pos}>{positionLabel(index)}</Text> : null}
+        {!numbered && byline ? (
+          <Text style={[styles.pos, styles.byline]} numberOfLines={1}>
+            {byline}
+          </Text>
+        ) : null}
         <View style={styles.badges}>
           {isCover ? <Text style={[styles.badge, styles.cover]}>COPERTINA</Text> : null}
           {status ? <Text style={[styles.badge, styles.status]}>{status}</Text> : null}
@@ -160,6 +169,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.4,
     color: "rgba(242,239,233,0.8)",
   },
+  byline: { right: 12, fontFamily: fonts.uiBold, fontSize: 11, letterSpacing: 0, color: colors.text },
   badges: { position: "absolute", right: 10, top: 10, alignItems: "flex-end", gap: 4 },
   badge: {
     fontFamily: fonts.uiExtraBold,

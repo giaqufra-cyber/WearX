@@ -1495,3 +1495,31 @@ Fatto:
 Verifiche: 435 test API (+5); 304 test app (+7); 12 percorsi Playwright (il follow ora parte
 dalla ricerca); suggerimenti, ricerca con errore di battitura, Segui e recenti provati nel
 browser a 390×844.
+
+### Seduta 32 — 2026-10-23
+
+**Obiettivo:** ritrovare i fit degli altri che piacciono e togliere dal profilo i propri senza
+eliminarli.
+
+Fatto:
+- **Salvati** (migrazione 0022, tabella `saved_posts`): segnalibro sulla card di ogni fit altrui
+  (feed e dettaglio), pieno quando è salvato; si vede subito e torna com'era se il server dice no.
+  `PUT/DELETE /v1/posts/{id}/save`, `GET /v1/me/saved` (dal più recente, a pagine). Li vede solo
+  chi salva: l'autore vede "Salvato da N persone" sul proprio fit, mai da chi, e non riceve
+  notifiche. I propri fit non si salvano. Un fit salvato che non vedi più (archiviato, eliminato,
+  blocco…) sparisce dall'elenco; se torna visibile ricompare. Eliminare un fit toglie i salvataggi.
+- **Archivio** (`posts.archived_at`): "Archivia" nel dettaglio del proprio fit. Per gli altri il
+  fit non esiste più (feed, profilo, capsule, pagina dello stile, link, salvati); anche per te
+  esce dal profilo, dalle capsule e dal conteggio. Voti, capi e capsula restano. "Rimetti nel
+  profilo" lo riporta al suo posto (l'ordine non cambia). `POST/DELETE /v1/posts/{id}/archive`,
+  `GET /v1/me/archive`. Un fit in archivio non si mette in copertina.
+- **Dove si trovano**: nel proprio profilo un'icona segnalibro (Salvati) in alto; nel foglio
+  Account "Salvati" e "Archivio". Nella griglia dei Salvati c'è l'autore, se lo puoi vedere.
+- Nella griglia di un altro profilo non arriva più la capsula di ogni fit (non serviva e diceva
+  come l'autore organizza i fit).
+- Archivio dei dati: `salvati.json`, e in `fit.json` la data di archiviazione e quante volte è
+  stato salvato. Informativa privacy aggiornata. Demo: l'ospite ha 3 fit salvati e uno in
+  archivio.
+
+Verifiche: 441 test API (+6); 309 test app (+5); 13 percorsi Playwright (+1: salvare dal feed e
+ritrovarlo); Salvati, Archivio e dettaglio archiviato provati nel browser a 390×844.

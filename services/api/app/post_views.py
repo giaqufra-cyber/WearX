@@ -110,6 +110,11 @@ class PostOut(BaseModel):
     restyle_available: bool | None = None
     capsule_id: uuid.UUID | None = None
     vote: VoteSummary
+    # Seduta 32. Salvato da chi guarda (mai sui propri fit).
+    saved: bool = False
+    # Solo per l'autore: archiviato (gli altri non lo vedono) e quante volte è stato salvato.
+    archived: bool | None = None
+    save_count: int | None = None
 
 
 def _as_float(value: Decimal | None) -> float | None:
@@ -168,7 +173,14 @@ async def posts_out(
                                st.shown_at,
                                coalesce(st.confirm_yes, 0) as confirm_yes,
                                coalesce(st.confirm_no, 0) as confirm_no,
-                               v.score as mine, v.style_confirm as my_confirm
+                               v.score as mine, v.style_confirm as my_confirm,
+                               p.archived_at is not null as archived,
+                               exists (select 1 from app.saved_posts sv
+                                        where sv.user_id = :viewer and sv.post_id = p.id)
+                                 as saved,
+                               case when p.author_id = :viewer then
+                                 (select count(*) from app.saved_posts sv
+                                   where sv.post_id = p.id) end as save_count
                           from app.posts p
                           join app.profiles a on a.id = p.author_id
                           left join app.media_uploads au on au.id = a.avatar_upload_id
@@ -273,6 +285,9 @@ async def posts_out(
             restyle_available=(not row["restyle_used"]) if own else None,
             capsule_id=row["capsule_id"] if own else None,
             vote=_summary(viewer, row),
+            saved=bool(row["saved"]) and not own,
+            archived=bool(row["archived"]) if own else None,
+            save_count=int(row["save_count"]) if own else None,
         )
     return out
 

@@ -44,6 +44,7 @@ export type StyleProposalList = Schemas["ProposalList"];
 export type StyleProposalCreated = Schemas["ProposalCreated"];
 export type AdminStyleProposal = Schemas["AdminProposal"];
 export type PersonCard = Schemas["PersonCard"];
+export type TilePage = Schemas["TilePage"];
 export type PeopleResults = Schemas["PeopleResults"];
 export type PeopleSuggestions = Schemas["Suggestions"];
 export type SuggestionReason = NonNullable<Schemas["PersonCard"]["reason"]>;
