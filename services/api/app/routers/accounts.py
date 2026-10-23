@@ -82,6 +82,8 @@ class ProfileOut(BaseModel):
     age_band: Literal["16_17", "18_plus"]
     hide_prices: bool
     hide_vote_count: bool
+    # Si fa trovare nella ricerca persone e nei suggerimenti (seduta 31).
+    discoverable: bool = True
     status: Literal["active", "suspended", "pending_deletion"]
     styles: list[str]
     created_at: datetime
@@ -96,6 +98,7 @@ class ProfileUpdateIn(BaseModel):
     avatar: uuid.UUID | None = None
     hide_prices: bool | None = None
     hide_vote_count: bool | None = None
+    discoverable: bool | None = None
     account_type: Literal["private", "business"] | None = None
 
 
@@ -108,6 +111,7 @@ async def _profile_out(session: AsyncSession, profile: Profile) -> ProfileOut:
         age_band=profile.age_band,
         hide_prices=profile.hide_prices,
         hide_vote_count=profile.hide_vote_count,
+        discoverable=profile.discoverable,
         status=profile.status,
         styles=await joined_style_slugs(session, profile),
         created_at=profile.created_at,
@@ -275,6 +279,8 @@ async def update_me(body: ProfileUpdateIn, profile: CurrentProfile, session: Ses
         changes["hide_prices"] = body.hide_prices
     if "hide_vote_count" in fields and body.hide_vote_count is not None:
         changes["hide_vote_count"] = body.hide_vote_count
+    if "discoverable" in fields and body.discoverable is not None:
+        changes["discoverable"] = body.discoverable
     if "account_type" in fields and body.account_type is not None:
         _check_business_allowed(body.account_type, profile.is_adult)
         changes["account_type"] = body.account_type
@@ -291,7 +297,7 @@ async def update_me(body: ProfileUpdateIn, profile: CurrentProfile, session: Ses
 
     if changes:
         # Nomi di colonna presi da una lista fissa, mai dall'input.
-        allowed = {"bio", "hide_prices", "hide_vote_count", "account_type"}
+        allowed = {"bio", "hide_prices", "hide_vote_count", "discoverable", "account_type"}
         assert set(changes) <= allowed
         assignments = ", ".join(
             f"{col} = cast(:{col} as app.account_type)"

@@ -95,6 +95,7 @@ async def collect(session: AsyncSession, user_id: uuid.UUID) -> dict[str, Any]:
             """select nickname::text as nickname, bio, account_type::text as tipo_account,
                       age_band::text as fascia_eta, adult_on as maggiorenne_dal,
                       hide_prices as nascondi_prezzi, hide_vote_count as nascondi_numero_voti,
+                      coalesce(discoverable, age_band = '18_plus') as trovabile_nella_ricerca,
                       status::text as stato, created_at as creato_il,
                       terms_version as versione_termini, terms_accepted_at as termini_accettati_il,
                       notify_follows as push_follow, notify_votes as push_voti,
@@ -166,6 +167,13 @@ async def collect(session: AsyncSession, user_id: uuid.UUID) -> dict[str, Any]:
             """select p.nickname::text as nickname, b.created_at as dal
                  from app.blocks b join app.profiles p on p.id = b.blocked_id
                 where b.blocker_id = :me order by b.created_at""",
+            **me,
+        ),
+        "suggerimenti_nascosti": await _rows(
+            session,
+            """select p.nickname::text as nickname, d.created_at as dal
+                 from app.suggestion_dismissals d join app.profiles p on p.id = d.target_id
+                where d.user_id = :me order by d.created_at""",
             **me,
         ),
     }

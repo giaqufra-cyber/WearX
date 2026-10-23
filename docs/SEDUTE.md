@@ -1461,3 +1461,37 @@ Fatto:
 Verifiche: 430 test API (+6); 297 test app (+6); 14 test del pannello (+1); 12 percorsi
 Playwright (app e pannello); proposta, richiesta e nascita dello stile provate nel browser.
 
+
+### Seduta 31 — 2026-10-23
+
+**Obiettivo:** trovare le persone senza sapere il nickname esatto, e farsi proporre chi si
+potrebbe conoscere.
+
+Fatto:
+- **Ricerca** (`GET /v1/people/search?q=`): il nickname o una sua parte (dopo "." o "_") che
+  inizia con quello che scrivi, da 3 lettere anche "contiene" ed errori di battitura ("giulai"
+  trova giulia.rossi; trigrammi, migrazione 0021 con l'indice). `@`, maiuscole e spazi non
+  contano. Il nickname esatto è sempre il primo. Poi davanti chi conosci già: lo segui, ti segue,
+  amici in comune, stili in comune, quanto è seguito. 20 risultati.
+- **Chi compare**: le regole di sempre (blocchi, account attivi, i 16-17 mai a un maggiorenne)
+  più "farsi trovare" (`profiles.discoverable`, nuovo interruttore in Privacy e sicurezza → Ricerca;
+  di base sì per i maggiorenni, no per i 16-17). Chi non si fa trovare compare solo col
+  nickname esatto, come prima, o a chi lo conosce già. A un 16-17 la ricerca e i suggerimenti
+  mostrano altri 16-17 e account Business, mai un maggiorenne privato che non conosce.
+- **Suggerimenti** (`GET /v1/people/suggestions`): ti segue, amici di amici ("Seguito da
+  @giulia.rossi"), stili in comune ("3 stili in comune": solo il numero, perché gli stili di una
+  persona restano privati), i più seguiti. La X li toglie per sempre
+  (`POST /v1/people/suggestions/{nickname}/dismiss`, tabella `suggestion_dismissals`, anche
+  nell'archivio dei dati).
+- **App**: in Esplora un selettore **Stili | Persone**. Persone: senza testo i **Recenti**
+  (profili aperti dalla ricerca, solo sul telefono, X e "Cancella") e **Persone che potresti
+  conoscere** con il motivo, Segui e X; scrivendo, i risultati con la parte scritta
+  evidenziata. Nella riga: Segui → Inviata (tocca per ritirarla); "Segui già" apre il profilo
+  (lì si smette di seguire, con la conferma). "Trova persone" dal profilo è la stessa ricerca con
+  la tastiera aperta.
+- Informativa privacy aggiornata (ricerca, suggerimenti, 16-17). Demo: giulia segue chiara e
+  tommaso, così all'ospite compaiono come amici di amici.
+
+Verifiche: 435 test API (+5); 304 test app (+7); 12 percorsi Playwright (il follow ora parte
+dalla ricerca); suggerimenti, ricerca con errore di battitura, Segui e recenti provati nel
+browser a 390×844.

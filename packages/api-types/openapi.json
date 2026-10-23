@@ -2989,6 +2989,131 @@
         "title": "PeoplePage",
         "type": "object"
       },
+      "PeopleResults": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PersonCard"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "items"
+        ],
+        "title": "PeopleResults",
+        "type": "object"
+      },
+      "PersonCard": {
+        "properties": {
+          "account_type": {
+            "enum": [
+              "private",
+              "business"
+            ],
+            "title": "Account Type",
+            "type": "string"
+          },
+          "avatar": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AvatarOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "followers": {
+            "title": "Followers",
+            "type": "integer"
+          },
+          "following": {
+            "enum": [
+              "none",
+              "pending",
+              "accepted"
+            ],
+            "title": "Following",
+            "type": "string"
+          },
+          "follows_you": {
+            "title": "Follows You",
+            "type": "boolean"
+          },
+          "is_self": {
+            "title": "Is Self",
+            "type": "boolean"
+          },
+          "mutual_count": {
+            "title": "Mutual Count",
+            "type": "integer"
+          },
+          "mutuals": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mutuals",
+            "type": "array"
+          },
+          "nickname": {
+            "title": "Nickname",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "follows_you",
+                  "mutuals",
+                  "styles",
+                  "popular"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "shared_style_count": {
+            "title": "Shared Style Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "nickname",
+          "account_type",
+          "bio",
+          "followers",
+          "is_self",
+          "following",
+          "follows_you",
+          "mutual_count",
+          "mutuals",
+          "shared_style_count"
+        ],
+        "title": "PersonCard",
+        "type": "object"
+      },
       "PersonOut": {
         "properties": {
           "account_type": {
@@ -3579,6 +3704,11 @@
             "title": "Created At",
             "type": "string"
           },
+          "discoverable": {
+            "default": true,
+            "title": "Discoverable",
+            "type": "boolean"
+          },
           "hide_prices": {
             "title": "Hide Prices",
             "type": "boolean"
@@ -3701,6 +3831,17 @@
               }
             ],
             "title": "Bio"
+          },
+          "discoverable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discoverable"
           },
           "hide_prices": {
             "anyOf": [
@@ -5131,6 +5272,22 @@
           "tone"
         ],
         "title": "StyleRef",
+        "type": "object"
+      },
+      "Suggestions": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PersonCard"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "Suggestions",
         "type": "object"
       },
       "UnreadOut": {
@@ -8879,6 +9036,108 @@
         "summary": "Create Profile",
         "tags": [
           "account"
+        ]
+      }
+    },
+    "/v1/people/search": {
+      "get": {
+        "operationId": "search_people_v1_people_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 60,
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeopleResults"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search People",
+        "tags": [
+          "people"
+        ]
+      }
+    },
+    "/v1/people/suggestions": {
+      "get": {
+        "description": "Chi potresti conoscere: ti segue, amici di amici, stili in comune, i più seguiti.",
+        "operationId": "suggestions_v1_people_suggestions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Suggestions"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Suggestions",
+        "tags": [
+          "people"
+        ]
+      }
+    },
+    "/v1/people/suggestions/{nickname}/dismiss": {
+      "post": {
+        "description": "Non propormela più. Ripetibile; un nickname che non vedi risponde 404 come gli altri.",
+        "operationId": "dismiss_suggestion_v1_people_suggestions__nickname__dismiss_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nickname",
+            "required": true,
+            "schema": {
+              "title": "Nickname",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Dismiss Suggestion",
+        "tags": [
+          "people"
         ]
       }
     },

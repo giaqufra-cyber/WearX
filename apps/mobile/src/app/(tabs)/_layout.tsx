@@ -29,7 +29,7 @@ export default function TabsLayout() {
         name="explore"
         options={{
           title: "CERCA",
-          tabBarAccessibilityLabel: "Esplora per stile",
+          tabBarAccessibilityLabel: "Cerca stili e persone",
           tabBarIcon: ({ color }) => <IconSearch color={color} />,
         }}
       />

@@ -5,7 +5,11 @@ import { login, state } from "./helpers";
 test("account privato: richiesta di follow, accettazione, portfolio visibile", async ({ page, browser }) => {
   const { people } = await state();
   await login(page, people["marco.e2e"]!);
-  await page.goto(`/user/${people["giulia.e2e"]!.nickname}`);
+  // Marco la trova con la ricerca persone (seduta 31).
+  await page.goto("/explore");
+  await page.getByRole("radio", { name: "Persone" }).click();
+  await page.getByRole("searchbox", { name: "Cerca persone" }).fill("giulia");
+  await page.getByRole("link", { name: /^@giulia\.e2e,/ }).click();
   await expect(page.getByRole("heading", { name: "Account privato" })).toBeVisible();
   await page.getByRole("button", { name: "Segui" }).click();
   await expect(page.getByRole("button", { name: "Richiesta inviata" })).toBeVisible();

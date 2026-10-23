@@ -38,6 +38,19 @@ export default function SettingsScreen() {
           />
         </Section>
 
+        <Section title="RICERCA">
+          <Toggle
+            label="Fatti trovare nella ricerca"
+            description={
+              profile?.age_band === "16_17"
+                ? "Ti trovano solo altri utenti tra 16 e 17 anni. Spento: ti trova solo chi scrive il tuo nickname esatto."
+                : "Spento: ti trova solo chi scrive il tuo nickname esatto o chi ti conosce già, e non compari nei suggerimenti."
+            }
+            value={profile?.discoverable ?? false}
+            onValueChange={(next) => update.mutate({ discoverable: next })}
+          />
+        </Section>
+
         {profile?.age_band === "18_plus" ? (
           <Section title="ACCOUNT">
             <ListRow
