@@ -1,0 +1,31 @@
+INFO wearx: API avviata
+INFO werkzeug: 127.0.0.1 - - [23/Oct/2026 22:13:25] "[33mHEAD /wearx-media HTTP/1.1[0m" 404 -
+INFO werkzeug: 127.0.0.1 - - [23/Oct/2026 22:13:25] "PUT /wearx-media HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [23/Oct/2026 22:13:25] "PUT /wearx-media?cors HTTP/1.1" 200 -
+INFO wearx: API avviata
+INFO httpx: HTTP Request: GET http://localhost:54321/auth/v1/.well-known/jwks.json "HTTP/1.1 200 OK"
+INFO wearx.access: POST /v1/onboarding/profile 201
+INFO httpx: HTTP Request: POST http://e2e/v1/onboarding/profile "HTTP/1.1 201 Created"
+INFO wearx.access: POST /v1/onboarding/profile 201
+INFO httpx: HTTP Request: POST http://e2e/v1/onboarding/profile "HTTP/1.1 201 Created"
+INFO wearx.access: POST /v1/onboarding/profile 201
+INFO httpx: HTTP Request: POST http://e2e/v1/onboarding/profile "HTTP/1.1 201 Created"
+INFO werkzeug: 127.0.0.1 - - [23/Oct/2026 22:13:25] "PUT /wearx-media/media/7fa8a50a-0e7d-40b8-a308-0db837f16731/320.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [23/Oct/2026 22:13:25] "PUT /wearx-media/media/7fa8a50a-0e7d-40b8-a308-0db837f16731/640.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [23/Oct/2026 22:13:25] "PUT /wearx-media/media/7fa8a50a-0e7d-40b8-a308-0db837f16731/1080.webp HTTP/1.1" 200 -
+INFO wearx.access: POST /v1/posts 201
+INFO httpx: HTTP Request: POST http://e2e/v1/posts "HTTP/1.1 201 Created"
+INFO werkzeug: 127.0.0.1 - - [23/Oct/2026 22:13:26] "PUT /wearx-media/media/4e3ec0ad-a8e8-43f0-b273-772f36c3c8ff/320.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [23/Oct/2026 22:13:26] "PUT /wearx-media/media/4e3ec0ad-a8e8-43f0-b273-772f36c3c8ff/640.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [23/Oct/2026 22:13:26] "PUT /wearx-media/media/4e3ec0ad-a8e8-43f0-b273-772f36c3c8ff/1080.webp HTTP/1.1" 200 -
+INFO wearx.access: POST /v1/posts 201
+INFO httpx: HTTP Request: POST http://e2e/v1/posts "HTTP/1.1 201 Created"
+INFO werkzeug: 127.0.0.1 - - [23/Oct/2026 22:13:26] "PUT /wearx-media/media/79caf014-c261-4bc1-b417-d97ab5f360b5/320.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [23/Oct/2026 22:13:26] "PUT /wearx-media/media/79caf014-c261-4bc1-b417-d97ab5f360b5/640.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [23/Oct/2026 22:13:26] "PUT /wearx-media/media/79caf014-c261-4bc1-b417-d97ab5f360b5/1080.webp HTTP/1.1" 200 -
+INFO wearx.access: POST /v1/posts 201
+INFO httpx: HTTP Request: POST http://e2e/v1/posts "HTTP/1.1 201 Created"
+INFO arq.worker: Starting worker for 1 functions: process_upload
+INFO arq.worker: redis_version=7.4.11 mem_usage=1.18M clients_connected=2 db_keys=4
+E2E pronto: app http://localhost:8081  API http://localhost:8000
+INFO wearx.access: GET /v1/config 200
