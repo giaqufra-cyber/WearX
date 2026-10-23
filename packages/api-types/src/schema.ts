@@ -1237,6 +1237,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/people/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search People */
+        get: operations["search_people_v1_people_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/people/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Suggestions
+         * @description Chi potresti conoscere: ti segue, amici di amici, stili in comune, i più seguiti.
+         */
+        get: operations["suggestions_v1_people_suggestions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/people/suggestions/{nickname}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dismiss Suggestion
+         * @description Non propormela più. Ripetibile; un nickname che non vedi risponde 404 come gli altri.
+         */
+        post: operations["dismiss_suggestion_v1_people_suggestions__nickname__dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/posts": {
         parameters: {
             query?: never;
@@ -2522,6 +2579,45 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /** PeopleResults */
+        PeopleResults: {
+            /** Items */
+            items: components["schemas"]["PersonCard"][];
+            /** Query */
+            query: string;
+        };
+        /** PersonCard */
+        PersonCard: {
+            /**
+             * Account Type
+             * @enum {string}
+             */
+            account_type: "private" | "business";
+            avatar?: components["schemas"]["AvatarOut"] | null;
+            /** Bio */
+            bio: string | null;
+            /** Followers */
+            followers: number;
+            /**
+             * Following
+             * @enum {string}
+             */
+            following: "none" | "pending" | "accepted";
+            /** Follows You */
+            follows_you: boolean;
+            /** Is Self */
+            is_self: boolean;
+            /** Mutual Count */
+            mutual_count: number;
+            /** Mutuals */
+            mutuals: string[];
+            /** Nickname */
+            nickname: string;
+            /** Reason */
+            reason?: ("follows_you" | "mutuals" | "styles" | "popular") | null;
+            /** Shared Style Count */
+            shared_style_count: number;
+        };
         /** PersonOut */
         PersonOut: {
             /**
@@ -2706,6 +2802,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Discoverable
+             * @default true
+             */
+            discoverable: boolean;
             /** Hide Prices */
             hide_prices: boolean;
             /** Hide Vote Count */
@@ -2742,6 +2843,8 @@ export interface components {
             avatar?: string | null;
             /** Bio */
             bio?: string | null;
+            /** Discoverable */
+            discoverable?: boolean | null;
             /** Hide Prices */
             hide_prices?: boolean | null;
             /** Hide Vote Count */
@@ -3214,6 +3317,11 @@ export interface components {
             slug: string;
             /** Tone */
             tone: string;
+        };
+        /** Suggestions */
+        Suggestions: {
+            /** Items */
+            items: components["schemas"]["PersonCard"][];
         };
         /** UnreadOut */
         UnreadOut: {
@@ -5746,6 +5854,86 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ProfileOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_people_v1_people_search_get: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeopleResults"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suggestions_v1_people_suggestions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Suggestions"];
+                };
+            };
+        };
+    };
+    dismiss_suggestion_v1_people_suggestions__nickname__dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nickname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

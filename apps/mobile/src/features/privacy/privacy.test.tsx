@@ -43,7 +43,14 @@ jest.mock("expo-web-browser", () => ({ openBrowserAsync: jest.fn() }));
 jest.mock("@/lib/env", () => ({ env: { ...jest.requireActual("@/lib/env").env, emailOtp: true } }));
 jest.mock("@/features/auth/passwordLeak", () => ({ checkPasswordLeak: jest.fn() }));
 const mockSignOut = jest.fn();
-const mockProfile = { nickname: "fra.fit", hide_prices: false, hide_vote_count: false, status: "active" };
+const mockProfile = {
+  nickname: "fra.fit",
+  hide_prices: false,
+  hide_vote_count: false,
+  discoverable: true,
+  age_band: "18_plus",
+  status: "active",
+};
 jest.mock("@/features/auth/AuthProvider", () => ({
   ME_QUERY_KEY: ["me"],
   useAuth: () => ({
@@ -117,6 +124,10 @@ test("impostazioni: interruttori e voci", async () => {
   await render(<SettingsScreen />, { wrapper: Providers });
   await user.press(screen.getByRole("switch", { name: "Nascondi i prezzi" }));
   expect(request).toHaveBeenCalledWith("PATCH", "/v1/me", { token: "tok", body: { hide_prices: true } });
+  const findable = screen.getByRole("switch", { name: "Fatti trovare nella ricerca" });
+  expect(findable).toBeChecked();
+  await user.press(findable);
+  expect(request).toHaveBeenCalledWith("PATCH", "/v1/me", { token: "tok", body: { discoverable: false } });
   await user.press(screen.getByRole("button", { name: /^Dispositivi collegati/ }));
   expect(router.push).toHaveBeenCalledWith("/devices");
   await user.press(screen.getByRole("button", { name: /^Cancella l'account/ }));

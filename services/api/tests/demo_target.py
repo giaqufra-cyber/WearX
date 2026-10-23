@@ -589,6 +589,11 @@ async def demo_seed(auth: Any, client: Any, store: Any) -> dict[str, Any]:
     await follow("ospite.demo", "sofia.verdi", accept=False)
     await follow("marco.bianchi", "ospite.demo", accept=True)
     await follow("luca.neri", "ospite.demo", accept=False)
+    # Amici di amici per i suggerimenti di "Cerca persone" (seduta 31): giulia segue chiara e
+    # tommaso, così all'ospite compaiono come "Seguito da @giulia.rossi".
+    await follow("giulia.rossi", "chiara.ferri", accept=True)
+    await follow("giulia.rossi", "tommaso.galli", accept=True)
+    await follow("elena.conti", "tommaso.galli", accept=True)
 
     await run_periodic_jobs()
     control["posts"] = [p[0] for p in posts]

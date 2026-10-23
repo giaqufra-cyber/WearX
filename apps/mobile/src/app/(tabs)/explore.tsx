@@ -1,9 +1,10 @@
 import type { StyleCard } from "@wearx/api-types";
 import { colors, fonts, radii, spacing } from "@wearx/design-tokens";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text as RNText, View } from "react-native";
 
+import { PeopleSearch } from "@/features/people/PeopleSearch";
 import { useStyles } from "@/features/styles/api";
 import { inCategory, type StyleCategory } from "@/features/styles/catalog";
 import { CategoryChips } from "@/features/styles/CategoryChips";
@@ -14,6 +15,7 @@ import { EmptyState } from "@/ui/EmptyState";
 import { ErrorNotice } from "@/ui/LoadState";
 import { Screen } from "@/ui/Screen";
 import { SearchField } from "@/ui/SearchField";
+import { SegmentedControl } from "@/ui/SegmentedControl";
 import { Skeleton } from "@/ui/Skeleton";
 import { StyleTile } from "@/ui/StyleTile";
 import { Text } from "@/ui/Text";
@@ -22,8 +24,28 @@ export const SEARCH_DEBOUNCE_MS = 250;
 
 const openStyle = (slug: string) => router.push({ pathname: "/style/[slug]", params: { slug } });
 
-/** Esplora (prototipo): ricerca, stile stagionale in evidenza, tutti gli stili. */
+type Tab = "styles" | "people";
+const TABS = [
+  { value: "styles", label: "Stili" },
+  { value: "people", label: "Persone" },
+] as const;
+
+/** Cerca: stili (stagionale in evidenza, tutti gli stili) oppure persone (seduta 31). */
 export default function ExploreScreen() {
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const [tab, setTab] = useState<Tab>(params.tab === "people" ? "people" : "styles");
+  return (
+    <Screen>
+      <Text variant="display" role="heading" style={styles.title}>
+        Esplora
+      </Text>
+      <SegmentedControl label="Cosa cercare" options={TABS} value={tab} onChange={setTab} size="sm" />
+      {tab === "styles" ? <StylesPane /> : <PeopleSearch />}
+    </Screen>
+  );
+}
+
+function StylesPane() {
   const [query, setQuery] = useState("");
   const debounced = useDebouncedValue(query.trim(), SEARCH_DEBOUNCE_MS);
   const [category, setCategory] = useState<StyleCategory | null>(null);
@@ -36,10 +58,7 @@ export default function ExploreScreen() {
   for (let i = 0; i < items.length; i += 2) rows.push(items.slice(i, i + 2));
 
   return (
-    <Screen>
-      <Text variant="display" role="heading" style={styles.title}>
-        Esplora
-      </Text>
+    <>
       <SearchField
         value={query}
         onChangeText={setQuery}
@@ -117,7 +136,7 @@ export default function ExploreScreen() {
           <RNText style={styles.proposeText}>Proponilo o chiedi quelli proposti dagli altri →</RNText>
         </Pressable>
       ) : null}
-    </Screen>
+    </>
   );
 }
 

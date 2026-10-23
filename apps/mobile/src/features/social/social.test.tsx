@@ -247,32 +247,39 @@ describe("Elenchi", () => {
 });
 
 describe("Trova persone", () => {
-  test("nickname esatto: scheda con Segui", async () => {
-    get.mockResolvedValue(person());
+  test("è la ricerca persone, con la tastiera già pronta e i suggerimenti", async () => {
+    get.mockImplementation((path: string) =>
+      Promise.resolve(
+        path === "/v1/people/suggestions"
+          ? { items: [] }
+          : {
+              query: "giulia",
+              items: [
+                {
+                  nickname: "giulia.rossi",
+                  account_type: "private",
+                  avatar: null,
+                  bio: null,
+                  followers: 120,
+                  is_self: false,
+                  following: "none",
+                  follows_you: false,
+                  mutual_count: 0,
+                  mutuals: [],
+                  shared_style_count: 0,
+                  reason: null,
+                },
+              ],
+            },
+      ),
+    );
     const user = userEvent.setup();
     await render(<FindScreen />, { wrapper: Providers });
-    await user.type(screen.getByLabelText(/Nickname/i), "@Giulia.Rossi");
-    await user.press(screen.getByRole("button", { name: "Cerca" }));
-    expect(get).toHaveBeenCalledWith("/v1/users/giulia.rossi", expect.objectContaining({ token: "tok" }));
-    expect(await screen.findByText(/PRIVATO · 4 fit · 120 follower/)).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Segui" })).toBeOnTheScreen();
-    await user.press(screen.getByRole("link", { name: "Apri il profilo di @giulia.rossi" }));
+    expect(await screen.findByText("Ancora nessun suggerimento")).toBeOnTheScreen();
+    await user.type(screen.getByRole("searchbox", { name: "Cerca persone" }), "Giulia");
+    expect(await screen.findByText("120 follower")).toBeOnTheScreen();
+    expect(get).toHaveBeenCalledWith("/v1/people/search?q=giulia", expect.objectContaining({ token: "tok" }));
+    await user.press(screen.getByRole("link", { name: "@giulia.rossi, 120 follower" }));
     expect(router.push).toHaveBeenCalledWith({ pathname: "/user/[nickname]", params: { nickname: "giulia.rossi" } });
-  });
-
-  test("nessun profilo, e nickname non valido senza chiedere al server", async () => {
-    get.mockRejectedValue(new ApiError(404, "user.not_found", "Profilo non trovato"));
-    const user = userEvent.setup();
-    await render(<FindScreen />, { wrapper: Providers });
-    await user.type(screen.getByLabelText(/Nickname/i), "nessuno_qui");
-    await user.press(screen.getByRole("button", { name: "Cerca" }));
-    expect(await screen.findByText("Nessun profilo con questo nickname.")).toBeOnTheScreen();
-
-    get.mockClear();
-    await user.clear(screen.getByLabelText(/Nickname/i));
-    await user.type(screen.getByLabelText(/Nickname/i), "no spazi");
-    await user.press(screen.getByRole("button", { name: "Cerca" }));
-    expect(screen.getByText("Questo non è un nickname valido.")).toBeOnTheScreen();
-    expect(get).not.toHaveBeenCalled();
   });
 });

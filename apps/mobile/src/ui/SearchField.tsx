@@ -10,10 +10,11 @@ type Props = {
   /** Nome per i lettori di schermo (non c'è un'etichetta visibile). */
   label: string;
   maxLength?: number;
+  autoFocus?: boolean;
 };
 
 /** Campo di ricerca del prototipo: lente a sinistra, croce per svuotare. */
-export function SearchField({ value, onChangeText, placeholder, label, maxLength = 40 }: Props) {
+export function SearchField({ value, onChangeText, placeholder, label, maxLength = 40, autoFocus = false }: Props) {
   return (
     <View style={styles.box}>
       <IconSearch color={colors.textSecondary} size={20} />
@@ -29,6 +30,7 @@ export function SearchField({ value, onChangeText, placeholder, label, maxLength
         autoCapitalize="none"
         autoCorrect={false}
         maxLength={maxLength}
+        autoFocus={autoFocus}
         style={styles.input}
       />
       {value ? (

@@ -17,6 +17,8 @@ Per tutto ciò che riguarda i tuoi dati: **privacy@wearx.app**.
   strumenti di tracciamento di terze parti.
 - Gli altri vedono il tuo nickname, la foto profilo, la bio e i fit (ognuno con il suo stile).
   Gli stili a cui sei iscritto li vedi solo tu. Email e numero di telefono restano privati.
+- Gli altri possono trovarti cercando il nickname e vederti tra le "persone che potresti
+  conoscere". Puoi toglierti dalla ricerca: ti troverà solo chi scrive il nickname esatto.
 - I voti sono anonimi: chi riceve un voto non sa chi l'ha dato. Nel nostro database i voti
   sono salvati con uno pseudonimo, non con il tuo account.
 - La data di nascita la usiamo solo per calcolare la fascia d'età e non la conserviamo.
@@ -31,7 +33,14 @@ caratteri di un'impronta (hash) della password, mai la password.
 
 **Profilo.** Nickname, foto profilo (se la metti), bio, tipo di account (privato o Business),
 stili scelti (li vedi solo tu), impostazioni (prezzi nascosti, numero di voti nascosto,
-notifiche), versione dei Termini accettata e data dell'accettazione.
+farti trovare nella ricerca, notifiche), versione dei Termini accettata e data dell'accettazione.
+
+**Ricerca e suggerimenti.** Per proporti persone che potresti conoscere usiamo chi segui, chi
+ti segue, chi seguono le persone che segui e gli stili in comune. Accanto a un suggerimento
+possono comparire fino a due persone che segui e che la seguono ("Seguito da @…") oppure quanti
+stili avete in comune, mai quali. Ricordiamo chi hai tolto dai suggerimenti, per non
+riproportelo. I profili che apri dalla ricerca ("Recenti") restano solo
+sul tuo telefono.
 
 **Età.** Ci servono la tua fascia d'età (16-17 anni oppure 18 e più) e la data in cui compirai 18
 anni. La data di nascita che inserisci serve a calcolarle e poi la cancelliamo. Se l'età viene
@@ -157,7 +166,8 @@ legittimo interesse. Molte cose le fai da solo nell'app, in **Privacy e sicurezz
 - **Cancella l'account;**
 - **Dispositivi collegati:** vedi e chiudi gli accessi;
 - **Notifiche:** scegli quali ricevere;
-- **Nascondi i prezzi, Nascondi il numero dei voti, Tipo di account.**
+- **Nascondi i prezzi, Nascondi il numero dei voti, Fatti trovare nella ricerca, Tipo di
+  account.**
 
 Per il resto scrivi a privacy@wearx.app: rispondiamo entro un mese. Se pensi che trattiamo i
 tuoi dati in modo scorretto puoi reclamare al **Garante per la protezione dei dati personali**
@@ -166,7 +176,9 @@ tuoi dati in modo scorretto puoi reclamare al **Garante per la protezione dei da
 ## Chi ha 16 o 17 anni
 
 WearX è riservata a chi ha almeno 16 anni. Per chi ha 16 o 17 anni: il profilo nasce privato, i
-fit sono visibili solo ad altre persone di 16-17 anni, gli adulti non possono cercarti, alcuni
+fit sono visibili solo ad altre persone di 16-17 anni, gli adulti non possono cercarti né
+vederti nei suggerimenti, nella ricerca compari solo se lo scegli tu (e solo ad altri 16-17enni),
+tra i suggerimenti non ti proponiamo adulti con profilo privato, alcuni
 stili sono riservati ai maggiorenni, non ricevi notifiche tra le 22 e le 7 e le foto sono
 controllate con criteri più severi. Al compimento dei 18 anni la fascia cambia da sola; i fit
 pubblicati prima restano visibili solo ai 16-17enni.
