@@ -2,7 +2,7 @@ import { colors, fonts, spacing } from "@wearx/design-tokens";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 
 import { CATEGORIES, type StyleCategory } from "@/features/styles/catalog";
-import { t } from "@/lib/i18n";
+import { N_, t } from "@/lib/i18n";
 
 type Props = {
   value: StyleCategory | null;
@@ -12,7 +12,7 @@ type Props = {
 };
 
 /** Filtro per categoria del catalogo: Più seguiti · Stili · Sport · Accessori · … */
-export function CategoryChips({ value, onChange, allLabel = "Più seguiti" }: Props) {
+export function CategoryChips({ value, onChange, allLabel = N_("Più seguiti") }: Props) {
   const options: { key: StyleCategory | null; label: string }[] = [{ key: null, label: allLabel }, ...CATEGORIES];
   return (
     <ScrollView
@@ -33,7 +33,7 @@ export function CategoryChips({ value, onChange, allLabel = "Più seguiti" }: Pr
             onPress={() => onChange(option.key)}
             style={[styles.chip, selected && styles.chipOn]}
           >
-            <Text style={[styles.text, selected && styles.textOn]}>{option.label}</Text>
+            <Text style={[styles.text, selected && styles.textOn]}>{t(option.label)}</Text>
           </Pressable>
         );
       })}

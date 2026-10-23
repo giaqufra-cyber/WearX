@@ -25,7 +25,7 @@ export function UpdateRequired() {
           {t("Questa versione dell'app non è più supportata: aggiornala per continuare a votare e pubblicare. I tuoi fit, i voti e le impostazioni restano come sono.")}
         </Text>
         <Text style={styles.version}>
-          {minimum ? `Hai la ${APP_VERSION} · serve almeno la ${minimum}` : `Hai la ${APP_VERSION}`}
+          {minimum ? t("Hai la {APP_VERSION} · serve almeno la {minimum}", { APP_VERSION, minimum }) : t("Hai la {APP_VERSION}", { APP_VERSION })}
         </Text>
       </View>
       <View style={styles.actions}>

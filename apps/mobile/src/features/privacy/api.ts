@@ -14,6 +14,7 @@ import { Platform } from "react-native";
 import { ME_QUERY_KEY, useAuth } from "@/features/auth/AuthProvider";
 import { timeAgo } from "@/features/notifications/api";
 import { APP_VERSION, apiGet, apiRequest } from "@/lib/api";
+import { language, locale, t } from "@/lib/i18n";
 
 export const PRIVACY_KEY = ["privacy"] as const;
 
@@ -45,8 +46,8 @@ export function useUpdateProfile(options: { onError?: () => void } = {}) {
 
 /** Nome del dispositivo come lo mostra la lista ("iPhone 15", "Pixel 8", "Browser web"). */
 export function deviceLabel(): string {
-  if (Platform.OS === "web") return "Browser web";
-  return Device_.modelName ?? (Platform.OS === "ios" ? "iPhone" : "Telefono Android");
+  if (Platform.OS === "web") return t("Browser web");
+  return Device_.modelName ?? (Platform.OS === "ios" ? "iPhone" : t("Telefono Android"));
 }
 
 /** "Sono qui": all'avvio e quando l'app torna in primo piano. */
@@ -131,18 +132,19 @@ export function useDeletion() {
 /** 2_400_000 byte -> "2,3 MB". */
 export function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1).replace(".", ",")} MB`;
+  const mb = (bytes / (1024 * 1024)).toFixed(1);
+  return `${language() === "en" ? mb : mb.replace(".", ",")} MB`;
 }
 
 export function longDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
+  return new Date(iso).toLocaleDateString(locale(), { day: "numeric", month: "long", year: "numeric" });
 }
 
 /** "attivo adesso", "attivo 5 min fa", "attivo ieri", "attivo il 3 set". */
 export function lastSeen(iso: string, now: Date = new Date()): string {
   const ago = timeAgo(iso, now);
-  if (ago === "adesso" || ago === "ieri") return `attivo ${ago}`;
-  if (/^\d+ (min|h|g)$/.test(ago)) return `attivo ${ago} fa`;
-  return `attivo il ${ago}`;
+  if (ago === t("adesso") || ago === t("ieri")) return t("attivo {ago}", { ago });
+  if (/^\d+ (min|h|g|d)$/.test(ago)) return t("attivo {ago} fa", { ago });
+  return t("attivo il {ago}", { ago });
 }
 

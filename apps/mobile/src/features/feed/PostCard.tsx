@@ -27,7 +27,7 @@ type Props = {
 
 /** Card di un fit nel feed (prototipo, schermata Feed). */
 export const PostCard = memo(function PostCard({ post, width, onVote, voting, onToggleSave }: Props) {
-  const name = post.author ? `@${post.author.nickname}` : "Fit anonimo";
+  const name = post.author ? `@${post.author.nickname}` : t("Fit anonimo");
   const match = matchLabel(post.vote.style_match);
   const total = totalPrice(post.items);
   const [reporting, setReporting] = useState(false);
@@ -48,7 +48,7 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting, on
           {post.author && !post.is_own ? (
             <Pressable
               role="link"
-              aria-label={`Apri il profilo di ${name}`}
+              aria-label={t("Apri il profilo di {name}", { name })}
               onPress={() => router.push({ pathname: "/user/[nickname]", params: { nickname: post.author!.nickname } })}
               hitSlop={6}
             >
@@ -58,7 +58,7 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting, on
             </Pressable>
           ) : (
             <Text style={styles.author} numberOfLines={1}>
-              {post.is_own ? `${name} · tu` : name}
+              {post.is_own ? t("{name} · tu", { name }) : name}
             </Text>
           )}
           <View style={styles.styleRow}>
@@ -102,7 +102,7 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting, on
         <View style={styles.items}>
           <View style={styles.itemsHead}>
             <Text style={styles.itemsKicker}>{t("IL FIT")}</Text>
-            {total ? <Text style={styles.itemsKicker}>TOTALE {total}</Text> : null}
+            {total ? <Text style={styles.itemsKicker}>{t("TOTALE {total}", { total })}</Text> : null}
           </View>
           {post.items.map((item) => {
             const link = item.link;
@@ -131,7 +131,7 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting, on
                 {target ? (
                   <Pressable
                     role="link"
-                    aria-label={`Apri ${link?.domain ?? "il negozio"}`}
+                    aria-label={t("Apri {v}", { v: link?.domain ?? "il negozio" })}
                     onPress={() => {
                       track({ name: "shop_click", post_id: post.id, item: item.position });
                       void WebBrowser.openBrowserAsync(target);

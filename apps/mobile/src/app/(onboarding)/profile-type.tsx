@@ -22,9 +22,9 @@ export default function ProfileTypeScreen() {
   const isAdult = age.data?.age_band === "18_plus";
   const businessOn = config.data?.feature_flags.business_accounts === true;
   const businessNote = !businessOn
-    ? "In arrivo: per ora si parte con un profilo privato."
+    ? t("In arrivo: per ora si parte con un profilo privato.")
     : !isAdult
-      ? "Il profilo Business è solo per maggiorenni."
+      ? t("Il profilo Business è solo per maggiorenni.")
       : undefined;
   const businessAllowed = businessNote === undefined;
   const selected = accountType === "business" && businessAllowed ? "business" : "private";
@@ -34,7 +34,7 @@ export default function ProfileTypeScreen() {
       {/* Dalla verifica dell'età non si torna indietro: è già fatta. */}
       <AuthHeader step={t("PASSO {n} DI 4", { n: 3 })} onBack={null} />
       <Text variant="display" role="heading">
-        Che profilo{"\n"}vuoi?
+        {t("Che profilo\nvuoi?")}
       </Text>
       <Text variant="secondary">{t("Puoi cambiarlo quando vuoi dalle impostazioni.")}</Text>
 

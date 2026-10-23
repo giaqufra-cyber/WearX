@@ -123,7 +123,7 @@ const NotificationRow = memo(function NotificationRow({ item, fresh, deciding, o
         onPress={open}
         disabled={!target || target === "/notifications"}
         role="button"
-        aria-label={`${fresh ? "Nuova. " : ""}${item.title}. ${item.body} ${when}`}
+        aria-label={`${fresh ? `${t("Nuova.")} ` : ""}${item.title}. ${item.body} ${when}`}
         style={({ pressed }) => [styles.main, pressed && styles.pressed]}
       >
         <Avatar item={item} />

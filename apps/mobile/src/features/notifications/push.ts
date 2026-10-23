@@ -10,6 +10,7 @@ import { Platform } from "react-native";
 
 import { apiRequest } from "@/lib/api";
 import { env } from "@/lib/env";
+import { t } from "@/lib/i18n";
 
 export type PushStatus = "granted" | "denied" | "undetermined" | "unsupported";
 
@@ -55,7 +56,7 @@ export async function enablePush(token: string, { ask }: { ask: boolean }): Prom
   if (!pushSupported()) return "unsupported";
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("default", {
-      name: "Notifiche",
+      name: t("Notifiche"),
       importance: Notifications.AndroidImportance.DEFAULT,
     });
   }

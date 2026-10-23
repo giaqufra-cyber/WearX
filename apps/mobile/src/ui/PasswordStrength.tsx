@@ -11,8 +11,8 @@ export function PasswordStrength({ password }: { password: string }) {
   const score = passwordScore(password);
   const label =
     password === ""
-      ? "Almeno 10 caratteri, maiuscole e minuscole, un numero e un simbolo."
-      : PASSWORD_LABELS[score];
+      ? t("Almeno 10 caratteri, maiuscole e minuscole, un numero e un simbolo.")
+      : t(PASSWORD_LABELS[score]);
   const fill = BAR_COLORS[Math.max(0, score - 1)];
   return (
     <View

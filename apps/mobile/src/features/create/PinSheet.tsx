@@ -61,7 +61,7 @@ export function PinSheet({ visible, itemLabel, photos, pin, onSave, onClose }: P
   };
 
   return (
-    <Sheet visible={visible} title={`Dove si vede: ${itemLabel}`} onClose={onClose}>
+    <Sheet visible={visible} title={t("Dove si vede: {itemLabel}", { itemLabel })} onClose={onClose}>
       {photos.length > 1 ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbs}>
           {photos.map((p, i) => {
@@ -71,7 +71,7 @@ export function PinSheet({ visible, itemLabel, photos, pin, onSave, onClose }: P
                 key={p.localId}
                 role="radio"
                 aria-checked={selected}
-                aria-label={`Foto ${i + 1}`}
+                aria-label={t("Foto {n}", { n: i + 1 })}
                 onPress={() => choose(p.localId)}
                 style={[styles.thumb, selected ? styles.thumbSelected : null]}
               >
@@ -85,7 +85,7 @@ export function PinSheet({ visible, itemLabel, photos, pin, onSave, onClose }: P
       {photo ? (
         <Pressable
           role="button"
-          aria-label={`Foto ${index + 1}: tocca il punto dove si vede il capo`}
+          aria-label={t("Foto {n}: tocca il punto dove si vede il capo", { n: index + 1 })}
           onPress={(event) => {
             const next = pointFromEvent(event, boxW, boxH);
             if (next) setPoint(next);
@@ -106,7 +106,7 @@ export function PinSheet({ visible, itemLabel, photos, pin, onSave, onClose }: P
       ) : null}
 
       <Text style={styles.note} aria-live="polite">
-        {point ? "Punto segnato. Tocca ancora per spostarlo." : "Tocca la foto nel punto in cui si vede il capo."}
+        {point ? t("Punto segnato. Tocca ancora per spostarlo.") : t("Tocca la foto nel punto in cui si vede il capo.")}
       </Text>
 
       <View style={styles.actions}>

@@ -28,16 +28,16 @@ export function VotePanel({ post, onVote, busy }: Props) {
       <View style={styles.wrap}>
         <View style={styles.head}>
           <View style={styles.flex}>
-            <Text style={styles.kicker}>{post.is_own ? "IL TUO FIT · MEDIA" : "MEDIA COMMUNITY"}</Text>
+            <Text style={styles.kicker}>{post.is_own ? t("IL TUO FIT · MEDIA") : t("MEDIA COMMUNITY")}</Text>
             <Text style={styles.meta}>
               {vote.vote_count === null
-                ? "Media dei voti"
+                ? t("Media dei voti")
                 : vote.vote_count === 0
-                  ? "Voti in arrivo" // appena votato: il numero si aggiorna ogni ora
+                  ? t("Voti in arrivo") // appena votato: il numero si aggiorna ogni ora
                   : votesLabel(vote.vote_count)}
               {vote.mine !== null ? (
                 <>
-                  {" · il tuo "}
+                  {t(" · il tuo ")}
                   <Text style={styles.mine}>{vote.mine}</Text>
                 </>
               ) : null}
@@ -45,7 +45,7 @@ export function VotePanel({ post, onVote, busy }: Props) {
           </View>
           <Text
             style={[styles.score, average === null ? styles.scorePending : null]}
-            aria-label={average === null ? t("Media non ancora disponibile") : `Media ${average}`}
+            aria-label={average === null ? t("Media non ancora disponibile") : t("Media {average}", { average })}
           >
             {average === null ? (busy ? "…" : "–") : Math.round(average)}
           </Text>
@@ -75,7 +75,7 @@ export function VotePanel({ post, onVote, busy }: Props) {
           <Text style={styles.confirmText}>
             {t("È davvero")}{" "}<Text style={styles.styleName}>{post.style.name}</Text>?
           </Text>
-          <View style={styles.choices} role="radiogroup" aria-label={`È davvero ${post.style.name}?`}>
+          <View style={styles.choices} role="radiogroup" aria-label={t("È davvero {name}?", { name: post.style.name })}>
             {([true, false] as const).map((answer) => (
               <Pressable
                 key={String(answer)}
@@ -85,7 +85,7 @@ export function VotePanel({ post, onVote, busy }: Props) {
                 style={[styles.choice, confirm === answer ? styles.choiceOn : null]}
               >
                 <Text style={[styles.choiceText, confirm === answer ? styles.choiceTextOn : null]}>
-                  {answer ? "Sì" : "No"}
+                  {answer ? t("Sì") : t("No")}
                 </Text>
               </Pressable>
             ))}

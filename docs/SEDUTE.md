@@ -1523,3 +1523,28 @@ Fatto:
 
 Verifiche: 441 test API (+6); 309 test app (+5); 13 percorsi Playwright (+1: salvare dal feed e
 ritrovarlo); Salvati, Archivio e dettaglio archiviato provati nel browser a 390×844.
+
+### Seduta 33 — 2026-10-23
+
+**Obiettivo:** l'app in italiano e in inglese (prima parte: tutti i testi dell'app; i testi che
+arrivano dal server sono la seduta 34).
+
+Fatto:
+- **Come funziona** (`src/lib/i18n.ts`): il testo italiano nel codice è la chiave,
+  `t("Segui")` → "Follow" in inglese (dizionario `src/i18n/en.ts`, circa 960 testi). Segnaposto
+  tra graffe (`t("Ora segui @{nickname}.", { nickname })`), singolare/plurale con `tn()`, testi
+  in costanti segnati con `N_()` e tradotti dove si mostrano. Senza traduzione resta l'italiano.
+- **Lingua**: quella del telefono (`expo-localization`: italiano se il telefono è in italiano,
+  altrimenti inglese) oppure scelta in **Privacy e sicurezza → Lingua · Language**
+  (Automatica / Italiano / English, salvata sul telefono). Cambiandola l'app si ridisegna e
+  richiede di nuovo i dati. Date, orari e numeri seguono la lingua (1.200 / 1,200).
+- Ogni chiamata al server manda `Accept-Language` (lo userà la seduta 34).
+- **Controllo automatico** (`src/i18n/i18n.test.ts`): ogni testo passato a `t()`, `tn()` o
+  `N_()` ha la traduzione inglese con gli stessi segnaposto, e il dizionario non tiene testi non
+  più usati. Nei test il telefono è in italiano.
+- Restano in italiano finché non arriva la 34: nomi e descrizioni degli stili, messaggi
+  d'errore e notifiche scritti dal server, pagine legali, email.
+
+Verifiche: 315 test app (+6); 14 percorsi Playwright (+1: telefono in inglese, poi Italiano
+dalle impostazioni e la scelta resta ricaricando); registrazione, feed, Esplora, profilo, "Nuovo
+fit" e impostazioni provati nel browser in inglese a 390×844.

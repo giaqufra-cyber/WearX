@@ -25,7 +25,7 @@ export function CapsulePicker({ visible, current, busy, onPick, onClose }: Props
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const list = capsules.data ?? [];
-  const options = [{ id: null, name: "Nessuna capsula" }, ...list];
+  const options = [{ id: null, name: t("Nessuna capsula") }, ...list];
 
   return (
     <Sheet visible={visible} title={t("Capsula")} onClose={onClose}>

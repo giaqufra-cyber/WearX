@@ -165,7 +165,7 @@ function PersonRow({
       </Pressable>
       {person.is_self ? null : <RowFollow person={person} onOpen={onOpen} />}
       {onDismiss ? (
-        <IconButton label={`Non suggerire più @${person.nickname}`} onPress={onDismiss}>
+        <IconButton label={t("Non suggerire più @{nickname}", { nickname: person.nickname })} onPress={onDismiss}>
           <IconClose color={colors.textTertiary} size={18} />
         </IconButton>
       ) : null}
@@ -175,9 +175,9 @@ function PersonRow({
 
 /** Testi corti: nella riga c'è poco spazio, e "Ti segue" lo dice già la riga sotto il nickname. */
 export function rowFollowLabel(state: PersonCard["following"]): string {
-  if (state === "accepted") return "Segui già";
-  if (state === "pending") return "Inviata";
-  return "Segui";
+  if (state === "accepted") return t("Segui già");
+  if (state === "pending") return t("Inviata");
+  return t("Segui");
 }
 
 /** Segui, ritira la richiesta; "Segui già" apre il profilo (lì si smette di seguire, con conferma). */
@@ -195,7 +195,7 @@ function RowFollow({ person, onOpen }: { person: PersonCard; onOpen: () => void 
         { person, action: "follow" },
         {
           onSuccess: (now) =>
-            toast.show(now === "pending" ? `Richiesta inviata a @${person.nickname}.` : `Ora segui @${person.nickname}.`),
+            toast.show(now === "pending" ? t("Richiesta inviata a @{nickname}.", { nickname: person.nickname }) : t("Ora segui @{nickname}.", { nickname: person.nickname })),
         },
       );
     }
@@ -208,10 +208,10 @@ function RowFollow({ person, onOpen }: { person: PersonCard; onOpen: () => void 
       onPress={press}
       hint={
         state === "pending"
-          ? `Richiesta inviata. Tocca per ritirarla`
+          ? t("Richiesta inviata. Tocca per ritirarla")
           : state === "accepted"
-            ? `Apri il profilo di @${person.nickname}`
-            : `Segui @${person.nickname}`
+            ? t("Apri il profilo di @{nickname}", { nickname: person.nickname })
+            : t("Segui @{nickname}", { nickname: person.nickname })
       }
     />
   );
@@ -222,7 +222,7 @@ function RecentRow({ person, onOpen, onRemove }: { person: RecentPerson; onOpen:
     <View style={styles.row}>
       <Pressable
         role="link"
-        aria-label={`@${person.nickname}, aperto di recente`}
+        aria-label={t("@{nick}, aperto di recente", { nick: person.nickname })}
         onPress={onOpen}
         style={({ pressed }) => [styles.who, pressed ? styles.pressed : null]}
       >
@@ -234,7 +234,7 @@ function RecentRow({ person, onOpen, onRemove }: { person: RecentPerson; onOpen:
           {person.account_type === "business" ? <Text style={styles.line}>{t("Account business")}</Text> : null}
         </View>
       </Pressable>
-      <IconButton label={`Togli @${person.nickname} dai recenti`} onPress={onRemove}>
+      <IconButton label={t("Togli @{nickname} dai recenti", { nickname: person.nickname })} onPress={onRemove}>
         <IconClose color={colors.textTertiary} size={18} />
       </IconButton>
     </View>

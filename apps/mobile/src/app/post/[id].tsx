@@ -20,7 +20,7 @@ import { IconArchive, IconBack, IconFolder, IconStar, IconTrash } from "@/ui/ico
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { Sheet } from "@/ui/Sheet";
 import { useToast } from "@/ui/Toast";
-import { t } from "@/lib/i18n";
+import { t, tn } from "@/lib/i18n";
 
 const MAX_WIDTH = 560;
 
@@ -68,7 +68,7 @@ export default function PostScreen() {
           <IconBack color={colors.text} />
         </IconButton>
         <Text style={styles.title} role="heading">
-          {post.data?.is_own ? "Il tuo fit" : "Il fit"}
+          {post.data?.is_own ? t("Il tuo fit") : t("Il fit")}
         </Text>
         <View style={styles.headerSpacer} />
       </View>
@@ -110,11 +110,11 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
         </View>
       ) : null}
       {saves > 0 ? (
-        <Text style={styles.saves}>{saves === 1 ? "Salvato da 1 persona" : `Salvato da ${saves} persone`}</Text>
+        <Text style={styles.saves}>{tn(saves, "Salvato da {count} persona", "Salvato da {count} persone")}</Text>
       ) : null}
       <Text style={styles.kicker}>{t("IL TUO PORTFOLIO")}</Text>
       <Button
-        label={capsuleName ? `Capsula: ${capsuleName}` : t("Aggiungi a una capsula")}
+        label={capsuleName ? t("Capsula: {name}", { name: capsuleName }) : t("Aggiungi a una capsula")}
         variant="secondary"
         size="md"
         fullWidth

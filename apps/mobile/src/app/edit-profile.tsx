@@ -86,7 +86,7 @@ export default function EditProfileScreen() {
           if (current.kind !== "new" || current.uri !== asset.uri) return current;
           if (u.status === "ready") return { ...current, status: "ready", progress: 1, uploadId: u.uploadId };
           if (u.status === "error" || u.status === "rejected") {
-            return { ...current, status: "error", message: u.message ?? "Caricamento non riuscito." };
+            return { ...current, status: "error", message: u.message ?? t("Caricamento non riuscito.") };
           }
           return { ...current, progress: u.progress ?? current.progress };
         });
@@ -121,12 +121,12 @@ export default function EditProfileScreen() {
   const status =
     photo.kind === "new"
       ? photo.status === "uploading"
-        ? `Carichiamo la foto… ${Math.round(photo.progress * 100)}%`
+        ? t("Carichiamo la foto… {pct}%", { pct: Math.round(photo.progress * 100) })
         : photo.status === "error"
           ? photo.message
-          : "Foto pronta: tocca Salva."
+          : t("Foto pronta: tocca Salva.")
       : photo.kind === "remove"
-        ? "Foto tolta: tocca Salva. Tornano le iniziali."
+        ? t("Foto tolta: tocca Salva. Tornano le iniziali.")
         : null;
 
   return (
@@ -190,7 +190,7 @@ export default function EditProfileScreen() {
               style={[styles.bio, problem ? styles.bioError : null]}
             />
             <Text style={[styles.hint, problem ? styles.error : null]} role={problem ? "alert" : undefined}>
-              {problem ?? "Fino a 4 righe. La vede chi apre il tuo profilo."}
+              {problem ?? t("Fino a 4 righe. La vede chi apre il tuo profilo.")}
             </Text>
           </View>
 

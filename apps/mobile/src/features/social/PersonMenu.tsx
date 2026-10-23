@@ -37,7 +37,7 @@ export function PersonMenu({
             {t("Non vi vedrete più: profilo, fit e feed. I follow tra voi vengono tolti e non riceve nessun avviso. Puoi sbloccare quando vuoi da Account › Account bloccati.")}
           </Text>
           <Button
-            label={`Blocca @${nickname}`}
+            label={t("Blocca @{nickname}", { nickname })}
             variant="danger"
             size="md"
             fullWidth
@@ -46,7 +46,7 @@ export function PersonMenu({
               block.mutate(undefined, {
                 onSuccess: () => {
                   close();
-                  toast.show(`@${nickname} bloccato.`);
+                  toast.show(t("@{nick} bloccato.", { nick: nickname }));
                   if (router.canGoBack()) router.back();
                 },
                 onError: (error) => toast.show(socialError(error), { tone: "error" }),

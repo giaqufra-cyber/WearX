@@ -38,7 +38,7 @@ export function NewPasswordFields({ submitLabel, onSubmit, before, ready = true 
     setError(null);
     try {
       if ((await checkPasswordLeak(password)) === "compromised") {
-        setError("Questa password è comparsa in una violazione di dati online. Scegline un'altra.");
+        setError(t("Questa password è comparsa in una violazione di dati online. Scegline un'altra."));
         return;
       }
       setError(await onSubmit(password));
@@ -76,7 +76,7 @@ export function NewPasswordFields({ submitLabel, onSubmit, before, ready = true 
         autoCorrect={false}
         autoComplete="new-password"
         textContentType="newPassword"
-        error={repeat.length > 0 && !same ? "Le due password non coincidono." : null}
+        error={repeat.length > 0 && !same ? t("Le due password non coincidono.") : null}
         onSubmitEditing={() => void submit()}
       />
       {error ? (

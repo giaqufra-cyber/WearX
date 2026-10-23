@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Line, Path, Rect } from "react-native-svg";
 
 import { formatInt, shortDate, weekdayDate } from "@/features/insights/api";
+import { t } from "@/lib/i18n";
 
 type Props = {
   points: InsightPoint[];
@@ -37,11 +38,11 @@ export function InsightChart({ points, metric, bucket, width }: Props) {
   const slot = width / Math.max(points.length, 1);
   const bar = Math.max(2, Math.min(MAX_BAR, slot - GAP));
   const plot = HEIGHT - TOP;
-  const unit = metric === "impressions" ? "visualizzazioni" : "voti";
+  const unit = metric === "impressions" ? t("visualizzazioni") : t("voti");
   const index = selected ?? points.length - 1;
   const current = points[index];
-  const label = (p: InsightPoint) => (bucket === "week" ? `settimana del ${shortDate(p.start)}` : weekdayDate(p.start));
-  const valueText = (v: number | null) => (v === null ? `meno di 5 ${unit}` : `${formatInt(v)} ${unit}`);
+  const label = (p: InsightPoint) => (bucket === "week" ? t("settimana del {date}", { date: shortDate(p.start) }) : weekdayDate(p.start));
+  const valueText = (v: number | null) => (v === null ? t("meno di 5 {unit}", { unit }) : `${formatInt(v)} ${unit}`);
 
   return (
     <View>

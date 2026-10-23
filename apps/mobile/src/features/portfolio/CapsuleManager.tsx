@@ -41,7 +41,7 @@ export function CapsuleManager({ visible, onClose }: Props) {
       <View style={styles.newRow}>
         <View style={styles.flex}>
           <TextField
-            label={`Nuova capsula · ${list.length} di ${MAX_CAPSULES}`}
+            label={t("Nuova capsula · {length} di {MAX_CAPSULES}", { length: list.length, MAX_CAPSULES })}
             value={name}
             onChangeText={(value) => {
               setName(value);
@@ -77,7 +77,7 @@ function CapsuleRow({ capsule }: { capsule: Capsule }) {
   const [mode, setMode] = useState<"view" | "edit" | "delete">("view");
   const [name, setName] = useState(capsule.name);
   const [error, setError] = useState<string | null>(null);
-  const count = capsule.post_count === 1 ? "1 fit" : `${capsule.post_count} fit`;
+  const count = capsule.post_count === 1 ? "1 fit" : t("{post_count} fit", { post_count: capsule.post_count });
 
   if (mode === "edit") {
     return (
@@ -116,7 +116,7 @@ function CapsuleRow({ capsule }: { capsule: Capsule }) {
     return (
       <View style={styles.rowEdit} role="alert">
         <Text style={styles.confirm}>
-          Eliminare «{capsule.name}»? I fit restano nel portfolio, escono solo dalla capsula.
+          {t("Eliminare «{name}»? I fit restano nel portfolio, escono solo dalla capsula.", { name: capsule.name })}
         </Text>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <View style={styles.actions}>
@@ -141,10 +141,10 @@ function CapsuleRow({ capsule }: { capsule: Capsule }) {
         </Text>
         <Text style={styles.count}>{count}</Text>
       </View>
-      <IconButton label={`Rinomina ${capsule.name}`} onPress={() => setMode("edit")}>
+      <IconButton label={t("Rinomina {name}", { name: capsule.name })} onPress={() => setMode("edit")}>
         <IconPencil color={colors.textSecondary} />
       </IconButton>
-      <IconButton label={`Elimina ${capsule.name}`} onPress={() => setMode("delete")}>
+      <IconButton label={t("Elimina {name}", { name: capsule.name })} onPress={() => setMode("delete")}>
         <IconTrash color={colors.textSecondary} />
       </IconButton>
     </View>

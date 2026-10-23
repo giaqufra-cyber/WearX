@@ -8,16 +8,16 @@ import { ApiError } from "@/lib/api";
 import { Button } from "@/ui/Button";
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { TopBar } from "@/ui/TopBar";
-import { t } from "@/lib/i18n";
+import { N_, t } from "@/lib/i18n";
 
 const CONTENTS = [
-  "Profilo, impostazioni, consensi ed esito della verifica dell'età",
-  "I tuoi fit con capi, prezzi, link e le foto",
-  "Stili, capsule, chi segui e chi ti segue, account bloccati",
-  "I voti che hai dato (per gli altri restano anonimi)",
-  "Segnalazioni, decisioni di moderazione e reclami",
-  "Notifiche, dispositivi e azioni registrate per gli Insight",
-  "I messaggi mandati con \"Segnala un problema\"",
+  N_("Profilo, impostazioni, consensi ed esito della verifica dell'età"),
+  N_("I tuoi fit con capi, prezzi, link e le foto"),
+  N_("Stili, capsule, chi segui e chi ti segue, account bloccati"),
+  N_("I voti che hai dato (per gli altri restano anonimi)"),
+  N_("Segnalazioni, decisioni di moderazione e reclami"),
+  N_("Notifiche, dispositivi e azioni registrate per gli Insight"),
+  N_("I messaggi mandati con \"Segnala un problema\""),
 ];
 
 /** Scarica i tuoi dati (GDPR): archivio ZIP pronto in pochi minuti, valido 7 giorni. */
@@ -43,8 +43,8 @@ export default function DataExportScreen() {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{t("Archivio pronto")}</Text>
         <Text style={styles.text}>
-          {data.size_bytes ? `${formatBytes(data.size_bytes)} · ` : ""}scaricabile fino al{" "}
-          {data.expires_at ? longDate(data.expires_at) : ""}
+          {data.size_bytes ? `${formatBytes(data.size_bytes)} · ` : ""}
+          {t("scaricabile fino al {date}", { date: data.expires_at ? longDate(data.expires_at) : "" })}
         </Text>
         <Button label={t("Scarica l'archivio")} fullWidth onPress={() => void WebBrowser.openBrowserAsync(data.url!)} />
       </View>
@@ -82,7 +82,7 @@ export default function DataExportScreen() {
         <Text style={styles.kicker}>{t("COSA CONTIENE")}</Text>
         {CONTENTS.map((line) => (
           <Text key={line} style={styles.item}>
-            — {line}
+            — {t(line)}
           </Text>
         ))}
         <Text style={styles.note}>

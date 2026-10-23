@@ -56,12 +56,12 @@ export const FitTile = memo(function FitTile({
   // Senza didascalia niente titolo: prima ripeteva il nome dello stile due volte.
   const title = tile.caption;
   const label = [
-    numbered ? `Fit ${index + 1}` : "Fit",
+    numbered ? t("Fit {n}", { n: index + 1 }) : "Fit",
     byline,
     isCover ? "copertina" : null,
     tile.style.name,
     tile.caption,
-    tile.average !== null ? `media ${Math.round(tile.average)}` : null,
+    tile.average !== null ? t("media {v}", { v: Math.round(tile.average) }) : null,
     status?.toLowerCase(),
   ]
     .filter(Boolean)
@@ -131,7 +131,7 @@ export const FitTile = memo(function FitTile({
         <View style={styles.edit}>
           <Pressable
             role="button"
-            aria-label={`Sposta prima: fit ${index + 1}`}
+            aria-label={t("Sposta prima: fit {n}", { n: index + 1 })}
             aria-disabled={!canPrev}
             disabled={!canPrev}
             onPress={() => onPrev(tile, index)}
@@ -142,7 +142,7 @@ export const FitTile = memo(function FitTile({
           </Pressable>
           <Pressable
             role="button"
-            aria-label={`Sposta dopo: fit ${index + 1}`}
+            aria-label={t("Sposta dopo: fit {n}", { n: index + 1 })}
             aria-disabled={!canNext}
             disabled={!canNext}
             onPress={() => onNext(tile, index)}

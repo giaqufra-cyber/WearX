@@ -95,7 +95,7 @@ export function DemoSetup() {
         keyboardType="url"
         returnKeyType="go"
         onSubmitEditing={() => void connectDemo(value)}
-        error={problem}
+        error={problem ? t(problem) : null}
       />
       <Button
         label={checking ? t("Collegamento…") : t("Collega")}

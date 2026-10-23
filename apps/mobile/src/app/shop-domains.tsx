@@ -40,7 +40,7 @@ export default function ShopDomainsScreen() {
     verify.mutate(domain, {
       onSuccess: () => {
         setErrors((e) => ({ ...e, [domain]: "" }));
-        toast.show(`${domain} verificato.`);
+        toast.show(t("{domain} verificato.", { domain }));
       },
       onError: (error) => setErrors((e) => ({ ...e, [domain]: shopError(error) })),
     });
@@ -117,7 +117,7 @@ function DomainCard({
         )}
       </View>
       {domain.verified ? (
-        <Text style={styles.text}>Verificato il {domain.verified_at ? longDate(domain.verified_at) : ""}.</Text>
+        <Text style={styles.text}>{t("Verificato il {date}.", { date: domain.verified_at ? longDate(domain.verified_at) : "" })}</Text>
       ) : (
         <>
           <Text style={styles.text}>{t("Pubblica sul tuo sito un file di testo a questo indirizzo:")}</Text>

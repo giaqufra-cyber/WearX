@@ -25,19 +25,19 @@ import { IconButton } from "@/ui/IconButton";
 import { SearchField } from "@/ui/SearchField";
 import { Sheet } from "@/ui/Sheet";
 import { useToast } from "@/ui/Toast";
-import { t } from "@/lib/i18n";
+import { N_, t } from "@/lib/i18n";
 
 /** Stili mostrati senza ricerca, prima di "Tutti gli stili". */
 const STYLE_CHOICES = 14;
 
 const PUBLISH_ERRORS: Record<string, string> = {
-  "link.invalid": "Uno dei link ai negozi non è valido: usa un indirizzo https del sito.",
-  "style.not_found": "Questo stile non è più disponibile: scegline un altro.",
-  "media.unavailable": "Una foto non è più disponibile: toglila e aggiungila di nuovo.",
-  "text.invalid_characters": "C'è un carattere non ammesso nella didascalia o nei capi.",
-  "text.too_long": "Un testo è troppo lungo.",
-  "rate.limited": "Hai pubblicato molto in poco tempo: riprova tra un po'.",
-  "text.not_allowed": "Ci sono parole non ammesse nella didascalia o nei capi.",
+  "link.invalid": N_("Uno dei link ai negozi non è valido: usa un indirizzo https del sito."),
+  "style.not_found": N_("Questo stile non è più disponibile: scegline un altro."),
+  "media.unavailable": N_("Una foto non è più disponibile: toglila e aggiungila di nuovo."),
+  "text.invalid_characters": N_("C'è un carattere non ammesso nella didascalia o nei capi."),
+  "text.too_long": N_("Un testo è troppo lungo."),
+  "rate.limited": N_("Hai pubblicato molto in poco tempo: riprova tra un po'."),
+  "text.not_allowed": N_("Ci sono parole non ammesse nella didascalia o nei capi."),
 };
 
 /** Nuovo fit (prototipo, schermata Create). Si apre a tutto schermo dal "+" della barra. */
@@ -120,13 +120,13 @@ export default function NewPostScreen() {
       draft.reset();
       void queryClient.invalidateQueries({ queryKey: STYLES_KEY });
       void queryClient.invalidateQueries({ queryKey: PORTFOLIO_KEY });
-      toast.show(`Fit pubblicato in ${post.style.name}.`);
+      toast.show(t("Fit pubblicato in {style}.", { style: post.style.name }));
       close();
     } catch (caught) {
       const code = caught instanceof ApiError ? caught.code : "";
       // Pubblicazione sospesa: il messaggio del server ha la data di fine.
       const suspended = caught instanceof ApiError && code === "account.posting_restricted" ? `${caught.title}.` : null;
-      setError(suspended ?? PUBLISH_ERRORS[code] ?? "Non riusciamo a pubblicare. Controlla la connessione e riprova.");
+      setError(suspended ?? t(PUBLISH_ERRORS[code] ?? "Non riusciamo a pubblicare. Controlla la connessione e riprova."));
     } finally {
       setPublishing(false);
     }
@@ -151,7 +151,7 @@ export default function NewPostScreen() {
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <Section title={t("1 · DALLA GALLERIA")} aside={`${draft.photos.length} di ${MAX_PHOTOS}`} />
+          <Section title={t("1 · DALLA GALLERIA")} aside={t("{n} di {max}", { n: draft.photos.length, max: MAX_PHOTOS })} />
           <PhotoStrip
             photos={draft.photos}
             onAdd={() => void pick()}
@@ -189,14 +189,14 @@ export default function NewPostScreen() {
                 onPress={() => setAllStyles(true)}
                 style={({ pressed }) => [styles.styleChip, styles.moreChip, pressed ? styles.pressed : null]}
               >
-                <RNText style={styles.moreText}>Tutti gli stili (+{choices.more})</RNText>
+                <RNText style={styles.moreText}>{t("Tutti gli stili (+{n})", { n: choices.more })}</RNText>
               </Pressable>
             ) : null}
           </View>
           {styleQuery.trim() && choices.items.length === 0 ? (
             <Pressable role="button" onPress={() => setProposing(true)} hitSlop={6}>
               <RNText style={styles.note}>
-                {t("Nessuno stile con questo nome.")}{" "}<RNText style={styles.noteLink}>Proponi «{styleQuery.trim()}»</RNText>
+                {t("Nessuno stile con questo nome.")}{" "}<RNText style={styles.noteLink}>{t("Proponi «{name}»", { name: styleQuery.trim() })}</RNText>
               </RNText>
             </Pressable>
           ) : null}

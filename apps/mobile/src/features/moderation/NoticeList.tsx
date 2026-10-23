@@ -9,10 +9,10 @@ import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { TextField } from "@/ui/TextField";
-import { t } from "@/lib/i18n";
+import { locale, t } from "@/lib/i18n";
 
 const dateLabel = (iso: string) =>
-  new Date(iso).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
+  new Date(iso).toLocaleDateString(locale(), { day: "numeric", month: "long", year: "numeric" });
 
 /** Ogni decisione della moderazione che ti riguarda, con il motivo e il reclamo (art. 17 e 20 DSA). */
 export function NoticeList({ canOpenPosts = true }: { canOpenPosts?: boolean }) {
@@ -45,13 +45,13 @@ function NoticeCard({ notice, canOpenPost }: { notice: ModerationNotice; canOpen
         <Text style={styles.date}>{dateLabel(notice.created_at)}</Text>
       </View>
       <Text style={styles.meta}>
-        {notice.automated ? "DECISIONE AUTOMATICA" : "DECISIONE DI UN MODERATORE"} · {notice.reason.toUpperCase()}
+        {notice.automated ? t("DECISIONE AUTOMATICA") : t("DECISIONE DI UN MODERATORE")} · {notice.reason.toUpperCase()}
       </Text>
       <Text style={styles.statement}>{notice.statement}</Text>
 
       {notice.appeal ? (
         <View style={styles.appeal}>
-          <Text style={styles.appealStatus}>{APPEAL_STATUS[notice.appeal.status]}</Text>
+          <Text style={styles.appealStatus}>{t(APPEAL_STATUS[notice.appeal.status])}</Text>
           {notice.appeal.decision_note ? <Text style={styles.appealNote}>{notice.appeal.decision_note}</Text> : null}
         </View>
       ) : null}

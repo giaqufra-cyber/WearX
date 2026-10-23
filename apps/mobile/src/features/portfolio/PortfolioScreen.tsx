@@ -94,7 +94,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
       move.mutate({ postId: tile.id, afterId });
       const position = index + direction + 1;
       AccessibilityInfo.announceForAccessibility(
-        position === 1 ? "Spostato in prima posizione: è la copertina" : `Spostato in posizione ${position}`,
+        position === 1 ? t("Spostato in prima posizione: è la copertina") : t("Spostato in posizione {position}", { position }),
       );
     },
     [ids, move],
@@ -176,7 +176,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
           role="button"
           onPress={() => router.push({ pathname: "/people", params: { tab: "requests" } })}
           style={styles.requests}
-          aria-label={`Richieste di follow: ${profile.pending_requests}`}
+          aria-label={t("Richieste di follow: {pending_requests}", { pending_requests: profile.pending_requests ?? 0 })}
         >
           <Text style={styles.requestsText}>{t("Richieste di follow")}</Text>
           <Text style={styles.requestsCount}>{profile.pending_requests}</Text>
@@ -248,7 +248,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
 
       {profile.can_view_posts && tiles.length > 0 ? (
         <Text style={styles.section}>
-          {(activeCapsule ? (profile.capsules.find((c) => c.id === activeCapsule)?.name ?? "Capsula") : "Portfolio").toUpperCase()}
+          {(activeCapsule ? (profile.capsules.find((c) => c.id === activeCapsule)?.name ?? t("Capsula")) : t("Portfolio")).toUpperCase()}
           {" · "}
           {activeCapsule ? (profile.capsules.find((c) => c.id === activeCapsule)?.post_count ?? tiles.length) : profile.stats.posts}{" "}
           FIT
@@ -282,7 +282,7 @@ export function PortfolioScreen({ nickname }: { nickname: string }) {
     empty = (
       <EmptyState
         title={t("Account privato")}
-        body={`I fit di @${profile.nickname} li vede solo chi viene approvato.`}
+        body={t("I fit di @{nickname} li vede solo chi viene approvato.", { nickname: profile.nickname })}
       />
     );
   } else if (grid.isPending) {
@@ -436,7 +436,7 @@ function ProfileHead({ profile }: { profile: UserProfile }) {
         {(profile.verified_domains ?? []).length > 0 ? (
           <View style={styles.shops}>
             {profile.verified_domains.map((domain) => (
-              <View key={domain} style={styles.shop} accessible aria-label={`Negozio verificato: ${domain}`}>
+              <View key={domain} style={styles.shop} accessible aria-label={t("Negozio verificato: {domain}", { domain })}>
                 <View style={styles.shopCheck}>
                   <IconCheck color={colors.onAccent} size={9} strokeWidth={3.4} />
                 </View>
@@ -448,7 +448,7 @@ function ProfileHead({ profile }: { profile: UserProfile }) {
         {profile.is_self && profile.styles.length > 0 ? (
           <View
             style={styles.styleChips}
-            aria-label={`I tuoi stili: ${profile.styles.map((s) => s.name).join(", ")}`}
+            aria-label={t("I tuoi stili: {v}", { v: profile.styles.map((s) => s.name).join(", ") })}
           >
             {profile.styles.slice(0, MAX_STYLE_CHIPS).map((style) => (
               <Text key={style.slug} style={[styles.styleChip, { backgroundColor: style.tone }]}>
@@ -484,7 +484,7 @@ function Count({ value, label, onPress }: { value: number; label: string; onPres
 
 function Stat({ value, label, accent = false }: { value: string; label: string; accent?: boolean }) {
   return (
-    <View style={styles.stat} accessible aria-label={`${label}: ${value === "—" ? "non disponibile" : value}`}>
+    <View style={styles.stat} accessible aria-label={`${label}: ${value === "—" ? t("non disponibile") : value}`}>
       <Text style={[styles.statValue, accent && styles.statAccent]}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>

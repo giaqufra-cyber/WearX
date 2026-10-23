@@ -47,8 +47,8 @@ export function ProposeSheet({ visible, initialName = "", onClose, onExisting }:
         onSuccess: (result) => {
           toast.show(
             result.created
-              ? `Proposta inviata: servono ${result.proposal.threshold} richieste.`
-              : `«${result.proposal.name}» era già proposto: hai aggiunto la tua richiesta.`,
+              ? t("Proposta inviata: servono {threshold} richieste.", { threshold: result.proposal.threshold })
+              : t("«{name}» era già proposto: hai aggiunto la tua richiesta.", { name: result.proposal.name }),
           );
           setName("");
           setTagline("");
@@ -93,7 +93,7 @@ export function ProposeSheet({ visible, initialName = "", onClose, onExisting }:
                 onPress={() => setCategory(c.key)}
                 style={[styles.cat, selected && styles.catOn]}
               >
-                <Text style={[styles.catText, selected && styles.catTextOn]}>{c.label}</Text>
+                <Text style={[styles.catText, selected && styles.catTextOn]}>{t(c.label)}</Text>
               </Pressable>
             );
           })}

@@ -22,8 +22,8 @@ type Props = { post: Post; width: number; authorLabel: string };
 
 /** "Foto 2 di 3, fit di @giulia" o "Foto del fit anonimo" (la didascalia si legge già sotto). */
 export function photoLabel(index: number, count: number, author: string): string {
-  const who = author.startsWith("@") ? `fit di ${author}` : "fit anonimo";
-  return count > 1 ? `Foto ${index + 1} di ${count}, ${who}` : `Foto del ${who}`;
+  const who = author.startsWith("@") ? t("fit di {author}", { author }) : t("fit anonimo");
+  return count > 1 ? t("Foto {n} di {count}, {who}", { n: index + 1, count, who }) : t("Foto del {who}", { who });
 }
 
 /**
@@ -131,7 +131,7 @@ export function Carousel({ post, width, authorLabel }: Props) {
             style={styles.tagsButton}
           >
             <IconTag color={colors.text} size={14} />
-            <Text style={styles.tagsText}>{tagsOpen ? "Nascondi" : `Capi · ${tagged}`}</Text>
+            <Text style={styles.tagsText}>{tagsOpen ? t("Nascondi") : t("Capi · {tagged}", { tagged })}</Text>
           </Pressable>
         ) : null}
       </View>

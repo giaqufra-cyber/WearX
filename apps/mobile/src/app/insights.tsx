@@ -14,7 +14,7 @@ import { IconButton } from "@/ui/IconButton";
 import { IconBack } from "@/ui/icons";
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { SegmentedControl } from "@/ui/SegmentedControl";
-import { N_, t } from "@/lib/i18n";
+import { N_, language, locale, t } from "@/lib/i18n";
 
 const PERIODS: { value: `${InsightPeriod}`; label: string }[] = [
   { value: "7", label: N_("7 giorni") },
@@ -40,12 +40,12 @@ export default function InsightsScreen() {
     const data = insights.data;
     const totals = data.totals;
     const empty = data.top_posts.length === 0 && totals.impressions.value === 0 && totals.votes.value === 0;
-    const compare = `vs ${days} giorni prima`;
+    const compare = t("vs {days} giorni prima", { days });
     body = (
       <>
         <Text style={styles.range}>
           {shortDate(data.start)} – {shortDate(data.end)}
-          {data.updated_at ? ` · aggiornato ${updatedLabel(data.updated_at)}` : ""}
+          {data.updated_at ? ` · ${t("aggiornato {when}", { when: updatedLabel(data.updated_at) })}` : ""}
         </Text>
         {empty ? (
           <EmptyState
@@ -58,7 +58,7 @@ export default function InsightsScreen() {
             <View style={styles.grid}>
               <Tile label={t("Visualizzazioni")} metric={totals.impressions} compare={compare} />
               <Tile label={t("Voti ricevuti")} metric={totals.votes} compare={compare} />
-              <Tile label={t("Media voti")} value={totals.average === null ? "—" : totals.average.toFixed(1).replace(".", ",")} />
+              <Tile label={t("Media voti")} value={totals.average === null ? "—" : (language() === "en" ? totals.average.toFixed(1) : totals.average.toFixed(1).replace(".", ","))} />
               <Tile label={t("Aperture")} metric={totals.opens} compare={compare} />
               <Tile label={t("Click ai negozi")} metric={totals.shop_clicks} compare={compare} />
               <Tile label={t("Visite al profilo")} metric={totals.profile_views} compare={compare} />
@@ -67,7 +67,7 @@ export default function InsightsScreen() {
             <View style={styles.card}>
               <View style={styles.cardHead}>
                 <Text style={styles.cardTitle} role="heading">
-                  {data.bucket === "week" ? "Ogni settimana" : "Ogni giorno"}
+                  {data.bucket === "week" ? t("Ogni settimana") : t("Ogni giorno")}
                 </Text>
                 <SegmentedControl
                   label={t("Misura del grafico")}
@@ -128,8 +128,8 @@ export default function InsightsScreen() {
 function updatedLabel(iso: string): string {
   const at = new Date(iso);
   const today = new Date();
-  const time = at.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
-  return at.toDateString() === today.toDateString() ? `oggi alle ${time}` : `il ${shortDate(iso.slice(0, 10))}`;
+  const time = at.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
+  return at.toDateString() === today.toDateString() ? t("oggi alle {time}", { time }) : t("il {date}", { date: shortDate(iso.slice(0, 10)) });
 }
 
 function Tile({ label, metric, value, compare }: { label: string; metric?: InsightMetric; value?: string; compare?: string }) {
@@ -140,7 +140,7 @@ function Tile({ label, metric, value, compare }: { label: string; metric?: Insig
     <View
       style={styles.tile}
       accessible
-      aria-label={`${label}: ${shown === "<5" ? "meno di 5" : shown}${delta ? `, ${delta} ${compare}` : ""}`}
+      aria-label={`${label}: ${shown === "<5" ? t("meno di 5") : shown}${delta ? `, ${delta} ${compare}` : ""}`}
     >
       <Text style={styles.tileLabel}>{label.toUpperCase()}</Text>
       <Text style={styles.tileValue} maxFontSizeMultiplier={1.3}>
@@ -165,7 +165,7 @@ function TopPost({ post, rank }: { post: InsightPost; rank: number }) {
       role="button"
       onPress={() => router.push({ pathname: "/post/[id]", params: { id: post.id } })}
       style={({ pressed }) => [styles.post, pressed && styles.pressed]}
-      aria-label={`${rank}. ${post.caption ?? "Fit senza didascalia"}, ${post.style}: ${formatMetric(post.impressions)} visualizzazioni, ${formatMetric(post.votes)} voti`}
+      aria-label={t("{rank}. {caption}, {style}: {views} visualizzazioni, {votes} voti", { rank, caption: post.caption ?? t("Fit senza didascalia"), style: post.style, views: formatMetric(post.impressions), votes: formatMetric(post.votes) })}
     >
       <Text style={styles.rank}>{rank}</Text>
       <Image
@@ -178,7 +178,7 @@ function TopPost({ post, rank }: { post: InsightPost; rank: number }) {
       />
       <View style={styles.postText}>
         <Text style={styles.postTitle} numberOfLines={1}>
-          {post.caption ?? "Fit senza didascalia"}
+          {post.caption ?? t("Fit senza didascalia")}
         </Text>
         <Text style={styles.postStyle}>{post.style}</Text>
       </View>

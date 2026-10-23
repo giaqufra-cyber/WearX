@@ -38,9 +38,9 @@ export const useArchivedFits = () => useTiles(ARCHIVE_KEY, "/v1/me/archive");
 
 export function saveError(error: unknown): string {
   const code = error instanceof ApiError ? error.code : "";
-  if (code === "post.not_found") return "Questo fit non è più disponibile.";
-  if (code === "rate.limited") return "Hai salvato tantissimo in poco tempo: riprova più tardi.";
-  return "Non riusciamo a salvarlo. Controlla la connessione e riprova.";
+  if (code === "post.not_found") return t("Questo fit non è più disponibile.");
+  if (code === "rate.limited") return t("Hai salvato tantissimo in poco tempo: riprova più tardi.");
+  return t("Non riusciamo a salvarlo. Controlla la connessione e riprova.");
 }
 
 /** Salva / togli dai salvati. */

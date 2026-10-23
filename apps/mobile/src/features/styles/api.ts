@@ -7,6 +7,7 @@ import type { StyleCard, StyleDetail, StyleList, StylePostsPage } from "@wearx/a
 
 import { ME_QUERY_KEY, useAuth } from "@/features/auth/AuthProvider";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
+import { N_, t } from "@/lib/i18n";
 
 export const STYLES_KEY = ["styles"] as const;
 
@@ -109,15 +110,15 @@ function applyMembership(client: QueryClient, slug: string, join: boolean): Snap
 }
 
 export const MEMBERSHIP_ERRORS: Record<string, string> = {
-  "style.last_membership": "Resta almeno in uno stile: il tuo feed è fatto di questi.",
-  "style.limit": "Hai raggiunto il massimo di stili. Esci da uno per entrare in un altro.",
-  "style.not_found": "Questo stile non è più disponibile.",
-  "rate.limited": "Troppi cambi in poco tempo. Riprova tra un po'.",
+  "style.last_membership": N_("Resta almeno in uno stile: il tuo feed è fatto di questi."),
+  "style.limit": N_("Hai raggiunto il massimo di stili. Esci da uno per entrare in un altro."),
+  "style.not_found": N_("Questo stile non è più disponibile."),
+  "rate.limited": N_("Troppi cambi in poco tempo. Riprova tra un po'."),
 };
 
 export function membershipErrorMessage(error: unknown): string {
   const code = error instanceof ApiError ? error.code : "";
-  return MEMBERSHIP_ERRORS[code] ?? "Non riusciamo a salvare la modifica. Controlla la connessione e riprova.";
+  return MEMBERSHIP_ERRORS[code] ? t(MEMBERSHIP_ERRORS[code]) : t("Non riusciamo a salvare la modifica. Controlla la connessione e riprova.");
 }
 
 export function useMembership(options: { onError?: (message: string) => void } = {}) {

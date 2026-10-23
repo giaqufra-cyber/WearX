@@ -20,9 +20,9 @@ const KINDS = [
   { value: "other", label: N_("Altro") },
 ] as const;
 const PLACEHOLDER: Record<FeedbackKind, string> = {
-  bug: "Cosa stavi facendo, cosa ti aspettavi, cosa è successo invece.",
-  idea: "Cosa ti piacerebbe trovare in WearX?",
-  other: "Scrivi qui.",
+  bug: N_("Cosa stavi facendo, cosa ti aspettavi, cosa è successo invece."),
+  idea: N_("Cosa ti piacerebbe trovare in WearX?"),
+  other: N_("Scrivi qui."),
 };
 
 /** Segnala un problema (beta, seduta 25): il messaggio arriva al team nel pannello dello staff. */
@@ -63,7 +63,7 @@ export default function FeedbackScreen() {
           <TextInput
             value={message}
             onChangeText={setMessage}
-            placeholder={PLACEHOLDER[kind]}
+            placeholder={t(PLACEHOLDER[kind])}
             placeholderTextColor={colors.textTertiary}
             selectionColor={colors.accent}
             maxLength={MAX}
@@ -77,9 +77,13 @@ export default function FeedbackScreen() {
           </Text>
         </View>
         <Text variant="secondary" style={styles.note}>
-          Insieme al messaggio mandiamo solo la versione dell&apos;app ({info.app_version}), il sistema ({system}
-          {info.os_version ? ` ${info.os_version}` : ""}){from ? " e la schermata da cui sei partito" : ""}.
-          {info.platform === "ios" ? " Per mostrarci una schermata: screenshot e invio da TestFlight." : ""}
+          {t(
+            from
+              ? "Insieme al messaggio mandiamo solo la versione dell'app ({version}), il sistema ({system}) e la schermata da cui sei partito."
+              : "Insieme al messaggio mandiamo solo la versione dell'app ({version}), il sistema ({system}).",
+            { version: info.app_version, system: info.os_version ? `${system} ${info.os_version}` : system },
+          )}
+          {info.platform === "ios" ? ` ${t("Per mostrarci una schermata: screenshot e invio da TestFlight.")}` : ""}
         </Text>
         {tooMany ? (
           <Text color={colors.danger} role="alert">

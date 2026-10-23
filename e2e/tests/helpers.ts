@@ -17,12 +17,16 @@ export async function offlineServices(page: Page): Promise<void> {
   );
 }
 
-export async function login(page: Page, person: Pick<Person, "email" | "password">): Promise<void> {
+export async function login(
+  page: Page,
+  person: Pick<Person, "email" | "password">,
+  options: { submit?: string } = {},
+): Promise<void> {
   await offlineServices(page);
   await page.goto("/login");
   await page.getByRole("textbox", { name: "EMAIL" }).fill(person.email);
   await page.getByRole("textbox", { name: "PASSWORD" }).fill(person.password);
-  await page.getByRole("button", { name: "Accedi" }).click();
+  await page.getByRole("button", { name: options.submit ?? "Accedi" }).click();
   await expect(page).toHaveURL(/\/(feed)?$/);
 }
 

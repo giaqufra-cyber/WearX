@@ -19,9 +19,9 @@ export function Loading({ label }: { label: string }) {
 export function ErrorNotice({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
   const message =
     error instanceof ApiError && error.code === "app.update_required"
-      ? "Aggiorna WearX per continuare."
-      : "Non riusciamo a raggiungere WearX. Controlla la connessione e riprova.";
-  const ref = error instanceof ApiError && error.requestId ? `Codice: ${error.requestId}` : null;
+      ? t("Aggiorna WearX per continuare.")
+      : t("Non riusciamo a raggiungere WearX. Controlla la connessione e riprova.");
+  const ref = error instanceof ApiError && error.requestId ? t("Codice: {requestId}", { requestId: error.requestId }) : null;
   return (
     <View style={styles.box} accessibilityRole="alert">
       <Text color={colors.danger}>{message}</Text>

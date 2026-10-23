@@ -1,3 +1,4 @@
+import { N_ } from "@/lib/i18n";
 /**
  * Controlli immediati nei form, per dare un riscontro mentre si scrive.
  * Il server resta l'unica autorità: queste regole devono restare allineate a
@@ -34,11 +35,11 @@ export function passwordScore(password: string): PasswordScore {
 export const PASSWORD_MIN_SCORE: PasswordScore = 3;
 
 export const PASSWORD_LABELS: Record<PasswordScore, string> = {
-  0: "Troppo debole",
-  1: "Debole",
-  2: "Quasi",
-  3: "Buona",
-  4: "Ottima",
+  0: N_("Troppo debole"),
+  1: N_("Debole"),
+  2: N_("Quasi"),
+  3: N_("Buona"),
+  4: N_("Ottima"),
 };
 
 export const MIN_AGE = 16;

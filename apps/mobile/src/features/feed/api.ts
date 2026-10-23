@@ -7,6 +7,7 @@ import type { FeedPage, Post, VoteSummary } from "@wearx/api-types";
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
+import { N_, t } from "@/lib/i18n";
 
 export const FEED_KEY = ["feed"] as const;
 /** Dettaglio di un singolo fit (["post", uid, id]). */
@@ -75,11 +76,11 @@ export function patchVote(client: QueryClient, postId: string, patch: (vote: Vot
 }
 
 export const VOTE_ERRORS: Record<string, string> = {
-  "vote.own_post": "Non puoi votare i tuoi fit.",
-  "post.not_found": "Questo fit non è più disponibile.",
-  "vote.not_allowed": "Questo fit non si può votare.",
-  "rate.limited": "Hai votato tantissimo in poco tempo: riprova tra un po'.",
-  "device.not_verified": "Per votare serve l'app ufficiale su un telefono verificato. Riapri WearX e riprova.",
+  "vote.own_post": N_("Non puoi votare i tuoi fit."),
+  "post.not_found": N_("Questo fit non è più disponibile."),
+  "vote.not_allowed": N_("Questo fit non si può votare."),
+  "rate.limited": N_("Hai votato tantissimo in poco tempo: riprova tra un po'."),
+  "device.not_verified": N_("Per votare serve l'app ufficiale su un telefono verificato. Riapri WearX e riprova."),
 };
 
 export function useVote(options: { onError?: (message: string) => void } = {}) {
@@ -110,7 +111,7 @@ export function useVote(options: { onError?: (message: string) => void } = {}) {
     onError: (error, _vars, context) => {
       for (const [key, data] of context?.snapshot ?? []) client.setQueryData(key, data);
       const code = error instanceof ApiError ? error.code : "";
-      options.onError?.(VOTE_ERRORS[code] ?? "Il voto non è arrivato. Controlla la connessione e riprova.");
+      options.onError?.(t(VOTE_ERRORS[code] ?? "Il voto non è arrivato. Controlla la connessione e riprova."));
     },
   });
 }

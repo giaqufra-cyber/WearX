@@ -49,15 +49,15 @@ export default function PeopleScreen() {
         <View style={styles.spacer} />
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} role="tablist" style={styles.tabsBar} contentContainerStyle={styles.tabs}>
-        {TABS.map((t) => (
+        {TABS.map((entry) => (
           <Pressable
-            key={t.kind}
+            key={entry.kind}
             role="tab"
-            aria-selected={t.kind === tab}
-            onPress={() => setTab(t.kind)}
-            style={[styles.tab, t.kind === tab && styles.tabOn]}
+            aria-selected={entry.kind === tab}
+            onPress={() => setTab(entry.kind)}
+            style={[styles.tab, entry.kind === tab && styles.tabOn]}
           >
-            <Text style={[styles.tabText, t.kind === tab && styles.tabTextOn]}>{t.label}</Text>
+            <Text style={[styles.tabText, entry.kind === tab && styles.tabTextOn]}>{t(entry.label)}</Text>
           </Pressable>
         ))}
       </ScrollView>
@@ -89,15 +89,15 @@ function PeopleList({ kind }: { kind: PeopleKind }) {
               { nickname: item.nickname, accept },
               {
                 onSuccess: () => {
-                  if (kind === "requests") toast.show(accept ? `@${item.nickname} ora ti segue.` : t("Richiesta rifiutata."));
-                  if (kind === "blocks") toast.show(`@${item.nickname} sbloccato.`);
+                  if (kind === "requests") toast.show(accept ? t("@{nick} ora ti segue.", { nick: item.nickname }) : t("Richiesta rifiutata."));
+                  if (kind === "blocks") toast.show(t("@{nick} sbloccato.", { nick: item.nickname }));
                 },
               },
             )
           }
         />
       )}
-      ListEmptyComponent={<EmptyState {...EMPTY[kind]} />}
+      ListEmptyComponent={<EmptyState title={t(EMPTY[kind].title)} body={t(EMPTY[kind].body)} />}
       onEndReached={() => {
         if (list.hasNextPage && !list.isFetchingNextPage) void list.fetchNextPage();
       }}
@@ -119,7 +119,7 @@ function PersonRow({
     <View style={styles.row}>
       <Pressable
         role="link"
-        aria-label={`Apri il profilo di @${person.nickname}`}
+        aria-label={t("Apri il profilo di @{nick}", { nick: person.nickname })}
         onPress={open}
         disabled={kind === "blocks"}
         style={styles.who}
@@ -134,14 +134,14 @@ function PersonRow({
       </Pressable>
       {kind === "requests" ? (
         <View style={styles.actions}>
-          <Button label={t("Accetta")} size="sm" onPress={() => onAction(true)} hint={`Accetta @${person.nickname}`} />
-          <IconButton label={`Rifiuta @${person.nickname}`} onPress={() => onAction(false)}>
+          <Button label={t("Accetta")} size="sm" onPress={() => onAction(true)} hint={t("Accetta @{nick}", { nick: person.nickname })} />
+          <IconButton label={t("Rifiuta @{nick}", { nick: person.nickname })} onPress={() => onAction(false)}>
             <IconClose color={colors.textSecondary} size={20} />
           </IconButton>
         </View>
       ) : (
         <Button
-          label={{ followers: "Rimuovi", following: "Non seguire più", blocks: "Sblocca" }[kind]}
+          label={t({ followers: N_("Rimuovi"), following: N_("Non seguire più"), blocks: N_("Sblocca") }[kind])}
           variant="secondary"
           size="sm"
           onPress={() => onAction()}

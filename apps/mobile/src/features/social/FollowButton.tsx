@@ -21,7 +21,7 @@ export function FollowButton({ user }: { user: UserProfile }) {
     if (state === "none") {
       follow.mutate("follow", {
         onSuccess: (now) =>
-          toast.show(now === "pending" ? `Richiesta inviata a @${user.nickname}.` : `Ora segui @${user.nickname}.`),
+          toast.show(now === "pending" ? t("Richiesta inviata a @{nickname}.", { nickname: user.nickname }) : t("Ora segui @{nickname}.", { nickname: user.nickname })),
       });
     } else if (state === "pending") {
       follow.mutate("unfollow", { onSuccess: () => toast.show(t("Richiesta ritirata.")) });
@@ -42,7 +42,7 @@ export function FollowButton({ user }: { user: UserProfile }) {
         onPress={press}
         hint={state === "pending" ? t("Tocca per ritirare la richiesta") : state === "accepted" ? t("Tocca per smettere di seguire") : undefined}
       />
-      <Sheet visible={confirm} title={`Smettere di seguire @${user.nickname}?`} onClose={() => setConfirm(false)}>
+      <Sheet visible={confirm} title={t("Smettere di seguire @{nickname}?", { nickname: user.nickname })} onClose={() => setConfirm(false)}>
         <Text style={styles.text}>
           {t("L'account è privato: non vedrai più il suo portfolio finché non ti accetta di nuovo.")}
         </Text>

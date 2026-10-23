@@ -83,7 +83,7 @@ export default function StylePage() {
       { slug: data.slug, join: !joined },
       {
         onSuccess: () =>
-          toast.show(joined ? `Sei uscito da ${data.name}.` : `Sei entrato in ${data.name}. Lo trovi nel feed.`),
+          toast.show(joined ? t("Sei uscito da {name}.", { name: data.name }) : t("Sei entrato in {name}. Lo trovi nel feed.", { name: data.name })),
       },
     );
   };
@@ -98,16 +98,16 @@ export default function StylePage() {
           <TopBar />
           <View>
             {data.seasonal && data.active_until ? (
-              <RNText style={styles.kicker}>STAGIONALE · {seasonEndLabel(data.active_until)}</RNText>
+              <RNText style={styles.kicker}>{t("STAGIONALE")} · {seasonEndLabel(data.active_until)}</RNText>
             ) : null}
-            <RNText style={styles.kicker}>STILE · {membersLabel(data.member_count).toUpperCase()}</RNText>
+            <RNText style={styles.kicker}>{t("STILE")} · {membersLabel(data.member_count).toUpperCase()}</RNText>
             <RNText style={styles.name} role="heading">
               {data.name}
             </RNText>
             <RNText style={styles.tagline}>{data.tagline}</RNText>
             <Pressable
               role="button"
-              aria-label={joined ? `Sei dentro ${data.name}. Tocca per uscire` : `Entra in ${data.name}`}
+              aria-label={joined ? t("Sei dentro {name}. Tocca per uscire", { name: data.name }) : t("Entra in {name}", { name: data.name })}
               aria-busy={membership.isPending}
               disabled={membership.isPending}
               onPress={toggle}
@@ -119,7 +119,7 @@ export default function StylePage() {
             >
               {joined ? <IconCheck color={colors.text} size={16} /> : null}
               <RNText style={[styles.toggleText, joined ? styles.toggleTextJoined : null]}>
-                {joined ? "Sei dentro" : "Entra nello stile"}
+                {joined ? t("Sei dentro") : t("Entra nello stile")}
               </RNText>
             </Pressable>
           </View>
@@ -129,7 +129,7 @@ export default function StylePage() {
       <View style={styles.body}>
         <View style={styles.sectionRow}>
           <Text variant="label" style={styles.section}>
-            {data.posts_last_7_days === 1 ? "1 FIT QUESTA SETTIMANA" : `${data.posts_last_7_days} FIT QUESTA SETTIMANA`}
+            {data.posts_last_7_days === 1 ? t("1 FIT QUESTA SETTIMANA") : t("{posts_last_7_days} FIT QUESTA SETTIMANA", { posts_last_7_days: data.posts_last_7_days })}
           </Text>
         </View>
         <SegmentedControl label={t("Ordina i fit")} options={SORTS} value={sort} onChange={setSort} size="sm" />

@@ -38,7 +38,7 @@ const MAX_CARD_WIDTH = 560;
 export default function FeedScreen() {
   const mine = useMyStyles();
   const [filter, setFilter] = useState<string>("all");
-  const chips = [{ slug: "all", name: "Tutti" }, ...(mine.data?.items ?? [])];
+  const chips = [{ slug: "all", name: t("Tutti") }, ...(mine.data?.items ?? [])];
   // Se esci dallo stile selezionato si torna a "Tutti".
   const active = chips.some((c) => c.slug === filter) ? filter : "all";
 

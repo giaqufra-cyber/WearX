@@ -25,7 +25,7 @@ const METHODS: Record<AgeMethod, { title: string; body: string; icon: ReactNode;
     title: N_("Stima con selfie"),
     body: N_("30 secondi. La foto viene analizzata e cancellata subito."),
     icon: <IconFaceScan color={colors.text} />,
-    tag: "RAPIDO",
+    tag: N_("RAPIDO"),
   },
   spid: {
     title: N_("SPID"),
@@ -179,8 +179,10 @@ export default function AgeScreen() {
         {methods.map((method) => (
           <MethodCard
             key={method}
-            {...METHODS[method]}
-            tag={latest?.failure_reason === "inconsistent" ? undefined : METHODS[method].tag}
+            title={t(METHODS[method].title)}
+            body={t(METHODS[method].body)}
+            icon={METHODS[method].icon}
+            tag={latest?.failure_reason === "inconsistent" || !METHODS[method].tag ? undefined : t(METHODS[method].tag)}
             onPress={() => void start(method)}
             disabled={!ready || (starting !== null && starting !== method)}
             loading={starting === method}

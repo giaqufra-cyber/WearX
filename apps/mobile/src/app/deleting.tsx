@@ -25,8 +25,10 @@ export default function DeletingScreen() {
         </Text>
         <Text style={styles.text}>
           {when
-            ? `Il tuo account verrà cancellato per sempre il ${longDate(when)}. Fino ad allora nessuno vede il tuo profilo e i tuoi fit.`
-            : "Il tuo account è in cancellazione. Nessuno vede il tuo profilo e i tuoi fit."}
+            ? t("Il tuo account verrà cancellato per sempre il {date}. Fino ad allora nessuno vede il tuo profilo e i tuoi fit.", {
+                date: longDate(when),
+              })
+            : t("Il tuo account è in cancellazione. Nessuno vede il tuo profilo e i tuoi fit.")}
         </Text>
         <Text style={styles.text}>{t("Ci hai ripensato? Annulla e tutto torna com'era.")}</Text>
       </View>

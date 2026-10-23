@@ -27,15 +27,16 @@ export function ReportSheet({ target, visible, onClose }: Props) {
     setDone(null);
     setError(null);
   };
-  const title = target.type === "post" ? "Segnala il fit" : `Segnala @${target.nickname}`;
+  const title = target.type === "post" ? t("Segnala il fit") : t("Segnala @{nickname}", { nickname: target.nickname });
 
   return (
     <Sheet visible={visible} title={done ? t("Grazie") : title} onClose={close}>
       {done ? (
         <View style={styles.done} role="alert">
           <Text style={styles.text}>
-            Segnalazione ricevuta: una persona la controlla {reviewLabel(done.review_within_hours)}. Non diciamo a
-            nessuno chi l'ha fatta.
+            {t("Segnalazione ricevuta: una persona la controlla {when}. Non diciamo a nessuno chi l'ha fatta.", {
+              when: reviewLabel(done.review_within_hours),
+            })}
           </Text>
           {reason === "minor_safety" ? (
             <Text style={styles.urgent}>{t("Se qualcuno è in pericolo adesso, chiama il 112.")}</Text>

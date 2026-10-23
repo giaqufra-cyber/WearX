@@ -30,7 +30,7 @@ export default function DevicesScreen() {
     try {
       if (confirm === "others") await signOutOtherDevices();
       else await revoke.mutateAsync(confirm.id);
-      toast.show(confirm === "others" ? t("Sei uscito da tutti gli altri dispositivi.") : `Uscito da ${confirm.label}.`);
+      toast.show(confirm === "others" ? t("Sei uscito da tutti gli altri dispositivi.") : t("Uscito da {device}.", { device: confirm.label }));
       void devices.refetch();
     } catch {
       toast.show(t("Non è riuscito. Riprova."), { tone: "error" });
@@ -52,8 +52,8 @@ export default function DevicesScreen() {
               <Text style={styles.label}>{d.label}</Text>
               <Text style={styles.meta}>
                 {PLATFORM[d.platform]}
-                {d.app_version ? ` · app ${d.app_version}` : ""} ·{" "}
-                {d.current ? "questo dispositivo" : lastSeen(d.last_seen)}
+                {d.app_version ? ` ${t("· app {app_version}", { app_version: d.app_version })}` : ""} ·{" "}
+                {d.current ? t("questo dispositivo") : lastSeen(d.last_seen)}
               </Text>
             </View>
             {d.current ? (
@@ -78,7 +78,7 @@ export default function DevicesScreen() {
       <ScrollView contentContainerStyle={styles.content}>{body}</ScrollView>
       <Sheet
         visible={confirm !== null}
-        title={confirm === "others" ? t("Uscire da tutti gli altri?") : `Uscire da ${confirm?.label ?? ""}?`}
+        title={confirm === "others" ? t("Uscire da tutti gli altri?") : t("Uscire da {device}?", { device: confirm?.label ?? "" })}
         onClose={() => setConfirm(null)}
       >
         <Text style={styles.note}>{t("Lì dovrai accedere di nuovo con email e password.")}</Text>

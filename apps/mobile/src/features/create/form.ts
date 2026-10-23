@@ -1,5 +1,6 @@
 /** Regole del modulo "Nuovo fit", allineate a quelle del server (sez. 6.4). */
 import type { PostCreate, PostItemInput } from "@wearx/api-types";
+import { t } from "@/lib/i18n";
 
 export const MAX_PHOTOS = 10;
 export const MAX_ITEMS = 8;
@@ -41,12 +42,12 @@ export function formatPrice(cents: number): string {
 export function linkProblem(raw: string): string | null {
   const text = raw.trim();
   if (!text) return null;
-  if (/\s/.test(text)) return "Il link non può contenere spazi.";
-  if (!/^https:\/\//i.test(text)) return "Accettiamo solo link https.";
+  if (/\s/.test(text)) return t("Il link non può contenere spazi.");
+  if (!/^https:\/\//i.test(text)) return t("Accettiamo solo link https.");
   const host = text.slice(8).split(/[/?#]/)[0] ?? "";
-  if (host.includes("@")) return "Il link non è valido.";
+  if (host.includes("@")) return t("Il link non è valido.");
   const name = host.replace(/:443$/, "");
-  if (!name.includes(".") || /^[\d.]+$/.test(name) || name.includes(":")) return "Il link non è valido.";
+  if (!name.includes(".") || /^[\d.]+$/.test(name) || name.includes(":")) return t("Il link non è valido.");
   return null;
 }
 
@@ -57,11 +58,11 @@ export function isItemEmpty(item: ItemDraft): boolean {
 export function itemErrors(item: ItemDraft): ItemErrors {
   if (isItemEmpty(item)) return {};
   const errors: ItemErrors = {};
-  if (!item.brand.trim()) errors.brand = "Manca il brand.";
-  else if (item.brand.trim().length > BRAND_MAX) errors.brand = `Massimo ${BRAND_MAX} caratteri.`;
-  if (!item.name.trim()) errors.name = "Manca il capo.";
-  else if (item.name.trim().length > NAME_MAX) errors.name = `Massimo ${NAME_MAX} caratteri.`;
-  if (Number.isNaN(parsePrice(item.price))) errors.price = "Prezzo non valido (es. 89,90).";
+  if (!item.brand.trim()) errors.brand = t("Manca il brand.");
+  else if (item.brand.trim().length > BRAND_MAX) errors.brand = t("Massimo {BRAND_MAX} caratteri.", { BRAND_MAX });
+  if (!item.name.trim()) errors.name = t("Manca il capo.");
+  else if (item.name.trim().length > NAME_MAX) errors.name = t("Massimo {NAME_MAX} caratteri.", { NAME_MAX });
+  if (Number.isNaN(parsePrice(item.price))) errors.price = t("Prezzo non valido (es. 89,90).");
   const link = linkProblem(item.link);
   if (link) errors.link = link;
   return errors;
@@ -79,22 +80,22 @@ export type DraftForCheck = {
 export type PublishCheck = { ok: true } | { ok: false; reason: string };
 
 export function canPublish(draft: DraftForCheck): PublishCheck {
-  if (draft.photos.length === 0) return { ok: false, reason: "Scegli almeno una foto." };
+  if (draft.photos.length === 0) return { ok: false, reason: t("Scegli almeno una foto.") };
   if (draft.photos.some((p) => p.status === "rejected")) {
-    return { ok: false, reason: "Togli le foto che non possiamo pubblicare." };
+    return { ok: false, reason: t("Togli le foto che non possiamo pubblicare.") };
   }
   if (draft.photos.some((p) => p.status === "error")) {
-    return { ok: false, reason: "Una foto non si è caricata: tocca Riprova." };
+    return { ok: false, reason: t("Una foto non si è caricata: tocca Riprova.") };
   }
   if (draft.photos.some((p) => p.status !== "ready")) {
     const done = draft.photos.filter((p) => p.status === "ready").length;
-    return { ok: false, reason: `Carichiamo le foto: ${done} di ${draft.photos.length}.` };
+    return { ok: false, reason: t("Carichiamo le foto: {done} di {length}.", { done, length: draft.photos.length }) };
   }
-  if (!draft.style) return { ok: false, reason: "Scegli lo stile del fit." };
+  if (!draft.style) return { ok: false, reason: t("Scegli lo stile del fit.") };
   if (draft.items.some((i) => Object.keys(itemErrors(i)).length > 0)) {
-    return { ok: false, reason: "Controlla i capi." };
+    return { ok: false, reason: t("Controlla i capi.") };
   }
-  if (draft.caption.trim().length > CAPTION_MAX) return { ok: false, reason: "Didascalia troppo lunga." };
+  if (draft.caption.trim().length > CAPTION_MAX) return { ok: false, reason: t("Didascalia troppo lunga.") };
   return { ok: true };
 }
 

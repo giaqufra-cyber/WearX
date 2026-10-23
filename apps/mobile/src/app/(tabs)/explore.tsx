@@ -72,7 +72,7 @@ function StylesPane() {
       {featured ? <FeaturedStyle style={featured} /> : null}
 
       <View style={styles.sectionHead}>
-        <RNText style={styles.section}>{debounced ? "RISULTATI" : category ? "I PIÙ SEGUITI" : "TUTTI, DAI PIÙ SEGUITI"}</RNText>
+        <RNText style={styles.section}>{debounced ? t("RISULTATI") : category ? t("I PIÙ SEGUITI") : t("TUTTI, DAI PIÙ SEGUITI")}</RNText>
         {styles_.data ? (
           <RNText style={styles.count} aria-live="polite">
             {stylesCountLabel(items.length)}
@@ -100,7 +100,7 @@ function StylesPane() {
           title={t("Nessuno stile trovato")}
           body={t("Non c'è? Proponilo: se lo chiedono in tanti, nasce.")}
           action={{
-            label: `Proponi «${debounced}»`,
+            label: t("Proponi «{name}»", { name: debounced }),
             onPress: () => router.push({ pathname: "/style-proposals", params: { name: debounced } }),
           }}
         />
@@ -118,7 +118,7 @@ function StylesPane() {
                 height={150}
                 taglineLines={2}
                 meta={membersLabel(style.member_count).toUpperCase()}
-                status={style.joined ? "Aderito" : undefined}
+                status={style.joined ? t("Aderito") : undefined}
                 onPress={() => openStyle(style.slug)}
               />
             ))}
@@ -145,7 +145,7 @@ function FeaturedStyle({ style }: { style: StyleCard }) {
   return (
     <Pressable
       role="button"
-      aria-label={`${style.name}, stile stagionale. ${membersLabel(style.member_count)}. ${style.tagline}`}
+      aria-label={t("{name}, stile stagionale. {members}. {tagline}", { name: style.name, members: membersLabel(style.member_count), tagline: style.tagline })}
       onPress={() => openStyle(style.slug)}
       style={({ pressed }) => [styles.featured, { backgroundColor: style.tone }, pressed ? styles.pressed : null]}
     >

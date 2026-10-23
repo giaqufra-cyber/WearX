@@ -4,7 +4,7 @@ import type { Appeal, ModerationNotice, ReportReason, ReportReceipt, ReportReque
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { ApiError, apiGet, apiRequest } from "@/lib/api";
-import { N_ } from "@/lib/i18n";
+import { N_, t } from "@/lib/i18n";
 
 export const NOTICES_KEY = ["moderation-notices"] as const;
 
@@ -38,15 +38,15 @@ export function useReport(target: ReportTarget) {
 
 export function reportError(error: unknown): string {
   const code = error instanceof ApiError ? error.code : "";
-  if (code === "rate.limited") return "Hai inviato molte segnalazioni oggi: riprova domani.";
-  if (code === "post.not_found" || code === "user.not_found") return "Questo contenuto non è più disponibile.";
-  if (code === "report.own_content") return "Non puoi segnalare un tuo contenuto.";
-  return "La segnalazione non è partita. Controlla la connessione e riprova.";
+  if (code === "rate.limited") return t("Hai inviato molte segnalazioni oggi: riprova domani.");
+  if (code === "post.not_found" || code === "user.not_found") return t("Questo contenuto non è più disponibile.");
+  if (code === "report.own_content") return t("Non puoi segnalare un tuo contenuto.");
+  return t("La segnalazione non è partita. Controlla la connessione e riprova.");
 }
 
 /** "entro 1 ora" / "entro 24 ore" */
 export function reviewLabel(hours: number): string {
-  return hours === 1 ? "entro 1 ora" : `entro ${hours} ore`;
+  return hours === 1 ? t("entro 1 ora") : t("entro {hours} ore", { hours });
 }
 
 export function useNotices() {
@@ -73,30 +73,30 @@ export function useAppeal() {
 
 export function appealError(error: unknown): string {
   const code = error instanceof ApiError ? error.code : "";
-  if (code === "appeal.exists") return "Hai già fatto reclamo per questa decisione.";
-  if (code === "appeal.expired") return "Il tempo per il reclamo (6 mesi) è scaduto.";
-  return "Il reclamo non è partito. Controlla la connessione e riprova.";
+  if (code === "appeal.exists") return t("Hai già fatto reclamo per questa decisione.");
+  if (code === "appeal.expired") return t("Il tempo per il reclamo (6 mesi) è scaduto.");
+  return t("Il reclamo non è partito. Controlla la connessione e riprova.");
 }
 
 export const ACTION_TITLES: Record<ModerationNotice["action"], string> = {
-  hide: "Fit nascosto",
-  remove: "Fit rimosso",
-  restyle: "Stile cambiato",
-  suspend: "Account sospeso",
-  ban: "Account chiuso",
-  restore: "Decisione annullata",
-  warn: "Avviso",
-  limit_posting: "Pubblicazione sospesa",
+  hide: N_("Fit nascosto"),
+  remove: N_("Fit rimosso"),
+  restyle: N_("Stile cambiato"),
+  suspend: N_("Account sospeso"),
+  ban: N_("Account chiuso"),
+  restore: N_("Decisione annullata"),
+  warn: N_("Avviso"),
+  limit_posting: N_("Pubblicazione sospesa"),
 };
 
 /** Titolo dell'avviso: "rimosso" sul profilo vuol dire bio e foto tolte (seduta 27). */
 export function noticeTitle(notice: Pick<ModerationNotice, "action" | "target_type">): string {
-  if (notice.action === "remove" && notice.target_type === "profile") return "Bio e foto profilo tolte";
-  return ACTION_TITLES[notice.action];
+  if (notice.action === "remove" && notice.target_type === "profile") return t("Bio e foto profilo tolte");
+  return t(ACTION_TITLES[notice.action]);
 }
 
 export const APPEAL_STATUS: Record<Appeal["status"], string> = {
-  open: "Reclamo in esame",
-  upheld: "Reclamo respinto",
-  reversed: "Reclamo accolto",
+  open: N_("Reclamo in esame"),
+  upheld: N_("Reclamo respinto"),
+  reversed: N_("Reclamo accolto"),
 };

@@ -7,11 +7,12 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { LEGAL_TITLES, openLegal, useLegalLinks } from "@/features/legal/legal";
 import { useUpdateProfile } from "@/features/privacy/api";
 import { APP_VERSION } from "@/lib/api";
+import { N_, t, type LangChoice, useLanguage } from "@/lib/i18n";
 import { ListRow } from "@/ui/ListRow";
+import { SegmentedControl } from "@/ui/SegmentedControl";
 import { Toggle } from "@/ui/Toggle";
 import { TopBar } from "@/ui/TopBar";
 import { useToast } from "@/ui/Toast";
-import { t } from "@/lib/i18n";
 
 /** Privacy e sicurezza (prototipo, schermata Privacy). */
 export default function SettingsScreen() {
@@ -39,6 +40,10 @@ export default function SettingsScreen() {
           />
         </Section>
 
+        <Section title={t("LINGUA · LANGUAGE")}>
+          <LanguagePicker />
+        </Section>
+
         <Section title={t("RICERCA")}>
           <Toggle
             label={t("Fatti trovare nella ricerca")}
@@ -56,7 +61,7 @@ export default function SettingsScreen() {
           <Section title={t("ACCOUNT")}>
             <ListRow
               label={t("Tipo di account")}
-              value={profile.account_type === "business" ? "Business" : "Privato"}
+              value={profile.account_type === "business" ? t("Business") : t("Privato")}
               onPress={() => router.push("/account-type")}
             />
             {profile.account_type === "business" ? (
@@ -103,7 +108,7 @@ export default function SettingsScreen() {
 
         <Section title={t("INFORMAZIONI")}>
           {(["feed_explainer", "community_rules", "terms", "privacy"] as const).map((doc) => (
-            <ListRow key={doc} label={LEGAL_TITLES[doc]} onPress={() => openLegal(legal[doc])} />
+            <ListRow key={doc} label={t(LEGAL_TITLES[doc])} onPress={() => openLegal(legal[doc])} />
           ))}
         </Section>
 
@@ -113,6 +118,26 @@ export default function SettingsScreen() {
         </Text>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+const LANGUAGES: ReadonlyArray<{ value: LangChoice; label: string }> = [
+  { value: "auto", label: N_("Automatica") },
+  { value: "it", label: "Italiano" },
+  { value: "en", label: "English" },
+];
+
+/** Lingua dell'app: quella del telefono o una scelta qui. Cambiandola l'app si ridisegna. */
+function LanguagePicker() {
+  const choice = useLanguage((state) => state.choice);
+  const setChoice = useLanguage((state) => state.setChoice);
+  return (
+    <View style={styles.language}>
+      <SegmentedControl label={t("Lingua")} options={LANGUAGES} value={choice} onChange={setChoice} size="sm" />
+      <Text style={styles.languageNote}>
+        {t("Automatica segue la lingua del telefono: italiano se è in italiano, altrimenti inglese.")}
+      </Text>
+    </View>
   );
 }
 
@@ -126,6 +151,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 const styles = StyleSheet.create({
+  language: { gap: spacing[2], paddingVertical: spacing[2] },
+  languageNote: { fontFamily: fonts.ui, fontSize: 12, lineHeight: 17, color: colors.textTertiary },
   safe: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing[4], gap: spacing[6], paddingBottom: spacing[8] },
   section: { gap: spacing[1] },

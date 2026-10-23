@@ -8,7 +8,7 @@
 import type { MediaUpload } from "@wearx/api-types";
 
 import { ApiError } from "@/lib/api";
-import { t } from "@/lib/i18n";
+import { N_, t } from "@/lib/i18n";
 
 export const RETRY_DELAYS_MS = [1000, 2000, 4000, 8000];
 export const POLL_INTERVAL_MS = 1000;
@@ -45,19 +45,19 @@ export class UploadHttpError extends Error {
 }
 
 const REJECT_MESSAGES: Record<string, string> = {
-  too_small: "Foto troppo piccola: serve almeno 320 px per lato.",
-  bad_aspect_ratio: "Formato troppo stretto o troppo largo (massimo 2:1).",
-  not_an_image: "Questo file non sembra una foto.",
-  unsupported_format: "Formato non supportato.",
-  too_many_pixels: "Foto troppo grande.",
-  too_large: "Foto troppo pesante (massimo 15 MB).",
-  blocked: "Questa foto non può essere pubblicata su WearX.",
-  processing_error: "Non siamo riusciti a elaborare la foto. Riprova.",
-  expired: "Caricamento scaduto. Riprova.",
+  too_small: N_("Foto troppo piccola: serve almeno 320 px per lato."),
+  bad_aspect_ratio: N_("Formato troppo stretto o troppo largo (massimo 2:1)."),
+  not_an_image: N_("Questo file non sembra una foto."),
+  unsupported_format: N_("Formato non supportato."),
+  too_many_pixels: N_("Foto troppo grande."),
+  too_large: N_("Foto troppo pesante (massimo 15 MB)."),
+  blocked: N_("Questa foto non può essere pubblicata su WearX."),
+  processing_error: N_("Non siamo riusciti a elaborare la foto. Riprova."),
+  expired: N_("Caricamento scaduto. Riprova."),
 };
 
 export function rejectMessage(reason: string | null | undefined): string {
-  return REJECT_MESSAGES[reason ?? ""] ?? "Questa foto non può essere usata.";
+  return t(REJECT_MESSAGES[reason ?? ""] ?? "Questa foto non può essere usata.");
 }
 
 /** Errori che ha senso riprovare: rete, server sovraccarico, permesso scaduto. */
