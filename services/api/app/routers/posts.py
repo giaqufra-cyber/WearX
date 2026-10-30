@@ -24,6 +24,7 @@ from app.i18n import N_, STYLE_NAME_SQL, current_lang
 from app.links import normalize_shop_url
 from app.moderation.actions import hide_post
 from app.moderation.reports import file_report
+from app.places import save_place
 from app.portfolio import new_post_rank
 from app.post_access import AUTHOR_SHOWN_SQL, POST_VISIBLE_SQL
 from app.post_purge import purge_post
@@ -80,6 +81,8 @@ class PostIn(BaseModel):
     # Caricamenti pronti, nell'ordine del carosello.
     media: list[uuid.UUID] = Field(min_length=1, max_length=MAX_MEDIA)
     items: list[ItemIn] = Field(default_factory=list, max_length=MAX_ITEMS)
+    # Luogo facoltativo (seduta 35): il `ref` di un risultato di GET /v1/places.
+    place: str | None = Field(default=None, max_length=1200)
 
 
 class PostPatch(BaseModel):
@@ -91,6 +94,8 @@ class PostPatch(BaseModel):
     style: str | None = Field(default=None, min_length=2, max_length=40)
     # Capsula del portfolio (null = nessuna).
     capsule_id: uuid.UUID | None = None
+    # Luogo: il `ref` di un risultato di GET /v1/places, null = togli il luogo.
+    place: str | None = Field(default=None, max_length=1200)
 
 
 # ---------- Lettura ----------
@@ -297,6 +302,11 @@ async def _insert_post(session: AsyncSession, profile: Profile, body: PostIn) ->
                 422, "media.unavailable", "Una o più foto non sono pronte o non sono tue"
             )
         by_id = {m["id"]: m for m in claimed}
+        place_id = (
+            await save_place(session, body.place, minor=not profile.is_adult)
+            if body.place
+            else None
+        )
         post_id = uuid.uuid4()
         # Sotto la copertina scelta, oppure in cima (con il lock del portfolio della persona).
         rank = await new_post_rank(session, profile.id)
@@ -304,8 +314,9 @@ async def _insert_post(session: AsyncSession, profile: Profile, body: PostIn) ->
             text(
                 """insert into app.posts
                      (id, author_id, style_id, caption, status, portfolio_rank, published_at,
-                      minor_author)
-                   values (:id, :uid, :style, :caption, 'active', :rank, now(), :minor)"""
+                      minor_author, place_id)
+                   values (:id, :uid, :style, :caption, 'active', :rank, now(), :minor,
+                           :place)"""
             ),
             {
                 "id": post_id,
@@ -314,6 +325,7 @@ async def _insert_post(session: AsyncSession, profile: Profile, body: PostIn) ->
                 "caption": caption,
                 "rank": rank,
                 "minor": not profile.is_adult,
+                "place": place_id,
             },
         )
         for position, upload_id in enumerate(body.media):
@@ -419,6 +431,16 @@ async def update_post(
             await session.execute(
                 text("update app.posts set capsule_id = :c where id = :id"),
                 {"c": body.capsule_id, "id": post_id},
+            )
+        if "place" in body.model_fields_set:
+            place_id = (
+                await save_place(session, body.place, minor=not profile.is_adult)
+                if body.place
+                else None
+            )
+            await session.execute(
+                text("update app.posts set place_id = :p where id = :id"),
+                {"p": place_id, "id": post_id},
             )
         if body.items is not None:
             media_count = await session.scalar(

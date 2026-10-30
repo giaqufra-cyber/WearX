@@ -75,6 +75,8 @@ locals {
     WEARX_APP_ATTEST_ALLOW_DEVELOPMENT  = var.environment == "production" ? "false" : "true"
     WEARX_APPLE_TEAM_ID                 = var.apple_team_id
     WEARX_PLAY_INTEGRITY_PROJECT_NUMBER = var.play_integrity_project_number
+    WEARX_PLACES_PROVIDER               = var.places_provider
+    WEARX_PLACES_URL                    = var.places_url
     WEARX_IOS_STORE_URL                 = var.ios_store_url
     WEARX_ANDROID_STORE_URL             = var.android_store_url
     WEARX_DB_POOL_SIZE                  = "3"

@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.avatars import AvatarOut, avatar_out
 from app.i18n import STYLE_NAME_SQL, current_lang
 from app.links import go_url
+from app.places import PlaceOut
 from app.post_access import AUTHOR_SHOWN_SQL, POST_VISIBLE_SQL
 from app.profiles import Profile
 from app.routers.media import MediaUrls, media_urls
@@ -116,6 +117,8 @@ class PostOut(BaseModel):
     # Solo per l'autore: archiviato (gli altri non lo vedono) e quante volte è stato salvato.
     archived: bool | None = None
     save_count: int | None = None
+    # Seduta 35. Dove è stato indossato (facoltativo).
+    place: PlaceOut | None = None
 
 
 def _as_float(value: Decimal | None) -> float | None:
@@ -186,8 +189,11 @@ async def posts_out(
                                  as saved,
                                case when p.author_id = :viewer then
                                  (select count(*) from app.saved_posts sv
-                                   where sv.post_id = p.id) end as save_count
+                                   where sv.post_id = p.id) end as save_count,
+                               pl.name as place_name, pl.detail as place_detail,
+                               pl.kind as place_kind, pl.lat as place_lat, pl.lon as place_lon
                           from app.posts p
+                          left join app.places pl on pl.id = p.place_id
                           join app.profiles a on a.id = p.author_id
                           left join app.media_uploads au on au.id = a.avatar_upload_id
                           join app.styles s on s.id = p.style_id
@@ -260,6 +266,17 @@ async def posts_out(
             else None,
             is_own=own,
             caption=row["caption"],
+            place=PlaceOut(
+                name=row["place_name"],
+                detail=row["place_detail"],
+                kind=row["place_kind"],
+                lat=float(row["place_lat"]),
+                lon=float(row["place_lon"]),
+            )
+            # Il luogo lo vede chi vede anche chi l'ha pubblicato: su un fit anonimo (profilo
+            # privato che non segui) direbbe dove si trovava una persona sconosciuta.
+            if row["place_name"] and (own or row["author_shown"])
+            else None,
             media=media[row["id"]],
             items=[
                 ItemOut(

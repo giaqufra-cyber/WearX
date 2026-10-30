@@ -10,6 +10,7 @@ import { Carousel } from "@/features/feed/Carousel";
 import { matchLabel, totalPrice } from "@/features/feed/format";
 import { VotePanel } from "@/features/feed/VotePanel";
 import { ReportSheet } from "@/features/moderation/ReportSheet";
+import { PlaceLine } from "@/features/places/PlaceLine";
 import { Avatar } from "@/ui/Avatar";
 import { IconButton } from "@/ui/IconButton";
 import { IconArrowUpRight, IconBookmark, IconCheck, IconMore, IconShield } from "@/ui/icons";
@@ -71,6 +72,7 @@ export const PostCard = memo(function PostCard({ post, width, onVote, voting, on
               </>
             ) : null}
           </View>
+          {post.place ? <PlaceLine place={post.place} /> : null}
         </View>
         {!post.is_own && onToggleSave ? (
           <IconButton label={post.saved ? t("Togli dai salvati") : t("Salva il fit")} onPress={() => onToggleSave(post)}>

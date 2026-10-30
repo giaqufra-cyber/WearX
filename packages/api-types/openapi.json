@@ -3174,6 +3174,115 @@
         "title": "PersonOut",
         "type": "object"
       },
+      "PlaceOut": {
+        "description": "Il luogo di un fit. Le coordinate sono quelle del luogo, per aprirlo in Mappe.",
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "kind": {
+            "enum": [
+              "venue",
+              "street",
+              "area",
+              "city",
+              "region",
+              "country"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "lon": {
+            "title": "Lon",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "detail",
+          "kind",
+          "lat",
+          "lon"
+        ],
+        "title": "PlaceOut",
+        "type": "object"
+      },
+      "PlaceResults": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PlaceSuggestion"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "PlaceResults",
+        "type": "object"
+      },
+      "PlaceSuggestion": {
+        "description": "Un risultato della ricerca. `ref` si rimanda così com'è quando si pubblica il fit.",
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "kind": {
+            "enum": [
+              "venue",
+              "street",
+              "area",
+              "city",
+              "region",
+              "country"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref",
+          "name",
+          "detail",
+          "kind"
+        ],
+        "title": "PlaceSuggestion",
+        "type": "object"
+      },
       "PortfolioPage": {
         "properties": {
           "cover_id": {
@@ -3414,6 +3523,18 @@
             "title": "Media",
             "type": "array"
           },
+          "place": {
+            "anyOf": [
+              {
+                "maxLength": 1200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          },
           "style": {
             "maxLength": 40,
             "minLength": 2,
@@ -3546,6 +3667,16 @@
             "title": "Media",
             "type": "array"
           },
+          "place": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlaceOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "published_at": {
             "anyOf": [
               {
@@ -3660,6 +3791,18 @@
               }
             ],
             "title": "Items"
+          },
+          "place": {
+            "anyOf": [
+              {
+                "maxLength": 1200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
           },
           "style": {
             "anyOf": [
@@ -9412,6 +9555,51 @@
         "summary": "Dismiss Suggestion",
         "tags": [
           "people"
+        ]
+      }
+    },
+    "/v1/places": {
+      "get": {
+        "description": "Luoghi con un nome (mai indirizzi di casa); per chi ha 16-17 anni solo città e zone.",
+        "operationId": "find_places_v1_places_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 80,
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceResults"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Find Places",
+        "tags": [
+          "places"
         ]
       }
     },

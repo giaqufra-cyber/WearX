@@ -72,11 +72,14 @@ beforeEach(() => {
   jest.clearAllMocks();
   useNewPostDraft.getState().reset();
   client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
-  get.mockImplementation(async (path: string) =>
-    path === "/v1/me/styles"
+  get.mockImplementation(async (path: string) => {
+    if (path.startsWith("/v1/places")) {
+      return { items: [{ ref: "ref-scala", name: "Teatro alla Scala", detail: "Milano, Italia", kind: "venue" }] };
+    }
+    return path === "/v1/me/styles"
       ? { items: [style("gala", "Galà")], total: 1 }
-      : { items: [style("gala", "Galà"), style("jappo", "Jappo")], total: 2 },
-  );
+      : { items: [style("gala", "Galà"), style("jappo", "Jappo")], total: 2 };
+  });
   ImagePicker.launchImageLibraryAsync.mockResolvedValue({
     canceled: false,
     assets: [
@@ -115,6 +118,13 @@ test("galleria, ordine, stile, capo, didascalia, pubblica con chiave anti-doppio
   await fireEvent.changeText(screen.getByLabelText("Link del negozio del capo 1"), "https://www.armani.com/");
   await fireEvent.changeText(screen.getByLabelText("Didascalia"), "Prima del gala");
 
+  // Luogo (seduta 35): si cerca per nome e si sceglie.
+  await user.press(screen.getByRole("button", { name: "Aggiungi il luogo" }));
+  await fireEvent.changeText(screen.getByRole("searchbox", { name: "Cerca il luogo" }), "scala");
+  await user.press(await screen.findByRole("button", { name: "Teatro alla Scala, Milano, Italia" }));
+  expect(get).toHaveBeenCalledWith("/v1/places?q=scala", expect.objectContaining({ token: "tok" }));
+  expect(screen.getByRole("button", { name: "Luogo: Teatro alla Scala. Cambia" })).toBeOnTheScreen();
+
   expect(publish).toBeEnabled();
   const key = useNewPostDraft.getState().idempotencyKey;
   await user.press(publish);
@@ -127,6 +137,7 @@ test("galleria, ordine, stile, capo, didascalia, pubblica con chiave anti-doppio
       caption: "Prima del gala",
       media: ["up2", "up1"],
       items: [{ brand: "Armani", name: "Smoking", price_cents: 125050, currency: "EUR", url: "https://www.armani.com/" }],
+      place: "ref-scala",
     },
   });
   expect(router.back).toHaveBeenCalled();

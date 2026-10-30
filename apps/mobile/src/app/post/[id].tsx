@@ -10,13 +10,14 @@ import { useVote } from "@/features/feed/api";
 import { PostCard } from "@/features/feed/PostCard";
 import { useCapsules, useMoveFit, usePortfolio, usePost, usePostActions } from "@/features/portfolio/api";
 import { CapsulePicker } from "@/features/portfolio/CapsulePicker";
+import { PlacePicker } from "@/features/places/PlacePicker";
 import { useArchive, useSaveHandler } from "@/features/saved/api";
 import { ApiError } from "@/lib/api";
 import { track } from "@/lib/events";
 import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
 import { IconButton } from "@/ui/IconButton";
-import { IconArchive, IconBack, IconFolder, IconStar, IconTrash } from "@/ui/icons";
+import { IconArchive, IconBack, IconFolder, IconPin, IconStar, IconTrash } from "@/ui/icons";
 import { ErrorNotice, Loading } from "@/ui/LoadState";
 import { Sheet } from "@/ui/Sheet";
 import { useToast } from "@/ui/Toast";
@@ -84,11 +85,12 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
   const capsules = useCapsules();
   const portfolio = usePortfolio(nickname, null);
   const move = useMoveFit(nickname, { onError: (message) => toast.show(message, { tone: "error" }) });
-  const { setCapsule, remove } = usePostActions(post.id);
+  const { setCapsule, setPlace, remove } = usePostActions(post.id);
   const archive = useArchive(post.id);
   const archived = post.archived === true;
   const saves = post.save_count ?? 0;
   const [picking, setPicking] = useState(false);
+  const [placing, setPlacing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const capsuleName = capsules.data?.find((c) => c.id === post.capsule_id)?.name ?? null;
@@ -120,6 +122,14 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
         fullWidth
         icon={<IconFolder color={colors.text} />}
         onPress={() => setPicking(true)}
+      />
+      <Button
+        label={post.place ? t("Luogo: {name}", { name: post.place.name }) : t("Aggiungi il luogo")}
+        variant="secondary"
+        size="md"
+        fullWidth
+        icon={<IconPin color={colors.text} />}
+        onPress={() => setPlacing(true)}
       />
       {archived ? null : (
       <Button
@@ -163,6 +173,21 @@ function OwnerActions({ post, onDeleted }: { post: Post; onDeleted: () => void }
         onPress={() => setConfirmDelete(true)}
       />
 
+      <PlacePicker
+        visible={placing}
+        current={post.place ?? null}
+        busy={setPlace.isPending}
+        onClose={() => setPlacing(false)}
+        onPick={(place) =>
+          setPlace.mutate(place?.ref ?? null, {
+            onSuccess: () => {
+              setPlacing(false);
+              toast.show(place ? t("Luogo aggiunto al fit.") : t("Luogo tolto dal fit."));
+            },
+            onError: () => toast.show(t("Non riusciamo a salvare. Riprova."), { tone: "error" }),
+          })
+        }
+      />
       <CapsulePicker
         visible={picking}
         current={post.capsule_id ?? null}
