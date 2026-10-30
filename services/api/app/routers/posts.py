@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_session
 from app.errors import ApiError
 from app.feed import on_post_published
+from app.i18n import N_, STYLE_NAME_SQL, current_lang
 from app.links import normalize_shop_url
 from app.moderation.actions import hide_post
 from app.moderation.reports import file_report
@@ -109,7 +110,7 @@ async def _load_post(session: AsyncSession, viewer: Profile, post_id: uuid.UUID)
                 text(
                     f"""select p.id, p.status::text as status, p.caption, p.author_id,
                                p.restyle_used, p.published_at, p.created_at,
-                               s.slug, s.name, s.tone,
+                               s.slug, {STYLE_NAME_SQL} as name, s.tone,
                                a.nickname::text as nickname,
                                a.account_type::text as account_type, a.hide_prices,
                                {AUTHOR_SHOWN_SQL} as author_shown
@@ -118,7 +119,12 @@ async def _load_post(session: AsyncSession, viewer: Profile, post_id: uuid.UUID)
                           join app.styles s on s.id = p.style_id
                          where p.id = :id and {POST_VISIBLE_SQL}"""
                 ),
-                {"id": post_id, "viewer": viewer.id, "adult": viewer.is_adult},
+                {
+                    "id": post_id,
+                    "viewer": viewer.id,
+                    "adult": viewer.is_adult,
+                    "lang": current_lang(),
+                },
             )
         )
         .mappings()
@@ -155,8 +161,8 @@ async def _write_items(
     for position, item in enumerate(items):
         if item.media_position is not None and item.media_position >= media_count:
             raise ApiError(422, "item.bad_media_position", "Il capo punta a una foto che non c'è")
-        brand = clean_text(item.brand, field="Il brand", max_chars=60)
-        name = clean_text(item.name, field="Il nome del capo", max_chars=80)
+        brand = clean_text(item.brand, field=N_("Il brand"), max_chars=60)
+        name = clean_text(item.name, field=N_("Il nome del capo"), max_chars=80)
         if not brand or not name:
             raise ApiError(422, "item.incomplete", "Ogni capo ha bisogno di brand e nome")
         link_id = None
@@ -195,7 +201,7 @@ async def _write_items(
 
 def _caption(raw: str | None) -> str | None:
     return clean_text(
-        raw, field="La didascalia", max_chars=CAPTION_MAX_CHARS, max_lines=CAPTION_MAX_LINES
+        raw, field=N_("La didascalia"), max_chars=CAPTION_MAX_CHARS, max_lines=CAPTION_MAX_LINES
     )
 
 
@@ -228,7 +234,8 @@ async def create_post(
         raise ApiError(
             403,
             "account.posting_restricted",
-            f"Non puoi pubblicare fino al {blocked_until:%d/%m/%Y}",
+            "Non puoi pubblicare fino al {date}",
+            params={"date": f"{blocked_until:%d/%m/%Y}"},
         )
 
     redis_key = None

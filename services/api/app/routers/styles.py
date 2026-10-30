@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.errors import ApiError
+from app.i18n import STYLE_NAME_SQL, STYLE_TAGLINE_SQL, Lang, RequestLang
 from app.profiles import VISIBLE_STYLE_SQL, CurrentProfile, Profile
 from app.ratelimit import rate_limit
 
@@ -57,8 +58,9 @@ class StyleList(BaseModel):
     total: int
 
 
-_CARD_COLUMNS = """
-    s.slug, s.name, s.tagline, s.tone, s.min_age_band::text as min_age_band,
+_CARD_COLUMNS = f"""
+    s.slug, {STYLE_NAME_SQL} as name, {STYLE_TAGLINE_SQL} as tagline, s.tone,
+    s.min_age_band::text as min_age_band,
     (s.active_until is not null) as seasonal, s.active_until,
     (select count(*) from app.style_memberships c where c.style_id = s.id)::int as member_count,
     exists(select 1 from app.style_memberships j
@@ -69,11 +71,20 @@ _CARD_COLUMNS = """
 _POPULAR = "(select count(*) from app.style_memberships c where c.style_id = s.id) desc"
 
 
-def _params(profile: Profile, **extra: Any) -> dict[str, Any]:
-    return {"uid": profile.id, "adult": profile.is_adult, **extra}
+def _params(profile: Profile, lang: Lang, **extra: Any) -> dict[str, Any]:
+    return {"uid": profile.id, "adult": profile.is_adult, "lang": lang, **extra}
 
 
-async def _card(session: AsyncSession, profile: Profile, slug: str) -> StyleCard:
+# Il testo si cerca nelle due lingue ("jewellery" trova Gioielli anche con l'app in italiano);
+# le somiglianze per refusi solo nella lingua di chi cerca (meno risultati a caso).
+_SEARCH_TEXT = (
+    "(s.name || ' ' || s.tagline || ' ' || coalesce(s.name_en, '') || ' ' "
+    "|| coalesce(s.tagline_en, ''))"
+)
+_FUZZY_TEXT = f"({STYLE_NAME_SQL} || ' ' || {STYLE_TAGLINE_SQL})"
+
+
+async def _card(session: AsyncSession, profile: Profile, slug: str, lang: Lang) -> StyleCard:
     row = (
         (
             await session.execute(
@@ -81,7 +92,7 @@ async def _card(session: AsyncSession, profile: Profile, slug: str) -> StyleCard
                     f"select {_CARD_COLUMNS} from app.styles s "
                     f"where s.slug = :slug and {VISIBLE_STYLE_SQL}"
                 ),
-                _params(profile, slug=slug),
+                _params(profile, lang, slug=slug),
             )
         )
         .mappings()
@@ -102,6 +113,7 @@ def _like_pattern(q: str) -> str:
 async def list_styles(
     profile: CurrentProfile,
     session: Session,
+    lang: RequestLang,
     q: Annotated[str | None, Query(max_length=SEARCH_MAX_LENGTH)] = None,
     category: StyleCategory | None = None,
 ) -> StyleList:
@@ -113,24 +125,25 @@ async def list_styles(
             f"select {_CARD_COLUMNS} from app.styles s where {VISIBLE_STYLE_SQL} {in_category} "
             f"order by {_POPULAR}, s.sort_order, s.id"
         )
-        params = _params(profile, category=category)
+        params = _params(profile, lang, category=category)
     else:
         # Prima chi contiene il testo (anche senza accenti: "gala" trova "Galà"),
         # poi le somiglianze per refusi ("jppo" trova "Jappo").
         sql = f"""
             select {_CARD_COLUMNS} from app.styles s
              where {VISIBLE_STYLE_SQL} {in_category}
-               and (app.fold(s.name || ' ' || s.tagline) like app.fold(:pattern) escape '\\'
-                    or word_similarity(app.fold(:q), app.fold(s.name || ' ' || s.tagline))
-                       >= :threshold)
-             order by (app.fold(s.name) like app.fold(:prefix) escape '\\') desc,
-                      (app.fold(s.name || ' ' || s.tagline) like app.fold(:pattern) escape '\\')
+               and (app.fold({_SEARCH_TEXT}) like app.fold(:pattern) escape '\\'
+                    or word_similarity(app.fold(:q), app.fold({_FUZZY_TEXT})) >= :threshold)
+             order by (app.fold(s.name) like app.fold(:prefix) escape '\\'
+                       or app.fold(coalesce(s.name_en, '')) like app.fold(:prefix) escape '\\')
                         desc,
-                      word_similarity(app.fold(:q), app.fold(s.name || ' ' || s.tagline)) desc,
+                      (app.fold({_SEARCH_TEXT}) like app.fold(:pattern) escape '\\') desc,
+                      word_similarity(app.fold(:q), app.fold({_FUZZY_TEXT})) desc,
                       {_POPULAR}, s.sort_order, s.id
         """
         params = _params(
             profile,
+            lang,
             category=category,
             q=query,
             pattern=_like_pattern(query),
@@ -143,7 +156,7 @@ async def list_styles(
 
 
 @router.get("/me/styles", response_model=StyleList)
-async def my_styles(profile: CurrentProfile, session: Session) -> StyleList:
+async def my_styles(profile: CurrentProfile, session: Session, lang: RequestLang) -> StyleList:
     rows = (
         (
             await session.execute(
@@ -153,7 +166,7 @@ async def my_styles(profile: CurrentProfile, session: Session) -> StyleList:
                          where {VISIBLE_STYLE_SQL}
                          order by m.joined_at, s.sort_order"""
                 ),
-                _params(profile),
+                _params(profile, lang),
             )
         )
         .mappings()
@@ -164,8 +177,10 @@ async def my_styles(profile: CurrentProfile, session: Session) -> StyleList:
 
 
 @router.get("/styles/{slug}", response_model=StyleDetail)
-async def get_style(slug: str, profile: CurrentProfile, session: Session) -> StyleDetail:
-    card = await _card(session, profile, slug)
+async def get_style(
+    slug: str, profile: CurrentProfile, session: Session, lang: RequestLang
+) -> StyleDetail:
+    card = await _card(session, profile, slug, lang)
     recent = await session.scalar(
         text(
             """select count(*) from app.posts p join app.styles s on s.id = p.style_id
@@ -190,8 +205,10 @@ async def _lock_memberships(session: AsyncSession, profile: Profile) -> None:
     response_model=StyleCard,
     dependencies=[Depends(rate_limit("style_membership", 60, 3600))],
 )
-async def join_style(slug: str, profile: CurrentProfile, session: Session) -> StyleCard:
-    card = await _card(session, profile, slug)
+async def join_style(
+    slug: str, profile: CurrentProfile, session: Session, lang: RequestLang
+) -> StyleCard:
+    card = await _card(session, profile, slug, lang)
     if card.joined:
         return card
     await _lock_memberships(session, profile)
@@ -201,7 +218,12 @@ async def join_style(slug: str, profile: CurrentProfile, session: Session) -> St
     )
     if int(count or 0) >= MAX_MEMBERSHIPS:
         await session.rollback()
-        raise ApiError(409, "style.limit", f"Puoi seguire al massimo {MAX_MEMBERSHIPS} stili")
+        raise ApiError(
+            409,
+            "style.limit",
+            "Puoi seguire al massimo {max} stili",
+            params={"max": MAX_MEMBERSHIPS},
+        )
     await session.execute(
         text(
             """insert into app.style_memberships (user_id, style_id)
@@ -211,7 +233,7 @@ async def join_style(slug: str, profile: CurrentProfile, session: Session) -> St
         {"uid": profile.id, "slug": slug},
     )
     await session.commit()
-    return await _card(session, profile, slug)
+    return await _card(session, profile, slug, lang)
 
 
 @router.delete(
@@ -219,8 +241,10 @@ async def join_style(slug: str, profile: CurrentProfile, session: Session) -> St
     response_model=StyleCard,
     dependencies=[Depends(rate_limit("style_membership", 60, 3600))],
 )
-async def leave_style(slug: str, profile: CurrentProfile, session: Session) -> StyleCard:
-    card = await _card(session, profile, slug)
+async def leave_style(
+    slug: str, profile: CurrentProfile, session: Session, lang: RequestLang
+) -> StyleCard:
+    card = await _card(session, profile, slug, lang)
     if not card.joined:
         return card
     await _lock_memberships(session, profile)
@@ -229,7 +253,7 @@ async def leave_style(slug: str, profile: CurrentProfile, session: Session) -> S
             f"""select count(*) from app.style_memberships m join app.styles s on s.id = m.style_id
                  where m.user_id = :uid and s.slug <> :slug and {VISIBLE_STYLE_SQL}"""
         ),
-        _params(profile, slug=slug),
+        _params(profile, lang, slug=slug),
     )
     if int(others or 0) == 0:
         await session.rollback()
@@ -244,4 +268,4 @@ async def leave_style(slug: str, profile: CurrentProfile, session: Session) -> S
         {"uid": profile.id, "slug": slug},
     )
     await session.commit()
-    return await _card(session, profile, slug)
+    return await _card(session, profile, slug, lang)

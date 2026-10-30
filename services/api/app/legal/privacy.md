@@ -33,7 +33,8 @@ caratteri di un'impronta (hash) della password, mai la password.
 
 **Profilo.** Nickname, foto profilo (se la metti), bio, tipo di account (privato o Business),
 stili scelti (li vedi solo tu), impostazioni (prezzi nascosti, numero di voti nascosto,
-farti trovare nella ricerca, notifiche), versione dei Termini accettata e data dell'accettazione.
+farti trovare nella ricerca, notifiche, lingua), versione dei Termini accettata e data
+dell'accettazione.
 
 **Ricerca e suggerimenti.** Per proporti persone che potresti conoscere usiamo chi segui, chi
 ti segue, chi seguono le persone che segui e gli stili in comune. Accanto a un suggerimento
@@ -68,7 +69,7 @@ identici); i voti anomali non contano nelle medie.
 moderazione che ti riguardano, con la motivazione, e i tuoi reclami.
 
 **Notifiche e dispositivi.** Le notifiche che ricevi; per le notifiche push, il codice che il
-tuo telefono ci dà per recapitarle. Per ogni accesso: modello del telefono (es. "iPhone 15"),
+tuo telefono ci dà per recapitarle e la lingua dell'app su quel telefono. Per ogni accesso: modello del telefono (es. "iPhone 15"),
 sistema, versione dell'app, primo e ultimo utilizzo, così puoi vedere e chiudere gli accessi da
 Privacy e sicurezza > Dispositivi collegati.
 
@@ -172,11 +173,11 @@ legittimo interesse. Molte cose le fai da solo nell'app, in **Privacy e sicurezz
 - **Dispositivi collegati:** vedi e chiudi gli accessi;
 - **Notifiche:** scegli quali ricevere;
 - **Nascondi i prezzi, Nascondi il numero dei voti, Fatti trovare nella ricerca, Tipo di
-  account.**
+  account, Lingua.**
 
 Per il resto scrivi a privacy@wearx.app: rispondiamo entro un mese. Se pensi che trattiamo i
 tuoi dati in modo scorretto puoi reclamare al **Garante per la protezione dei dati personali**
-(www.garanteprivacy.it).
+(www.garanteprivacy.it) o all'autorità del Paese UE in cui vivi.
 
 ## Chi ha 16 o 17 anni
 

@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.errors import ApiError
+from app.i18n import RequestLang
 from app.moderation.actions import appeal_deadline, ground_label
 from app.moderation.reports import SLA, Reason, TargetType, file_report
 from app.people import find_person
@@ -104,7 +105,12 @@ def _free_text(raw: str | None, max_chars: int) -> str | None:
         ch for ch in value if ch == "\n" or unicodedata.category(ch) not in ("Cc", "Cf", "Co", "Cs")
     )
     if len(value) > max_chars:
-        raise ApiError(422, "text.too_long", f"Il testo può avere al massimo {max_chars} caratteri")
+        raise ApiError(
+            422,
+            "text.too_long",
+            "Il testo può avere al massimo {max_chars} caratteri",
+            params={"max_chars": max_chars},
+        )
     return value or None
 
 
@@ -177,12 +183,15 @@ async def report(
 
 
 @router.get("/me/moderation", response_model=list[NoticeOut])
-async def my_notices(profile: CurrentProfileAnyStatus, session: Session) -> list[NoticeOut]:
+async def my_notices(
+    profile: CurrentProfileAnyStatus, session: Session, lang: RequestLang
+) -> list[NoticeOut]:
     rows = (
         (
             await session.execute(
                 text(
-                    """select m.id, m.action, m.ground, m.statement, m.automated, m.created_at,
+                    """select m.id, m.action, m.ground, m.statement, m.statement_en, m.automated,
+                              m.created_at,
                               m.expires_at, m.target_type, m.target_id,
                               (select p.status::text from app.posts p
                                 where m.target_type = 'post' and p.id = m.target_id)
@@ -217,8 +226,9 @@ async def my_notices(profile: CurrentProfileAnyStatus, session: Session) -> list
             NoticeOut(
                 id=r["id"],
                 action=r["action"],
-                reason=ground_label(r["ground"]),
-                statement=r["statement"],
+                reason=ground_label(r["ground"], lang),
+                # Le decisioni precedenti alla seduta 34 hanno solo il testo italiano.
+                statement=(r["statement_en"] if lang == "en" else None) or r["statement"],
                 automated=r["automated"],
                 created_at=r["created_at"],
                 expires_at=r["expires_at"],

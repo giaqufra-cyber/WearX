@@ -27,6 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.db import get_session
 from app.errors import ApiError
+from app.i18n import N_
 from app.profiles import CurrentProfile, Profile
 from app.ratelimit import rate_limit
 from app.routers.styles import MAX_MEMBERSHIPS, StyleCategory
@@ -157,8 +158,8 @@ async def list_proposals(
     dependencies=[Depends(rate_limit("style_proposal", 10, 86400))],
 )
 async def propose(body: ProposalIn, profile: CurrentProfile, session: Session) -> ProposalCreated:
-    name = clean_text(body.name, field="Il nome dello stile", max_chars=NAME_MAX)
-    tagline = clean_text(body.tagline, field="La descrizione", max_chars=TAGLINE_MAX)
+    name = clean_text(body.name, field=N_("Il nome dello stile"), max_chars=NAME_MAX)
+    tagline = clean_text(body.tagline, field=N_("La descrizione"), max_chars=TAGLINE_MAX)
     key = name_key(name or "")
     if not name or len(key) < 2:
         raise ApiError(422, "proposal.bad_name", "Scrivi un nome di almeno due lettere")
@@ -192,7 +193,8 @@ async def propose(body: ProposalIn, profile: CurrentProfile, session: Session) -
         raise ApiError(
             409,
             "proposal.limit",
-            f"Hai già {MAX_OPEN_PER_USER} proposte aperte: aspetta che arrivino alla soglia",
+            "Hai già {max} proposte aperte: aspetta che arrivino alla soglia",
+            params={"max": MAX_OPEN_PER_USER},
         )
     try:
         proposal_id = await session.scalar(

@@ -1548,3 +1548,40 @@ Fatto:
 Verifiche: 315 test app (+6); 14 percorsi Playwright (+1: telefono in inglese, poi Italiano
 dalle impostazioni e la scelta resta ricaricando); registrazione, feed, Esplora, profilo, "Nuovo
 fit" e impostazioni provati nel browser in inglese a 390×844.
+
+### Seduta 34 — 2026-10-30
+
+**Obiettivo:** l'app in inglese anche nei testi che arrivano dal server (seconda parte della 33).
+
+Fatto:
+- **Lingua della richiesta** (`app/i18n.py`): dall'header `Accept-Language` che l'app manda
+  sempre, oppure da `?lang=it|en`. Senza indicazioni italiano; qualsiasi altra lingua diventa
+  inglese, come nell'app. Stesso schema dell'app: il testo italiano è la chiave, `tr()` e `N_()`,
+  dizionario in `app/i18n_en.py` (circa 220 testi). Un test (`tests/test_i18n.py`) controlla che
+  ogni testo sia tradotto con gli stessi segnaposto, che non restino traduzioni inutili e che
+  nessun titolo d'errore sia composto con una f-string (i valori vanno in `params`).
+- **Errori**: titolo e dettaglio tradotti nella risposta ("The bio can be at most 150
+  characters"); il `code` non cambia mai.
+- **Stili** (migrazione 0023): `name_en` e `tagline_en`, riempiti per i 54 stili del catalogo
+  (Galà → Gala, Gioielli → Jewellery, Calcio → Football, Jappo → Tokyo Street…). Vuoti = come in
+  italiano. La ricerca trova lo stile in tutte e due le lingue ("jewellery" trova Gioielli anche
+  con l'app in italiano). Nel pannello dello staff, nella scheda di ogni stile, i campi "Nome in
+  inglese" e "Descrizione in inglese".
+- **Notifiche**: la lista nella lingua dell'app; i **push** nella lingua del telefono che li
+  riceve (`push_tokens.language`: il telefono si registra di nuovo quando la lingua cambia).
+- **Moderazione**: la motivazione si scrive nelle due lingue (`statement_en`); l'italiano resta
+  il testo di riferimento e quello che legge lo staff. Le decisioni di prima restano in italiano.
+- **Pagine legali in inglese** in `/legal/en/…` (Terms, Privacy Policy, Community Guidelines, How
+  the feed works, Deleting your account), con la nota che fa fede la versione italiana; i link
+  in `/v1/config` seguono la lingua. Anche la pagina dei link ai negozi bloccati e il LEGGIMI
+  dell'archivio dei dati (ora anche in inglese).
+- **Email**: l'app scrive la lingua nei dati dell'account Supabase (alla registrazione e quando
+  cambia); i modelli bilingui da incollare in Supabase sono in `docs/EMAIL.md`.
+- Corretto: creando uno stile dal pannello senza scegliere il colore la richiesta falliva.
+
+Verifiche: 464 test API (+23); 315 test app (uno esteso: la lingua nei dati dell'account); 14
+test del pannello; 14 percorsi Playwright (quello in inglese ora controlla anche gli stili);
+Esplora, profilo, notifiche e Privacy Policy provati nel browser in inglese a 390×844.
+
+Da fare fuori dal codice: incollare i modelli di `docs/EMAIL.md` in Supabase (staging e
+produzione). Da far rivedere: le traduzioni delle pagine legali insieme al testo italiano.

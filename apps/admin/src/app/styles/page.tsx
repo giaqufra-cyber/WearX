@@ -18,6 +18,8 @@ type Draft = {
   sort_order: string;
   is_active: boolean;
   category: NonNullable<AdminStyleUpdate["category"]>;
+  name_en: string;
+  tagline_en: string;
 };
 
 const CATEGORIES: { value: Draft["category"]; label: string }[] = [
@@ -40,6 +42,8 @@ const EMPTY: Draft = {
   sort_order: "100",
   is_active: true,
   category: "stili",
+  name_en: "",
+  tagline_en: "",
 };
 
 function toDraft(s: AdminStyle): Draft {
@@ -54,6 +58,8 @@ function toDraft(s: AdminStyle): Draft {
     sort_order: String(s.sort_order),
     is_active: s.is_active,
     category: (s.category ?? "stili") as Draft["category"],
+    name_en: s.name_en ?? "",
+    tagline_en: s.tagline_en ?? "",
   };
 }
 
@@ -68,6 +74,9 @@ function fields(d: Draft): AdminStyleUpdate {
     sort_order: Number(d.sort_order) || 0,
     is_active: d.is_active,
     category: d.category,
+    // Vuoti = l'app in inglese mostra il testo italiano.
+    name_en: d.name_en.trim(),
+    tagline_en: d.tagline_en.trim(),
   };
 }
 
@@ -136,6 +145,16 @@ export default function StylesPage() {
             <span>Descrizione breve</span>
             <input className="input" value={editing.tagline} onChange={(e) => setEditing({ ...editing, tagline: e.target.value })} required maxLength={90} />
           </label>
+          <div className="decide">
+            <label className="field">
+              <span>Nome in inglese (vuoto = uguale)</span>
+              <input className="input" value={editing.name_en} onChange={(e) => setEditing({ ...editing, name_en: e.target.value })} maxLength={40} />
+            </label>
+            <label className="field">
+              <span>Descrizione in inglese</span>
+              <input className="input" value={editing.tagline_en} onChange={(e) => setEditing({ ...editing, tagline_en: e.target.value })} maxLength={90} />
+            </label>
+          </div>
           <div className="decide" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
             <label className="field">
               <span>Colore</span>
@@ -214,6 +233,13 @@ export default function StylesPage() {
                 <span className="swatch" style={{ background: s.tone }} />
                 <strong style={{ fontFamily: "var(--font-display)", fontSize: 16 }}>{s.name}</strong>
                 <div className="muted">{s.tagline}</div>
+                {s.name_en || s.tagline_en ? (
+                  <div className="muted" lang="en">
+                    EN: {s.name_en ?? s.name} · {s.tagline_en ?? "manca la descrizione"}
+                  </div>
+                ) : (
+                  <div className="muted">EN: da tradurre</div>
+                )}
               </td>
               <td>{s.min_age_band === "18_plus" ? "18+" : "16+"}</td>
               <td className="muted">{s.active_from || s.active_until ? `${s.active_from ?? "…"} → ${s.active_until ?? "…"}` : "sempre"}</td>

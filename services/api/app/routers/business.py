@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.errors import ApiError
+from app.i18n import N_
 from app.link_check import VERIFY_FILE, NotFound, Unsafe, http_client, system_resolver, visit
 from app.links import normalize_shop_url
 from app.profiles import CurrentProfile, Profile
@@ -154,7 +155,7 @@ async def verify_domain(domain: str, viewer: CurrentProfile, session: Session) -
     if row is None:
         raise ApiError(404, "shop.not_found", "Sito non trovato")
     token = str(row["token"])
-    found, problem = False, "Il file non c'è o non contiene il codice."
+    found, problem = False, N_("Il file non c'è o non contiene il codice.")
     async with client_factory() as client:
         for host in (domain, f"www.{domain}"):
             try:
@@ -162,7 +163,7 @@ async def verify_domain(domain: str, viewer: CurrentProfile, session: Session) -
                     session, f"https://{host}{VERIFY_FILE}", client, resolver, read_body=1024
                 )
             except (Unsafe, NotFound, httpx.HTTPError):
-                problem = "Non riusciamo a raggiungere il sito in https."
+                problem = N_("Non riusciamo a raggiungere il sito in https.")
                 continue
             if result.status == 200 and token in body.decode("utf-8", "replace"):
                 found = True

@@ -4,7 +4,11 @@
  *   aggiorna lista e campanella quando ne arriva uno con l'app aperta, tiene il numero sull'icona;
  * - eventi d'uso: li spedisce a gruppi, e subito quando l'app va in background;
  * - dispositivi collegati: segnala che questo dispositivo è attivo;
- * - verifica del dispositivo (App Attest / Play Integrity): una volta per accesso.
+ * - verifica del dispositivo (App Attest / Play Integrity): una volta per accesso;
+ * - lingua: la scrive nei dati dell'account, così le email di accesso arrivano in quella lingua.
+ *
+ * Al cambio di lingua tutto questo si rimonta (RootNavigator ha la lingua come key): il telefono
+ * si registra di nuovo per i push, che da lì arrivano nella nuova lingua.
  */
 import { useQueryClient } from "@tanstack/react-query";
 import * as Notifications from "expo-notifications";
@@ -20,7 +24,10 @@ import type { AppConfig } from "@wearx/api-types";
 
 import { verifyDevice } from "@/features/device/attest";
 import { pingDevice } from "@/features/privacy/api";
+import { configPath } from "@/features/styles/useAppConfig";
 import { apiGet } from "@/lib/api";
+import { language } from "@/lib/i18n";
+import { supabase } from "@/lib/supabase";
 import { configureEvents, FLUSH_EVERY_MS, flushEvents, resetEvents } from "@/lib/events";
 
 export function AppBridges() {
@@ -69,10 +76,17 @@ export function AppBridges() {
     const current = tokenRef.current;
     if (Platform.OS === "web" || !current) return;
     void client
-      .fetchQuery({ queryKey: ["config"], queryFn: () => apiGet<AppConfig>("/v1/config"), staleTime: 5 * 60_000 })
+      .fetchQuery({ queryKey: ["config"], queryFn: () => apiGet<AppConfig>(configPath()), staleTime: 5 * 60_000 })
       .then((config) => verifyDevice(current, config.attestation))
       .catch(() => undefined);
   }, [uid, client]);
+
+  // Lingua delle email (Supabase le compone dai metadati dell'account: docs/EMAIL.md).
+  const savedLang = (session?.user.user_metadata as { lang?: string } | undefined)?.lang;
+  useEffect(() => {
+    if (!uid || savedLang === language()) return;
+    void supabase.auth.updateUser({ data: { lang: language() } }).catch(() => undefined);
+  }, [uid, savedLang]);
 
   // Push: solo telefoni veri. Il permesso NON si chiede qui.
   useEffect(() => {

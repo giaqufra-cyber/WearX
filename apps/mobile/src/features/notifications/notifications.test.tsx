@@ -23,6 +23,7 @@ jest.mock("@/features/auth/AuthProvider", () => ({
   useAuth: () => ({ session: { access_token: "tok", user: { id: "u1" } }, profile: { nickname: "fra.fit" } }),
 }));
 jest.mock("@/lib/api", () => ({ ...jest.requireActual("@/lib/api"), apiGet: jest.fn(), apiRequest: jest.fn() }));
+jest.mock("@/lib/supabase", () => ({ supabase: { auth: { updateUser: jest.fn(() => Promise.resolve({ error: null })) } } }));
 jest.mock("expo-device", () => ({ isDevice: true }));
 jest.mock("expo-constants", () => ({
   __esModule: true,
@@ -229,6 +230,9 @@ describe("Push sul telefono", () => {
     await tap("https://evil.example");
     expect(router.push).not.toHaveBeenCalled();
     await waitFor(() => expect(Notifications.setBadgeCountAsync).toHaveBeenCalledWith(2));
+    // La lingua dell'app finisce nei dati dell'account (per le email di Supabase).
+    const { supabase } = jest.requireMock("@/lib/supabase") as { supabase: { auth: { updateUser: jest.Mock } } };
+    expect(supabase.auth.updateUser).toHaveBeenCalledWith({ data: { lang: "it" } });
   });
 
   test("all'avvio con permesso già dato il token si rinnova; all'uscita si cancella", async () => {

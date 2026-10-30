@@ -20,6 +20,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
+from app.i18n import N_, Lang, RequestLang, tr
 from app.links import parse_go_token
 from app.ratelimit import rate_limit
 
@@ -34,7 +35,7 @@ _HEADERS = {
 }
 
 _PAGE = """<!doctype html>
-<html lang="it"><head><meta charset="utf-8">
+<html lang="{lang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title} · WearX</title>
 <style>
@@ -50,9 +51,14 @@ _PAGE = """<!doctype html>
 <body><main><div class="k">{kicker}</div><h1>{title}</h1><p>{body}</p></main></body></html>"""
 
 
-def _page(status: int, kicker: str, title: str, body: str) -> HTMLResponse:
+def _page(status: int, lang: Lang, kicker: str, title: str, body: str) -> HTMLResponse:
     return HTMLResponse(
-        _PAGE.format(kicker=kicker, title=html.escape(title), body=body),
+        _PAGE.format(
+            lang=lang,
+            kicker=html.escape(tr(kicker, lang)),
+            title=html.escape(tr(title, lang)),
+            body=body,
+        ),
         status_code=status,
         headers={
             **_HEADERS,
@@ -76,10 +82,16 @@ def _with_utm(url: str) -> str:
     include_in_schema=False,
     dependencies=[Depends(rate_limit("go", 120, 60, by="ip"))],
 )
-async def go(token: str, session: Session) -> Response:
+async def go(token: str, session: Session, lang: RequestLang) -> Response:
     parsed = parse_go_token(token)
     if parsed is None:
-        return _page(404, "LINK", "Link non valido", "Questo indirizzo non porta a nessun negozio.")
+        return _page(
+            404,
+            lang,
+            "LINK",
+            N_("Link non valido"),
+            html.escape(tr("Questo indirizzo non porta a nessun negozio.", lang)),
+        )
     link_id, post_id, item = parsed
     row = (
         (
@@ -106,17 +118,25 @@ async def go(token: str, session: Session) -> Response:
     if row is None or not row["belongs"]:
         return _page(
             404,
+            lang,
             "LINK",
-            "Link non più disponibile",
-            "Il capo è stato modificato o il fit non c'è più.",
+            N_("Link non più disponibile"),
+            html.escape(tr("Il capo è stato modificato o il fit non c'è più.", lang)),
         )
     if row["status"] == "blocked":
+        warning = tr(
+            "Il sito {site} è stato segnalato come pericoloso (truffe, phishing o malware). "
+            "Per sicurezza non ti ci portiamo.",
+            lang,
+            site="\x00",
+        )
+        site = f"<code>{html.escape(row['domain'])}</code>"
         return _page(
             451,
-            "LINK BLOCCATO",
-            "Abbiamo fermato questo link",
-            f"Il sito <code>{html.escape(row['domain'])}</code> è stato segnalato come pericoloso "
-            "(truffe, phishing o malware). Per sicurezza non ti ci portiamo.",
+            lang,
+            N_("LINK BLOCCATO"),
+            N_("Abbiamo fermato questo link"),
+            html.escape(warning).replace("\x00", site),
         )
     await session.execute(
         text("update app.links set clicks = clicks + 1 where id = :id"), {"id": link_id}

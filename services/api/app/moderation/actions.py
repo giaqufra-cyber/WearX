@@ -12,12 +12,13 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timedelta
-from typing import Literal
+from typing import Literal, NamedTuple
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.avatars import detach_avatar
+from app.i18n import N_, Lang, tr
 from app.notifications import notify
 from app.post_purge import purge_post
 from app.votes import CONFIRM_MIN, MATCH_THRESHOLD
@@ -31,27 +32,34 @@ STRIKE_WINDOW_DAYS = 365
 
 # Motivi (segnalazioni e decisioni), in parole semplici.
 GROUNDS: dict[str, str] = {
-    "nudity": "nudità o contenuti sessuali",
-    "minor_safety": "sicurezza dei minori",
-    "harassment": "molestie, minacce o dati personali di altre persone",
-    "spam": "spam",
-    "wrong_style": "stile sbagliato",
-    "dangerous_link": "link pericoloso",
-    "stolen_photo": "foto di qualcun altro",
-    "other": "violazione delle regole della community",
-    "community_reports": "più segnalazioni di persone diverse",
-    "csam_hash_match": "una foto corrisponde a materiale illegale già noto",
-    "image_classifier": "il controllo automatico delle foto",
-    "appeal": "il tuo reclamo è stato accolto",
-    "review_cleared": "un moderatore ha verificato che rispetta le regole",
-    "staff_review": "una revisione dello staff",
+    "nudity": N_("nudità o contenuti sessuali"),
+    "minor_safety": N_("sicurezza dei minori"),
+    "harassment": N_("molestie, minacce o dati personali di altre persone"),
+    "spam": N_("spam"),
+    "wrong_style": N_("stile sbagliato"),
+    "dangerous_link": N_("link pericoloso"),
+    "stolen_photo": N_("foto di qualcun altro"),
+    "other": N_("violazione delle regole della community"),
+    "community_reports": N_("più segnalazioni di persone diverse"),
+    "csam_hash_match": N_("una foto corrisponde a materiale illegale già noto"),
+    "image_classifier": N_("il controllo automatico delle foto"),
+    "appeal": N_("il tuo reclamo è stato accolto"),
+    "review_cleared": N_("un moderatore ha verificato che rispetta le regole"),
+    "staff_review": N_("una revisione dello staff"),
 }
 
-_APPEAL = "Se pensi che sia un errore puoi fare reclamo da questo avviso entro 6 mesi."
+_APPEAL = N_("Se pensi che sia un errore puoi fare reclamo da questo avviso entro 6 mesi.")
 
 
-def ground_label(ground: str) -> str:
-    return GROUNDS.get(ground, GROUNDS["other"])
+def ground_label(ground: str, lang: Lang = "it") -> str:
+    return tr(GROUNDS.get(ground, GROUNDS["other"]), lang)
+
+
+class Statement(NamedTuple):
+    """La motivazione nelle due lingue: l'italiano è il testo di riferimento (seduta 34)."""
+
+    it: str
+    en: str
 
 
 def statement_for(
@@ -63,62 +71,122 @@ def statement_for(
     until: datetime | None = None,
     linked: bool = False,
     profile: bool = False,
-) -> str:
+) -> Statement:
     """Testo che la persona legge: cosa è successo, perché, chi ha deciso, come reagire.
     `linked`: sanzione decisa insieme a un'azione su un fit (il reclamo si fa lì)."""
-    fit = f"Il tuo fit «{caption}»" if caption else "Un tuo fit"
+    args = (action, ground, automated, caption, until, linked, profile)
+    return Statement(_statement("it", *args), _statement("en", *args))
+
+
+def _statement(
+    lang: Lang,
+    action: Action,
+    ground: str,
+    automated: bool,
+    caption: str | None,
+    until: datetime | None,
+    linked: bool,
+    profile: bool,
+) -> str:
+    def t(text: str, **params: object) -> str:
+        return tr(text, lang, **params)
+
+    fit = t("Il tuo fit «{caption}»", caption=caption) if caption else t("Un tuo fit")
+    appeal_note = t(_APPEAL)
     appeal = (
-        "Il reclamo si fa sull'avviso del fit e, se accolto, annulla anche questa decisione."
+        t("Il reclamo si fa sull'avviso del fit e, se accolto, annulla anche questa decisione.")
         if linked
-        else _APPEAL
+        else appeal_note
     )
-    why = ground_label(ground)
-    who = "Decisione automatica" if automated else "Decisione di un moderatore"
+    why = ground_label(ground, lang)
+    who = t("Decisione automatica") if automated else t("Decisione di un moderatore")
     if action == "hide":
-        what = f"{fit} è stato nascosto: non compare più nel feed né nel tuo profilo per gli altri"
+        what = t(
+            "{fit} è stato nascosto: non compare più nel feed né nel tuo profilo per gli altri",
+            fit=fit,
+        )
         if automated:
-            return (
-                f"{what}. Motivo: {why}. {who}: un moderatore lo rivede presto e, se non viola "
-                f"le regole, torna visibile. {_APPEAL}"
+            return t(
+                "{what}. Motivo: {why}. {who}: un moderatore lo rivede presto e, se non viola "
+                "le regole, torna visibile. {appeal}",
+                what=what,
+                why=why,
+                who=who,
+                appeal=appeal_note,
             )
-        return f"{what}. Motivo: {why}. {who}. {_APPEAL}"
+        return t(
+            "{what}. Motivo: {why}. {who}. {appeal}",
+            what=what,
+            why=why,
+            who=who,
+            appeal=appeal_note,
+        )
     if action == "remove" and profile:
-        return (
+        return t(
             "La bio e la foto del tuo profilo sono state tolte; quella foto non si può "
-            f"ricaricare. Puoi scriverne di nuove. Motivo: {why}. {who}. {_APPEAL}"
+            "ricaricare. Puoi scriverne di nuove. Motivo: {why}. {who}. {appeal}",
+            why=why,
+            who=who,
+            appeal=appeal_note,
         )
     if action == "remove":
-        return (
-            f"{fit} è stato rimosso e le sue foto non si possono ripubblicare. Motivo: {why}. "
-            f"{who}. {_APPEAL}"
+        return t(
+            "{fit} è stato rimosso e le sue foto non si possono ripubblicare. Motivo: {why}. "
+            "{who}. {appeal}",
+            fit=fit,
+            why=why,
+            who=who,
+            appeal=appeal_note,
         )
     if action == "warn":
-        return (
-            f"Avviso: un tuo contenuto ha violato le regole della community ({why}). Al prossimo "
-            f"problema la pubblicazione viene sospesa per {POSTING_SUSPENSION_DAYS} giorni. "
-            f"{appeal}"
+        return t(
+            "Avviso: un tuo contenuto ha violato le regole della community ({why}). Al prossimo "
+            "problema la pubblicazione viene sospesa per {days} giorni. {appeal}",
+            why=why,
+            days=POSTING_SUSPENSION_DAYS,
+            appeal=appeal,
         )
     if action == "limit_posting":
         day = until.strftime("%d/%m/%Y") if until else ""
-        return (
-            f"Non puoi pubblicare nuovi fit fino al {day}. Motivo: {why}. Puoi ancora vedere "
-            f"e votare. {who}. {appeal}"
+        return t(
+            "Non puoi pubblicare nuovi fit fino al {day}. Motivo: {why}. Puoi ancora vedere "
+            "e votare. {who}. {appeal}",
+            day=day,
+            why=why,
+            who=who,
+            appeal=appeal,
         )
     if action == "suspend":
-        return (
-            f"Il tuo account è sospeso in attesa di verifica. Motivo: {why}. {who}. "
-            f"Un moderatore controlla il caso il prima possibile. {_APPEAL}"
+        return t(
+            "Il tuo account è sospeso in attesa di verifica. Motivo: {why}. {who}. "
+            "Un moderatore controlla il caso il prima possibile. {appeal}",
+            why=why,
+            who=who,
+            appeal=appeal_note,
         )
     if action == "ban":
-        return f"Il tuo account è stato chiuso. Motivo: {why}. {who}. {appeal}"
+        return t(
+            "Il tuo account è stato chiuso. Motivo: {why}. {who}. {appeal}",
+            why=why,
+            who=who,
+            appeal=appeal,
+        )
     if action == "restore":
         if linked:
-            return (
+            return t(
                 "Annullata anche la sanzione decisa insieme al fit: non conta più per le "
                 "sanzioni successive."
             )
-        return f"Abbiamo annullato una decisione precedente: {why}. Ci scusiamo per il disagio."
-    return f"Decisione di moderazione. Motivo: {why}. {who}. {_APPEAL}"
+        return t(
+            "Abbiamo annullato una decisione precedente: {why}. Ci scusiamo per il disagio.",
+            why=why,
+        )
+    return t(
+        "Decisione di moderazione. Motivo: {why}. {who}. {appeal}",
+        why=why,
+        who=who,
+        appeal=appeal_note,
+    )
 
 
 async def record(
@@ -131,15 +199,16 @@ async def record(
     automated: bool,
     actor_id: uuid.UUID | None,
     subject_id: uuid.UUID | None,
-    statement: str,
+    statement: Statement,
     expires_at: datetime | None = None,
 ) -> uuid.UUID:
     action_id = await session.scalar(
         text(
             """insert into app.moderation_actions
                  (target_type, target_id, action, ground, automated, actor_id, subject_id,
-                  statement, expires_at)
-               values (:tt, :tid, :action, :ground, :auto, :actor, :subject, :statement, :exp)
+                  statement, statement_en, expires_at)
+               values (:tt, :tid, :action, :ground, :auto, :actor, :subject, :statement,
+                       :statement_en, :exp)
                returning id"""
         ),
         {
@@ -150,7 +219,8 @@ async def record(
             "auto": automated,
             "actor": actor_id,
             "subject": subject_id,
-            "statement": statement,
+            "statement": statement.it,
+            "statement_en": statement.en,
             "exp": expires_at,
         },
     )

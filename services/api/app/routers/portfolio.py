@@ -29,6 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.avatars import AvatarOut, load_avatar
 from app.db import get_session
 from app.errors import ApiError
+from app.i18n import N_, STYLE_NAME_SQL, current_lang
 from app.people import FollowState, find_person
 from app.portfolio import lock_portfolio, move_after
 from app.post_access import NOT_ARCHIVED_SQL, POST_VISIBLE_SQL
@@ -141,7 +142,7 @@ class CapsuleIn(BaseModel):
 
 
 def _visible(viewer: Profile) -> dict[str, Any]:
-    return {"viewer": viewer.id, "adult": viewer.is_adult}
+    return {"viewer": viewer.id, "adult": viewer.is_adult, "lang": current_lang()}
 
 
 def _avg(wsum: float | Decimal, wcount: float | Decimal) -> float | None:
@@ -193,7 +194,8 @@ async def get_user(nickname: str, viewer: CurrentProfile, session: Session) -> U
             for r in (
                 await session.execute(
                     text(
-                        f"""select s.slug, s.name, s.tone from app.style_memberships m
+                        f"""select s.slug, {STYLE_NAME_SQL} as name, s.tone
+                              from app.style_memberships m
                               join app.styles s on s.id = m.style_id
                              where m.user_id = :author and {VISIBLE_STYLE_SQL}
                              order by m.joined_at, s.sort_order"""
@@ -358,7 +360,8 @@ async def get_user_posts(
             await session.execute(
                 text(
                     f"""select p.id, p.status::text as status, p.caption, p.capsule_id,
-                               p.portfolio_rank, s.slug, s.name, s.tone, a.hide_vote_count,
+                               p.portfolio_rank, s.slug, {STYLE_NAME_SQL} as name, s.tone,
+                               a.hide_vote_count,
                                coalesce(st.shown_count, 0) as vote_count,
                                coalesce(st.shown_wsum, 0) as vote_wsum,
                                coalesce(st.shown_wcount, 0) as vote_wcount,
@@ -454,7 +457,9 @@ async def get_style_posts(
     stile per la conferma della community ("style_rejected") qui non compaiono. Le medie seguono
     la regola di sempre: si vedono sui propri fit e su quelli già votati.
     """
-    await style_card(session, viewer, slug)  # 404 se lo stile non esiste o non è per chi guarda
+    await style_card(
+        session, viewer, slug, current_lang()
+    )  # 404 se lo stile non esiste o non è per chi guarda
     after = _decode_style_cursor(cursor, sort) if cursor else None
     key_sql = _STYLE_SORT_KEY[sort]
     rows = (
@@ -462,7 +467,8 @@ async def get_style_posts(
             await session.execute(
                 text(
                     f"""select p.id, p.author_id, p.status::text as status, p.caption,
-                               p.capsule_id, s.slug, s.name, s.tone, a.hide_vote_count,
+                               p.capsule_id, s.slug, {STYLE_NAME_SQL} as name, s.tone,
+                               a.hide_vote_count,
                                {key_sql} as sort_key,
                                coalesce(st.shown_count, 0) as vote_count,
                                coalesce(st.shown_wsum, 0) as vote_wsum,
@@ -577,7 +583,7 @@ async def reorder(body: OrderIn, profile: CurrentProfile, session: Session) -> R
 
 
 def _capsule_name(raw: str) -> str:
-    name = clean_text(raw, field="Il nome della capsula", max_chars=CAPSULE_NAME_MAX)
+    name = clean_text(raw, field=N_("Il nome della capsula"), max_chars=CAPSULE_NAME_MAX)
     if not name:
         raise ApiError(422, "capsule.name_required", "Dai un nome alla capsula")
     return name
@@ -625,7 +631,12 @@ async def create_capsule(body: CapsuleIn, profile: CurrentProfile, session: Sess
             )
         ).one()
         if count >= MAX_CAPSULES:
-            raise ApiError(409, "capsule.limit", f"Puoi avere al massimo {MAX_CAPSULES} capsule")
+            raise ApiError(
+                409,
+                "capsule.limit",
+                "Puoi avere al massimo {max} capsule",
+                params={"max": MAX_CAPSULES},
+            )
         if await _name_taken(session, profile.id, name, None):
             raise _TAKEN
         capsule_id = await session.scalar(

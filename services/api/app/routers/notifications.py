@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import CurrentAuth
 from app.db import get_session
 from app.errors import ApiError
+from app.i18n import Lang, RequestLang
 from app.notifications import CATEGORY, render
 from app.profiles import CurrentProfile
 from app.ratelimit import rate_limit
@@ -156,6 +157,7 @@ async def _unread(session: AsyncSession, me: uuid.UUID) -> int:
 async def notifications(
     viewer: CurrentProfile,
     session: Session,
+    lang: RequestLang,
     cursor: Annotated[str | None, Query(max_length=200)] = None,
 ) -> NotificationPage:
     after = _decode(cursor) if cursor else None
@@ -189,7 +191,7 @@ async def notifications(
         .all()
     )
     page = rows[:PAGE]
-    items = [_item(viewer.is_adult, r) for r in page]
+    items = [_item(viewer.is_adult, r, lang) for r in page]
     return NotificationPage(
         items=items,
         next_cursor=_encode(page[-1]["created_at"], page[-1]["id"]) if len(rows) > PAGE else None,
@@ -197,13 +199,14 @@ async def notifications(
     )
 
 
-def _item(viewer_adult: bool, row: Any) -> NotificationOut:
+def _item(viewer_adult: bool, row: Any, lang: Lang) -> NotificationOut:
     shown = render(
         row["type"],
         row["payload"],
         actor=row["actor"],
         caption=row["caption"],
         post_id=row["post_id"],
+        lang=lang,
     )
     actor = (
         NotificationActor(
@@ -266,24 +269,36 @@ async def mark_read(body: MarkRead, viewer: CurrentProfile, session: Session) ->
     dependencies=[Depends(rate_limit("push_token", 30, 3600))],
 )
 async def register_token(
-    body: PushTokenIn, viewer: CurrentProfile, auth: CurrentAuth, session: Session
+    body: PushTokenIn,
+    viewer: CurrentProfile,
+    auth: CurrentAuth,
+    session: Session,
+    lang: RequestLang,
 ) -> Response:
     """Registra il telefono per i push. Lo stesso telefono passato a un altro account cambia
-    proprietario (un telefono riceve i push di un solo account: quello con cui è entrato)."""
+    proprietario (un telefono riceve i push di un solo account: quello con cui è entrato).
+    I push arrivano nella lingua dell'app su quel telefono (l'app si registra di nuovo quando
+    la lingua cambia)."""
     if not EXPO_TOKEN_RE.fullmatch(body.token):
         raise ApiError(422, "push.bad_token", "Token push non valido")
     await session.execute(
         text(
-            """insert into app.push_tokens (token, user_id, platform, session_id)
-               values (:token, :me, :platform, :sid)
+            """insert into app.push_tokens (token, user_id, platform, session_id, language)
+               values (:token, :me, :platform, :sid, :lang)
                on conflict (token) do update
                   set user_id = excluded.user_id, platform = excluded.platform,
-                      session_id = excluded.session_id,
+                      session_id = excluded.session_id, language = excluded.language,
                       last_seen = now(),
                       created_at = case when app.push_tokens.user_id = excluded.user_id
                                         then app.push_tokens.created_at else now() end"""
         ),
-        {"token": body.token, "me": viewer.id, "platform": body.platform, "sid": auth.session_id},
+        {
+            "token": body.token,
+            "me": viewer.id,
+            "platform": body.platform,
+            "sid": auth.session_id,
+            "lang": lang,
+        },
     )
     # Al massimo 10 telefoni: i più vecchi escono.
     await session.execute(

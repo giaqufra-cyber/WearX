@@ -25,6 +25,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.avatars import avatar_out
 from app.db import get_session
 from app.errors import ApiError
+from app.i18n import STYLE_NAME_SQL, current_lang
 from app.post_access import AUTHOR_SHOWN_SQL, POST_VISIBLE_SQL
 from app.post_views import AuthorRef, PostOut
 from app.profiles import CurrentProfile, Profile
@@ -62,9 +63,9 @@ def _decode(cursor: str) -> tuple[datetime, uuid.UUID]:
 
 
 # Colonne di una casella della griglia (come in portfolio.make_tile).
-_TILE_COLUMNS = """
+_TILE_COLUMNS = f"""
     p.id, p.author_id, p.status::text as status, p.caption, p.capsule_id,
-    s.slug, s.name, s.tone, a.hide_vote_count,
+    s.slug, {STYLE_NAME_SQL} as name, s.tone, a.hide_vote_count,
     coalesce(st.shown_count, 0) as vote_count,
     coalesce(st.shown_wsum, 0) as vote_wsum,
     coalesce(st.shown_wcount, 0) as vote_wcount,
@@ -147,7 +148,7 @@ async def list_saved(
                                 or (sv.created_at, p.id)
                                    < (cast(:ts as timestamptz), cast(:cid as uuid)))
                          order by sv.created_at desc, p.id desc
-                         limit :limit"""  # noqa: S608 - frammenti costanti, nessun input
+                         limit :limit"""
                 ),
                 _params(viewer, after, limit),
             )
@@ -178,6 +179,7 @@ def _params(
     return {
         "viewer": viewer.id,
         "adult": viewer.is_adult,
+        "lang": current_lang(),
         "k": voter_key(viewer.id),
         "ts": after[0] if after else None,
         "cid": after[1] if after else None,
@@ -248,7 +250,7 @@ async def list_archive(
                                 or (p.archived_at, p.id)
                                    < (cast(:ts as timestamptz), cast(:cid as uuid)))
                          order by p.archived_at desc, p.id desc
-                         limit :limit"""  # noqa: S608 - frammenti costanti, nessun input
+                         limit :limit"""
                 ),
                 _params(profile, after, limit),
             )

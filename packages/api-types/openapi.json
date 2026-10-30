@@ -422,6 +422,17 @@
             "title": "Name",
             "type": "string"
           },
+          "name_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name En"
+          },
           "posts_7d": {
             "title": "Posts 7D",
             "type": "integer"
@@ -437,6 +448,17 @@
           "tagline": {
             "title": "Tagline",
             "type": "string"
+          },
+          "tagline_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tagline En"
           },
           "tone": {
             "title": "Tone",
@@ -4949,6 +4971,18 @@
             "title": "Name",
             "type": "string"
           },
+          "name_en": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name En"
+          },
           "slug": {
             "title": "Slug",
             "type": "string"
@@ -4971,6 +5005,18 @@
             "minLength": 2,
             "title": "Tagline",
             "type": "string"
+          },
+          "tagline_en": {
+            "anyOf": [
+              {
+                "maxLength": 90,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tagline En"
           },
           "tone": {
             "default": "#2A2A2E",
@@ -5154,6 +5200,18 @@
             ],
             "title": "Name"
           },
+          "name_en": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name En"
+          },
           "sort_order": {
             "anyOf": [
               {
@@ -5179,6 +5237,18 @@
               }
             ],
             "title": "Tagline"
+          },
+          "tagline_en": {
+            "anyOf": [
+              {
+                "maxLength": 90,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tagline En"
           },
           "tone": {
             "anyOf": [
@@ -8641,7 +8711,7 @@
     },
     "/v1/me/push-tokens": {
       "put": {
-        "description": "Registra il telefono per i push. Lo stesso telefono passato a un altro account cambia\nproprietario (un telefono riceve i push di un solo account: quello con cui è entrato).",
+        "description": "Registra il telefono per i push. Lo stesso telefono passato a un altro account cambia\nproprietario (un telefono riceve i push di un solo account: quello con cui è entrato).\nI push arrivano nella lingua dell'app su quel telefono (l'app si registra di nuovo quando\nla lingua cambia).",
         "operationId": "register_token_v1_me_push_tokens_put",
         "requestBody": {
           "content": {

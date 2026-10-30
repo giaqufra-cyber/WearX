@@ -14,6 +14,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.avatars import AvatarOut, avatar_out
+from app.i18n import STYLE_NAME_SQL, current_lang
 from app.links import go_url
 from app.post_access import AUTHOR_SHOWN_SQL, POST_VISIBLE_SQL
 from app.profiles import Profile
@@ -151,14 +152,19 @@ async def posts_out(
     """Post visibili a `viewer` tra quelli chiesti (gli altri mancano dal risultato)."""
     if not post_ids:
         return {}
-    params = {"ids": post_ids, "viewer": viewer.id, "adult": viewer.is_adult}
+    params = {
+        "ids": post_ids,
+        "viewer": viewer.id,
+        "adult": viewer.is_adult,
+        "lang": current_lang(),
+    }
     rows = (
         (
             await session.execute(
                 text(
                     f"""select p.id, p.status::text as status, p.caption, p.author_id,
                                p.restyle_used, p.published_at, p.created_at, p.capsule_id,
-                               s.slug, s.name, s.tone,
+                               s.slug, {STYLE_NAME_SQL} as name, s.tone,
                                a.nickname::text as nickname,
                                a.account_type::text as account_type, a.hide_prices,
                                a.hide_vote_count,

@@ -12,6 +12,7 @@ import re
 import unicodedata
 
 from app.errors import ApiError
+from app.i18n import N_
 from app.moderation.text import offensive_compact, offensive_word
 
 NICKNAME_RE = re.compile(r"^[a-z0-9._]{3,20}$")
@@ -93,23 +94,41 @@ def clean_text(raw: str | None, *, field: str, max_chars: int, max_lines: int = 
     if not text:
         return None
     if _FORBIDDEN_CHARS.search(text):
-        raise ApiError(422, "text.invalid_characters", f"{field} contiene caratteri non ammessi")
+        raise ApiError(
+            422,
+            "text.invalid_characters",
+            "{field} contiene caratteri non ammessi",
+            params={"field": field},
+        )
     for ch in text:
         if ch != "\n" and unicodedata.category(ch) in ("Cc", "Cf", "Co", "Cs"):
             raise ApiError(
-                422, "text.invalid_characters", f"{field} contiene caratteri non ammessi"
+                422,
+                "text.invalid_characters",
+                "{field} contiene caratteri non ammessi",
+                params={"field": field},
             )
     if len(text) > max_chars:
-        raise ApiError(422, "text.too_long", f"{field} può avere al massimo {max_chars} caratteri")
+        raise ApiError(
+            422,
+            "text.too_long",
+            "{field} può avere al massimo {max_chars} caratteri",
+            params={"field": field, "max_chars": max_chars},
+        )
     if offensive_word(text):
-        raise ApiError(422, "text.not_allowed", f"{field} contiene parole non ammesse")
+        raise ApiError(
+            422, "text.not_allowed", "{field} contiene parole non ammesse", params={"field": field}
+        )
     if text.count("\n") >= max_lines:
         raise ApiError(
-            422, "text.too_many_lines", f"{field} può avere al massimo {max_lines} righe"
+            422,
+            "text.too_many_lines",
+            "{field} può avere al massimo {max_lines} righe",
+            params={"field": field, "max_lines": max_lines},
         )
     return text
 
 
 def clean_bio(raw: str | None) -> str | None:
     """Normalizza la bio; solleva 422 se contiene caratteri non ammessi o è troppo lunga."""
-    return clean_text(raw, field="La bio", max_chars=BIO_MAX_CHARS, max_lines=BIO_MAX_LINES)
+    return clean_text(raw, field=N_("La bio"), max_chars=BIO_MAX_CHARS, max_lines=BIO_MAX_LINES)

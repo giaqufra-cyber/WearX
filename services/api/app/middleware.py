@@ -12,6 +12,7 @@ from fastapi import FastAPI, Request, Response
 
 from app.config import get_settings
 from app.errors import problem
+from app.i18n import lang_var, request_lang
 from app.logging_setup import request_id_var, trace_from_headers, trace_var
 
 access_log = logging.getLogger("wearx.access")
@@ -84,6 +85,7 @@ def install_middleware(app: FastAPI) -> None:
         request_id = incoming if _REQUEST_ID_RE.match(incoming) else str(uuid.uuid4())
         request.state.request_id = request_id
         request_id_var.set(request_id)
+        lang_var.set(request_lang(request))
         trace_var.set(trace_from_headers(request.headers))
         started = time.perf_counter()
 

@@ -65,6 +65,33 @@ eventi.json          le azioni registrate per gli Insight (ultimi 3 mesi circa)
 foto/                le foto dei tuoi fit e la foto profilo (la versione piu' grande)
 
 Domande sui tuoi dati: privacy@wearx.app
+
+
+WearX - your data (English)
+===========================
+
+This archive contains the data WearX keeps about you on the date shown in profilo.json
+(field "archivio_creato"). File and field names are in Italian; every file is JSON and opens
+in any editor.
+
+profilo.json         nickname, bio, age group, settings, consents, age verification
+                     (the result only: no images or date of birth)
+stili.json           the styles you've joined
+fit.json             your fits with caption, style, items, prices and links (archived too)
+salvati.json         other people's fits you've saved
+capsule.json         your capsules
+persone.json         who you follow, who follows you, requests, blocked accounts
+voti.json            the scores you gave (anonymous to others)
+segnalazioni.json    the reports you made
+moderazione.json     moderation decisions about you and your appeals
+notifiche.json       your notifications
+dispositivi.json     the devices you signed in with
+segnalazioni_problemi.json  messages sent with "Report a problem"
+stili_proposti.json  the styles you proposed or asked for
+eventi.json          actions recorded for Insights (roughly the last 3 months)
+foto/                the photos of your fits and your profile photo (largest version)
+
+Questions about your data: privacy@wearx.app
 """
 
 
