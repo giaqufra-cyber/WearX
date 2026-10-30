@@ -1,0 +1,11 @@
+
+Requested 1 shards, but it cannot be higher than the number of flows (0). Will use 1 shards instead.
+
+Waiting for flows to complete...
+[Failed] registrazione (22s) (Element not found: Text matching regex: Crea il tuo account)
+
+Flow registrazione failed and continueOnFailure is set to false, aborting running sequential Flows
+
+
+1/1 Flow Failed
+

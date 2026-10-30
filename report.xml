@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="test" tests="1" failures="1" time="22.514" timestamp="2026-10-30T20:45:48">
+    <testcase id="registrazione" name="registrazione" classname="registrazione" file="/home/runner/work/WearX/WearX/apps/mobile/.maestro/registrazione.yaml" time="22.461" timestamp="2026-10-30T20:45:48" status="ERROR">
+      <failure>Element not found: Text matching regex: Crea il tuo account</failure>
+    </testcase>
+  </testsuite>
+</testsuites>
