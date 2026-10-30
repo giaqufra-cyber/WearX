@@ -386,7 +386,7 @@ class FakeProvider:
             if needle not in haystack:
                 continue
             name, detail = (en, detail_en) if lang == "en" else (it, detail_it)
-            ref = "F" + hashlib.sha1(it.encode()).hexdigest()[:10]  # noqa: S324 - non crittografico
+            ref = "F" + hashlib.sha256(it.encode()).hexdigest()[:10]
             out.append(Place("fake", ref, kind, name, detail, code, lat, lon))
         return out
 
