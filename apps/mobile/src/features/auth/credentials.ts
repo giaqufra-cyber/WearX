@@ -2,6 +2,7 @@
 import type { SignInWithPasswordCredentials, SignUpWithPasswordCredentials } from "@supabase/supabase-js";
 
 import { normalizePhone } from "@/features/auth/signupForm";
+import { language } from "@/lib/i18n";
 
 export type ContactMode = "email" | "phone";
 
@@ -18,7 +19,8 @@ export function signUpCredentials(
   emailRedirectTo?: string,
 ): SignUpWithPasswordCredentials {
   // Il nickname va nei metadati solo come promemoria: il profilo vero si crea dopo la verifica dell'età.
-  const options = { data: { nickname: nickname.trim().toLowerCase() } };
+  // La lingua serve alle email di Supabase (conferma, recupero password: docs/EMAIL.md).
+  const options = { data: { nickname: nickname.trim().toLowerCase(), lang: language() } };
   const value = normalizeContact(mode, contact);
   return mode === "email"
     ? { email: value, password, options: emailRedirectTo ? { ...options, emailRedirectTo } : options }

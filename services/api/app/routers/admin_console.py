@@ -345,6 +345,9 @@ class AdminStyle(BaseModel):
     members: int
     posts_7d: int
     category: str = "stili"
+    # In inglese (seduta 34); vuoti = l'app inglese mostra il testo italiano.
+    name_en: str | None = None
+    tagline_en: str | None = None
 
 
 class StyleFields(BaseModel):
@@ -358,6 +361,9 @@ class StyleFields(BaseModel):
     sort_order: int | None = Field(default=None, ge=0, le=10000)
     is_active: bool | None = None
     category: StyleCategory | None = None
+    # Stringa vuota = togli la traduzione.
+    name_en: str | None = Field(default=None, max_length=40)
+    tagline_en: str | None = Field(default=None, max_length=90)
 
     @model_validator(mode="after")
     def _check(self) -> StyleFields:
@@ -384,6 +390,7 @@ class StyleCreate(StyleFields):
 _STYLE_SELECT = """
     select s.slug, s.name, s.tagline, s.tone, s.min_age_band::text as min_age_band,
            s.active_from, s.active_until, s.sort_order, s.is_active, s.category,
+           s.name_en, s.tagline_en,
            (select count(*) from app.style_memberships m where m.style_id = s.id) as members,
            (select count(*) from app.posts p where p.style_id = s.id
               and p.published_at > now() - interval '7 days') as posts_7d
@@ -410,9 +417,12 @@ async def _style(session: AsyncSession, slug: str) -> AdminStyle:
 
 def _clean(body: StyleFields) -> dict[str, Any]:
     values = body.model_dump(exclude_unset=True)
-    for key in ("name", "tagline"):
+    for key in ("name", "tagline", "name_en", "tagline_en"):
         if key in values and values[key] is not None:
             values[key] = " ".join(str(values[key]).split())
+    for key in ("name_en", "tagline_en"):
+        if key in values and not values[key]:
+            values[key] = None
     return values
 
 
@@ -423,16 +433,24 @@ async def create_style(body: StyleCreate, admin: CurrentAdmin, session: Session)
     values.setdefault("is_active", True)
     values.setdefault("min_age_band", "16_17")
     values.setdefault("category", "stili")
+    values.setdefault("tone", body.tone)  # il colore predefinito non arriva da exclude_unset
     try:
         await session.execute(
             text(
                 """insert into app.styles
                      (slug, name, tagline, tone, min_age_band, active_from, active_until,
-                      sort_order, is_active, category)
+                      sort_order, is_active, category, name_en, tagline_en)
                    values (:slug, :name, :tagline, :tone, cast(:min_age_band as app.age_band),
-                           :active_from, :active_until, :sort_order, :is_active, :category)"""
+                           :active_from, :active_until, :sort_order, :is_active, :category,
+                           :name_en, :tagline_en)"""
             ),
-            {"active_from": None, "active_until": None, **values},
+            {
+                "active_from": None,
+                "active_until": None,
+                "name_en": None,
+                "tagline_en": None,
+                **values,
+            },
         )
         await audit(session, admin, "admin.style_create", f"style:{body.slug}", values)
         await session.commit()
@@ -452,6 +470,8 @@ _STYLE_COLUMNS = (
     "sort_order",
     "is_active",
     "category",
+    "name_en",
+    "tagline_en",
 )
 
 

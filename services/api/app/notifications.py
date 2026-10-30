@@ -27,6 +27,8 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.i18n import N_, Lang, tr
+
 NotificationType = Literal[
     "follow_request",
     "new_follower",
@@ -190,14 +192,14 @@ async def follow_request_handled(
 # ---------- Testi ----------
 
 ACTION_TITLES = {
-    "hide": "Un tuo fit è stato nascosto",
-    "remove": "Un tuo fit è stato rimosso",
-    "restyle": "Abbiamo spostato un tuo fit in un altro stile",
-    "suspend": "Il tuo account è sospeso",
-    "ban": "Il tuo account è stato chiuso",
-    "warn": "Hai ricevuto un avviso",
-    "limit_posting": "Pubblicazione sospesa per 7 giorni",
-    "restore": "Abbiamo annullato una decisione",
+    "hide": N_("Un tuo fit è stato nascosto"),
+    "remove": N_("Un tuo fit è stato rimosso"),
+    "restyle": N_("Abbiamo spostato un tuo fit in un altro stile"),
+    "suspend": N_("Il tuo account è sospeso"),
+    "ban": N_("Il tuo account è stato chiuso"),
+    "warn": N_("Hai ricevuto un avviso"),
+    "limit_posting": N_("Pubblicazione sospesa per 7 giorni"),
+    "restore": N_("Abbiamo annullato una decisione"),
 }
 
 
@@ -212,11 +214,11 @@ class Rendered:
     url: str
 
 
-def _fit(caption: str | None) -> str:
+def _fit(caption: str | None, lang: Lang) -> str:
     if not caption:
-        return "Il tuo fit"
+        return tr("Il tuo fit", lang)
     short = caption if len(caption) <= 40 else caption[:39].rstrip() + "…"
-    return f"Il tuo fit «{short}»"
+    return tr("Il tuo fit «{caption}»", lang, caption=short)
 
 
 def render(
@@ -226,46 +228,52 @@ def render(
     actor: str | None,
     caption: str | None,
     post_id: uuid.UUID | None,
+    lang: Lang = "it",
 ) -> Rendered:
-    who = f"@{actor}" if actor else "Qualcuno"
+    """Testi di una notifica nella lingua chiesta (lista: quella della richiesta; push: quella
+    del telefono che lo riceve)."""
+    who = f"@{actor}" if actor else N_("Qualcuno")
     if type == "follow_request":
-        title = f"{who} vuole seguirti"
-        body = "Accetta per fargli vedere il tuo portfolio."
-        return Rendered(title, body, "Nuova richiesta", title, "/notifications")
+        title = tr("{who} vuole seguirti", lang, who=who)
+        body = tr("Accetta per fargli vedere il tuo portfolio.", lang)
+        return Rendered(title, body, tr("Nuova richiesta", lang), title, "/notifications")
     if type == "new_follower":
-        title = f"{who} ha iniziato a seguirti"
-        return Rendered(title, "", "Nuovo follower", title, f"/user/{actor}" if actor else "/")
+        title = tr("{who} ha iniziato a seguirti", lang, who=who)
+        url = f"/user/{actor}" if actor else "/"
+        return Rendered(title, "", tr("Nuovo follower", lang), title, url)
     if type == "follow_accepted":
-        title = f"{who} ha accettato la tua richiesta"
-        body = "Ora vedi il suo portfolio."
-        return Rendered(
-            title, body, "Richiesta accettata", title, f"/user/{actor}" if actor else "/"
-        )
+        title = tr("{who} ha accettato la tua richiesta", lang, who=who)
+        body = tr("Ora vedi il suo portfolio.", lang)
+        url = f"/user/{actor}" if actor else "/"
+        return Rendered(title, body, tr("Richiesta accettata", lang), title, url)
     if type == "vote_milestone":
         count = int(payload.get("count", 0))
-        title = f"{_fit(caption)} ha raggiunto {count} voti"
-        body = "Apri il fit per vedere la media." if count == VOTE_MILESTONES[0] else ""
+        title = tr("{fit} ha raggiunto {count} voti", lang, fit=_fit(caption, lang), count=count)
+        body = tr("Apri il fit per vedere la media.", lang) if count == VOTE_MILESTONES[0] else ""
         url = f"/post/{post_id}" if post_id else "/"
-        return Rendered(title, body, "Nuovo traguardo", title, url)
+        return Rendered(title, body, tr("Nuovo traguardo", lang), title, url)
     if type == "moderation":
-        title = ACTION_TITLES.get(str(payload.get("action")), "Novità dalla moderazione")
-        body = "Tocca per leggere il motivo e, se vuoi, fare reclamo."
-        if payload.get("action") == "restore":
-            body = "Tocca per i dettagli."
-        return Rendered(
-            title, body, "WearX", "Hai un nuovo avviso della moderazione", "/moderation"
+        title = tr(
+            ACTION_TITLES.get(str(payload.get("action")), N_("Novità dalla moderazione")), lang
         )
+        body = tr("Tocca per leggere il motivo e, se vuoi, fare reclamo.", lang)
+        if payload.get("action") == "restore":
+            body = tr("Tocca per i dettagli.", lang)
+        push = tr("Hai un nuovo avviso della moderazione", lang)
+        return Rendered(title, body, "WearX", push, "/moderation")
     if type == "appeal_decided":
         accepted = payload.get("outcome") == "reversed"
-        title = "Reclamo accolto" if accepted else "Reclamo respinto"
+        title = tr("Reclamo accolto", lang) if accepted else tr("Reclamo respinto", lang)
         body = (
-            "Abbiamo annullato la decisione."
+            tr("Abbiamo annullato la decisione.", lang)
             if accepted
-            else "La decisione resta. Tocca per leggere la risposta."
+            else tr("La decisione resta. Tocca per leggere la risposta.", lang)
         )
-        return Rendered(title, body, "WearX", "Il tuo reclamo è stato deciso", "/moderation")
+        push = tr("Il tuo reclamo è stato deciso", lang)
+        return Rendered(title, body, "WearX", push, "/moderation")
     if type == "export_ready":
-        title = "Il tuo archivio dei dati è pronto"
-        body = "Scaricalo entro 7 giorni da Impostazioni > I tuoi dati."
-        return Rendered(title, body, "Archivio pronto", title, "/data-export")
-    return Rendered("Novità su WearX", "", "WearX", "Novità su WearX", "/notifications")
+        title = tr("Il tuo archivio dei dati è pronto", lang)
+        body = tr("Scaricalo entro 7 giorni da Impostazioni > I tuoi dati.", lang)
+        return Rendered(title, body, tr("Archivio pronto", lang), title, "/data-export")
+    news = tr("Novità su WearX", lang)
+    return Rendered(news, "", "WearX", news, "/notifications")

@@ -95,7 +95,7 @@ describe("Registrazione", () => {
     expect(auth.signUp).toHaveBeenCalledWith({
       email: "francesco@example.com",
       password: "Trento-Monaco-2026!",
-      options: { data: { nickname: "francesco" }, emailRedirectTo: "wearx://verify" },
+      options: { data: { nickname: "francesco", lang: "it" }, emailRedirectTo: "wearx://verify" },
     });
     expect(router.push).toHaveBeenCalledWith("/verify");
     expect(useSignupDraft.getState()).toMatchObject({

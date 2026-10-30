@@ -20,16 +20,17 @@ from fastapi.responses import HTMLResponse
 
 from app.config import get_settings
 from app.errors import ApiError
+from app.i18n import N_, Lang, tr
 
 router = APIRouter(tags=["legal"], include_in_schema=False)
 
 LEGAL_DIR = Path(__file__).resolve().parent.parent / "legal"
 PAGES = {
-    "termini": "Termini di servizio",
-    "privacy": "Informativa privacy",
-    "regole": "Regole della community",
-    "come-funziona-il-feed": "Come funziona il feed",
-    "cancellazione-account": "Cancellare l'account",
+    "termini": N_("Termini di servizio"),
+    "privacy": N_("Informativa privacy"),
+    "regole": N_("Regole della community"),
+    "come-funziona-il-feed": N_("Come funziona il feed"),
+    "cancellazione-account": N_("Cancellare l'account"),
 }
 
 STYLE = """
@@ -136,35 +137,58 @@ def render_markdown(source: str) -> str:
 
 
 @cache
-def _page(slug: str, draft: bool) -> str:
-    source = (LEGAL_DIR / f"{slug}.md").read_text(encoding="utf-8")
+def _page(slug: str, draft: bool, lang: Lang) -> str:
+    # In inglese le stesse pagine stanno in legal/en/ (seduta 34); fa fede l'italiano.
+    folder = LEGAL_DIR / "en" if lang == "en" else LEGAL_DIR
+    source = (folder / f"{slug}.md").read_text(encoding="utf-8")
     body = render_markdown(source)
-    # La riga sotto il titolo ("Versione ...") in grigio.
+    # La riga sotto il titolo ("Versione ..." / "Version ...") in grigio.
     body = re.sub(
-        r"</h1>\n<p>(Versione [^<]*)</p>", r'</h1>\n<p class="version">\1</p>', body, count=1
+        r"</h1>\n<p>(Versione? [^<]*)</p>", r'</h1>\n<p class="version">\1</p>', body, count=1
     )
     banner = (
-        '<p class="draft" role="note"><strong>Bozza.</strong> Testo da far rivedere a un legale '
-        "prima del lancio: le parti tra parentesi quadre vanno completate.</p>"
+        '<p class="draft" role="note"><strong>'
+        + html.escape(tr("Bozza.", lang))
+        + "</strong> "
+        + html.escape(
+            tr(
+                "Testo da far rivedere a un legale prima del lancio: le parti tra parentesi "
+                "quadre vanno completate.",
+                lang,
+            )
+        )
+        + "</p>"
         if draft
         else ""
     )
-    nav = "".join(f'<a href="{s}">{html.escape(t)}</a>' for s, t in PAGES.items() if s != slug)
+    nav = "".join(
+        f'<a href="{s}">{html.escape(tr(t, lang))}</a>' for s, t in PAGES.items() if s != slug
+    )
+    others = html.escape(tr("Altri documenti", lang), quote=True)
     return (
-        '<!doctype html><html lang="it"><head><meta charset="utf-8">'
+        f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
-        f"<title>{html.escape(PAGES[slug])} · WearX</title>"
+        f"<title>{html.escape(tr(PAGES[slug], lang))} · WearX</title>"
         f"<style>{STYLE}</style></head>"
-        f'<body><main>{banner}{body}<nav aria-label="Altri documenti">{nav}</nav>'
+        f'<body><main>{banner}{body}<nav aria-label="{others}">{nav}</nav>'
         "</main></body></html>"
+    )
+
+
+def _response(slug: str, lang: Lang) -> HTMLResponse:
+    if slug not in PAGES:
+        raise ApiError(404, "legal.not_found", "Pagina non trovata")
+    return HTMLResponse(
+        _page(slug, get_settings().legal_draft, lang),
+        headers={"Cache-Control": "public, max-age=3600", "Content-Security-Policy": CSP},
     )
 
 
 @router.get("/legal/{slug}", response_class=HTMLResponse)
 async def legal_page(slug: str) -> HTMLResponse:
-    if slug not in PAGES:
-        raise ApiError(404, "legal.not_found", "Pagina non trovata")
-    return HTMLResponse(
-        _page(slug, get_settings().legal_draft),
-        headers={"Cache-Control": "public, max-age=3600", "Content-Security-Policy": CSP},
-    )
+    return _response(slug, "it")
+
+
+@router.get("/legal/en/{slug}", response_class=HTMLResponse)
+async def legal_page_en(slug: str) -> HTMLResponse:
+    return _response(slug, "en")

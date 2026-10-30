@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.db import get_session
 from app.errors import ApiError
+from app.i18n import STYLE_NAME_SQL, current_lang
 from app.insights import THRESHOLD, change, mask, rome_today
 from app.profiles import CurrentProfile
 from app.routers.media import MediaUrls, media_urls
@@ -153,7 +154,7 @@ async def insights(
         (
             await session.execute(
                 text(
-                    """select d.post_id, p.caption, s.name as style,
+                    f"""select d.post_id, p.caption, {STYLE_NAME_SQL} as style,
                               sum(d.impressions) as impressions, sum(d.votes) as votes,
                               sum(d.vote_sum) as vote_sum, sum(d.shop_clicks) as shop_clicks,
                               m.upload_id, m.variants, m.blurhash
@@ -162,12 +163,18 @@ async def insights(
                          join app.styles s on s.id = p.style_id
                          left join app.post_media m on m.post_id = p.id and m.position = 0
                         where d.author_id = :me and d.day between :start and :end
-                        group by d.post_id, p.caption, s.name, m.upload_id, m.variants,
+                        group by d.post_id, p.caption, s.name, s.name_en, m.upload_id, m.variants,
                                  m.blurhash
                         order by sum(d.impressions) desc, sum(d.votes) desc, d.post_id
                         limit :top"""
                 ),
-                {"me": viewer.id, "start": start, "end": end, "top": TOP},
+                {
+                    "me": viewer.id,
+                    "start": start,
+                    "end": end,
+                    "top": TOP,
+                    "lang": current_lang(),
+                },
             )
         )
         .mappings()

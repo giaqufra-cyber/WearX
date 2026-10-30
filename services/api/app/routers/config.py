@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
 from app.db import get_session
+from app.i18n import STYLE_NAME_SQL, STYLE_TAGLINE_SQL, Lang, RequestLang
 
 router = APIRouter(prefix="/v1", tags=["config"])
 
@@ -57,8 +58,10 @@ class ConfigOut(BaseModel):
     legal: LegalLinks
 
 
-def legal_links(settings: Settings) -> LegalLinks:
+def legal_links(settings: Settings, lang: Lang = "it") -> LegalLinks:
     base = (settings.legal_base_url or f"{settings.public_api_url}/legal").rstrip("/")
+    if lang == "en":
+        base += "/en"
     return LegalLinks(
         terms=f"{base}/termini",
         privacy=f"{base}/privacy",
@@ -69,13 +72,16 @@ def legal_links(settings: Settings) -> LegalLinks:
 
 @router.get("/config", response_model=ConfigOut)
 async def get_config(
-    response: Response, session: Annotated[AsyncSession, Depends(get_session)]
+    response: Response,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    lang: RequestLang,
 ) -> ConfigOut:
     settings = get_settings()
     rows = await session.execute(
         text(
-            """
-            select slug, name, tagline, tone, min_age_band::text as min_age_band,
+            f"""
+            select slug, {STYLE_NAME_SQL} as name, {STYLE_TAGLINE_SQL} as tagline, tone,
+                   min_age_band::text as min_age_band,
                    (active_until is not null) as seasonal, active_until, category
               from app.styles s
              where is_active
@@ -85,10 +91,13 @@ async def get_config(
              order by (select count(*) from app.style_memberships m where m.style_id = s.id) desc,
                       sort_order, id
             """
-        )
+        ),
+        {"lang": lang},
     )
     styles = [StyleOut.model_validate(dict(r._mapping)) for r in rows]
     response.headers["Cache-Control"] = "public, max-age=300"
+    # Stili e link legali cambiano con la lingua (l'app aggiunge anche ?lang= all'indirizzo).
+    response.headers["Vary"] = "Accept-Language"
     return ConfigOut(
         min_app_version=settings.min_app_version,
         store=StoreLinks(ios=settings.ios_store_url, android=settings.android_store_url),
@@ -99,5 +108,5 @@ async def get_config(
         terms_version=settings.terms_version,
         feature_flags=settings.feature_flags,
         styles=styles,
-        legal=legal_links(settings),
+        legal=legal_links(settings, lang),
     )

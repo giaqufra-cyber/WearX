@@ -24,6 +24,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
+from app.i18n import Lang, tr
 from app.notifications import VOTE_MILESTONES, notify, render
 
 log = logging.getLogger("wearx.push")
@@ -166,14 +167,17 @@ async def send_pending(session: AsyncSession, sender: PushSender, limit: int = 5
     for row in rows:
         by_user[row["user_id"]].append(row)
     users = list(by_user)
-    tokens: dict[uuid.UUID, list[str]] = defaultdict(list)
-    for user_id, token in (
+    tokens: dict[uuid.UUID, list[tuple[str, Lang]]] = defaultdict(list)
+    for user_id, token, language in (
         await session.execute(
-            text("select user_id, token from app.push_tokens where user_id = any(:ids)"),
+            text(
+                """select user_id, token, language from app.push_tokens
+                    where user_id = any(:ids)"""
+            ),
             {"ids": users},
         )
     ).all():
-        tokens[user_id].append(token)
+        tokens[user_id].append((token, "en" if language == "en" else "it"))
     unread: dict[uuid.UUID, int] = dict(
         (
             await session.execute(
@@ -191,19 +195,22 @@ async def send_pending(session: AsyncSession, sender: PushSender, limit: int = 5
     for user_id, items in by_user.items():
         if not tokens[user_id]:
             continue
-        if len(items) == 1:
-            item = items[0]
-            text_ = render(
-                item["type"],
-                item["payload"],
-                actor=item["actor"],
-                caption=item["caption"],
-                post_id=item["post_id"],
-            )
-            title, body, url = text_.push_title, text_.push_body, text_.url
-        else:
-            title, body, url = "WearX", f"Hai {len(items)} nuove notifiche", "/notifications"
-        for token in tokens[user_id]:
+        for token, lang in tokens[user_id]:
+            if len(items) == 1:
+                item = items[0]
+                text_ = render(
+                    item["type"],
+                    item["payload"],
+                    actor=item["actor"],
+                    caption=item["caption"],
+                    post_id=item["post_id"],
+                    lang=lang,
+                )
+                title, body, url = text_.push_title, text_.push_body, text_.url
+            else:
+                title = "WearX"
+                body = tr("Hai {count} nuove notifiche", lang, count=len(items))
+                url = "/notifications"
             messages.append(
                 {
                     "to": token,

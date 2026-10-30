@@ -132,7 +132,7 @@ describe("checkSignup", () => {
 describe("credenziali per Supabase", () => {
   test("link di conferma che riporta nell'app", () => {
     expect(signUpCredentials("email", "a@b.it", "pw", "fra", "wearx://verify").options).toEqual({
-      data: { nickname: "fra" },
+      data: { nickname: "fra", lang: "it" },
       emailRedirectTo: "wearx://verify",
     });
   });
@@ -141,7 +141,7 @@ describe("credenziali per Supabase", () => {
     expect(signUpCredentials("email", " Francesco@Example.COM ", "pw", "Francesco")).toEqual({
       email: "francesco@example.com",
       password: "pw",
-      options: { data: { nickname: "francesco" } },
+      options: { data: { nickname: "francesco", lang: "it" } },
     });
   });
 
@@ -149,7 +149,7 @@ describe("credenziali per Supabase", () => {
     expect(signUpCredentials("phone", "333 1234567", "pw", "fra")).toEqual({
       phone: "+393331234567",
       password: "pw",
-      options: { data: { nickname: "fra" }, channel: "sms" },
+      options: { data: { nickname: "fra", lang: "it" }, channel: "sms" },
     });
     expect(signInCredentials("phone", "333 1234567", "pw")).toEqual({ phone: "+393331234567", password: "pw" });
   });

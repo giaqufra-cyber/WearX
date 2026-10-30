@@ -1036,6 +1036,8 @@ export interface paths {
          * Register Token
          * @description Registra il telefono per i push. Lo stesso telefono passato a un altro account cambia
          *     proprietario (un telefono riceve i push di un solo account: quello con cui è entrato).
+         *     I push arrivano nella lingua dell'app su quel telefono (l'app si registra di nuovo quando
+         *     la lingua cambia).
          */
         put: operations["register_token_v1_me_push_tokens_put"];
         post?: never;
@@ -1816,6 +1818,8 @@ export interface components {
             min_age_band: "16_17" | "18_plus";
             /** Name */
             name: string;
+            /** Name En */
+            name_en?: string | null;
             /** Posts 7D */
             posts_7d: number;
             /** Slug */
@@ -1824,6 +1828,8 @@ export interface components {
             sort_order: number;
             /** Tagline */
             tagline: string;
+            /** Tagline En */
+            tagline_en?: string | null;
             /** Tone */
             tone: string;
         };
@@ -3305,12 +3311,16 @@ export interface components {
             min_age_band?: ("16_17" | "18_plus") | null;
             /** Name */
             name: string;
+            /** Name En */
+            name_en?: string | null;
             /** Slug */
             slug: string;
             /** Sort Order */
             sort_order?: number | null;
             /** Tagline */
             tagline: string;
+            /** Tagline En */
+            tagline_en?: string | null;
             /**
              * Tone
              * @default #2A2A2E
@@ -3363,10 +3373,14 @@ export interface components {
             min_age_band?: ("16_17" | "18_plus") | null;
             /** Name */
             name?: string | null;
+            /** Name En */
+            name_en?: string | null;
             /** Sort Order */
             sort_order?: number | null;
             /** Tagline */
             tagline?: string | null;
+            /** Tagline En */
+            tagline_en?: string | null;
             /** Tone */
             tone?: string | null;
         };

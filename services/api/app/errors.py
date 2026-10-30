@@ -14,13 +14,19 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.i18n import request_lang, tr
+
 logger = logging.getLogger("wearx.errors")
 
 PROBLEM_JSON = "application/problem+json"
 
 
 class ApiError(Exception):
-    """Errore applicativo previsto. Viene restituito al client così com'è."""
+    """Errore applicativo previsto. Viene restituito al client così com'è.
+
+    `title` e `detail` sono testi italiani, tradotti nella lingua della richiesta quando si
+    risponde (seduta 34); i valori variabili vanno in `params` ("{field} è troppo lungo").
+    """
 
     def __init__(
         self,
@@ -30,6 +36,7 @@ class ApiError(Exception):
         detail: str | None = None,
         headers: dict[str, str] | None = None,
         extra: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(code)
         self.status = status
@@ -38,6 +45,7 @@ class ApiError(Exception):
         self.detail = detail
         self.headers = headers or {}
         self.extra = extra or {}
+        self.params = params or {}
 
 
 def problem(
@@ -48,7 +56,11 @@ def problem(
     detail: str | None = None,
     headers: dict[str, str] | None = None,
     extra: dict[str, Any] | None = None,
+    params: dict[str, Any] | None = None,
 ) -> JSONResponse:
+    lang = request_lang(request)
+    title = tr(title, lang, **(params or {}))
+    detail = tr(detail, lang, **(params or {})) if detail else None
     body: dict[str, Any] = {
         "type": f"https://wearx.app/errors/{code.replace('.', '/')}",
         "title": title,
@@ -79,7 +91,9 @@ _STATUS_CODES = {
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(ApiError)
     async def _api_error(request: Request, exc: ApiError) -> JSONResponse:
-        return problem(request, exc.status, exc.code, exc.title, exc.detail, exc.headers, exc.extra)
+        return problem(
+            request, exc.status, exc.code, exc.title, exc.detail, exc.headers, exc.extra, exc.params
+        )
 
     @app.exception_handler(StarletteHTTPException)
     async def _http_error(request: Request, exc: StarletteHTTPException) -> JSONResponse:
