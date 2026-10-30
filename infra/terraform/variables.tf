@@ -113,6 +113,22 @@ variable "push_provider" {
   default     = "log"
 }
 
+variable "places_provider" {
+  description = "Ricerca del luogo del fit (seduta 35): photon (OpenStreetMap), fake (elenco fisso, mai in produzione) o off."
+  type        = string
+  default     = "photon"
+  validation {
+    condition     = contains(["photon", "fake", "off"], var.places_provider)
+    error_message = "places_provider: photon, fake oppure off."
+  }
+}
+
+variable "places_url" {
+  description = "Istanza Photon (vuoto = quella pubblica di komoot)."
+  type        = string
+  default     = ""
+}
+
 variable "sentry_traces_sample_rate" {
   type    = number
   default = 0.05

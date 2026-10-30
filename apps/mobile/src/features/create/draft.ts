@@ -3,6 +3,7 @@
  * sparisce dopo la pubblicazione o se la scarti.
  */
 import { randomUUID } from "expo-crypto";
+import type { PlaceSuggestion } from "@wearx/api-types";
 import { create } from "zustand";
 
 import type { ItemDraft, PhotoState } from "@/features/create/form";
@@ -27,6 +28,8 @@ type Draft = {
   style: string | null;
   items: ItemDraft[];
   caption: string;
+  /** Luogo facoltativo (seduta 35). */
+  place: PlaceSuggestion | null;
   /** Stessa chiave per tutti i tentativi di pubblicazione: il server non crea doppioni. */
   idempotencyKey: string;
   addPhotos: (photos: Pick<DraftPhoto, "uri" | "width" | "height">[]) => void;
@@ -38,6 +41,7 @@ type Draft = {
   updateItem: (key: string, patch: Partial<ItemDraft>) => void;
   removeItem: (key: string) => void;
   setCaption: (caption: string) => void;
+  setPlace: (place: PlaceSuggestion | null) => void;
   reset: () => void;
 };
 
@@ -48,6 +52,7 @@ const initial = () => ({
   style: null,
   items: [emptyItem()],
   caption: "",
+  place: null as PlaceSuggestion | null,
   idempotencyKey: randomUUID(),
 });
 
@@ -87,13 +92,17 @@ export const useNewPostDraft = create<Draft>((set) => ({
       return { items: items.length ? items : [emptyItem()] };
     }),
   setCaption: (caption) => set({ caption }),
+  setPlace: (place) => set({ place }),
   reset: () => set(initial()),
 }));
 
-export function draftHasContent(draft: Pick<Draft, "photos" | "items" | "caption" | "style">): boolean {
+export function draftHasContent(
+  draft: Pick<Draft, "photos" | "items" | "caption" | "style"> & { place?: Draft["place"] },
+): boolean {
   return (
     draft.photos.length > 0 ||
     draft.caption.trim() !== "" ||
+    Boolean(draft.place) ||
     draft.items.some((i) => i.brand || i.name || i.price || i.link || i.pin)
   );
 }

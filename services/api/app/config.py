@@ -102,6 +102,12 @@ class Settings(BaseSettings):
     push_provider: Literal["expo", "log"] = "log"
     expo_access_token: SecretStr | None = None
 
+    # Luogo del fit (seduta 35): ricerca su OpenStreetMap con Photon (komoot). La richiesta la
+    # fa il server, mai il telefono. "fake": elenco fisso per sviluppo, test e demo; "off":
+    # ricerca spenta. In produzione si può puntare a un'istanza Photon propria.
+    places_provider: Literal["photon", "fake", "off"] = "fake"
+    places_url: str = "https://photon.komoot.io"
+
     # Google Safe Browsing (liste di siti di phishing e malware) per i link ai negozi.
     # Senza chiave valgono solo i domini bloccati dallo staff.
     safe_browsing_key: SecretStr | None = None
@@ -177,6 +183,8 @@ def get_settings() -> Settings:
     settings = Settings()
     if settings.is_production and settings.age_provider == "fake":
         raise RuntimeError("WEARX_AGE_PROVIDER: il fornitore finto non è ammesso in produzione")
+    if settings.is_production and settings.places_provider == "fake":
+        raise RuntimeError("WEARX_PLACES_PROVIDER: l'elenco finto non è ammesso in produzione")
     if settings.is_production and settings.attestation_mode == "off":
         raise RuntimeError("WEARX_ATTESTATION_MODE: in produzione almeno 'soft'")
     if settings.is_production and settings.app_attest_allow_development:

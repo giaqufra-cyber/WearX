@@ -53,10 +53,17 @@ birth you enter is used to work these out and then we delete it. If your age is 
 external provider (selfie estimate, ID document, SPID or CIE, when available), we only receive
 the result from them: no images, no documents, no date of birth.
 
-**Fits.** Photos, caption, style, items worn (brand, name, price, shop link). We strip all
-hidden data from photos (GPS location, phone model, date taken). For each photo we also keep a
+**Fits.** Photos, caption, style, items worn (brand, name, price, shop link) and, if you add
+it, the place. We strip all hidden data from photos (GPS location, phone model, date taken). For each photo we also keep a
 numeric fingerprint, used to recognise photos already removed for serious violations if
 someone tries to post them again.
+
+**Place of the fit (optional).** You choose it by searching for its name: a venue, a shop, a
+street or a city (16-17 year olds can only add the city). It's shown with the fit to whoever can
+see your profile: if your profile is private, only your followers (it never appears on anonymous
+fits in the feed). You can change or remove it whenever you want. We never use your phone's
+location and home addresses can't be chosen. Our server runs the search with Photon (komoot,
+OpenStreetMap data): it only receives the text you type, not your IP address or your account.
 
 **Scores.** A score from 1 to 100 and, sometimes, the answer to "Is this really this style?".
 They are stored under a pseudonym calculated with a secret code, not with your account. They
@@ -154,6 +161,7 @@ for us (processors, GDPR art. 28):
 | Expo, Apple, Google | Delivering push notifications | United States |
 | Apple, Google | Checking that the app is genuine | United States |
 | Google Safe Browsing | Checking shop links (only receives the link address) | United States |
+| Photon (komoot) | Searching for the place of a fit (only receives the search text) | Germany (EU) |
 | [Age verification provider] | Age verification | [Country] |
 | [Illegal image detection provider] | Checking photos | [Country] |
 
@@ -185,7 +193,8 @@ of the EU country where you live.
 WearX is only for people aged 16 and over. For 16 and 17 year olds: the profile starts out
 private, fits are only visible to other 16-17 year olds, adults can't search for you or see
 you in suggestions, you only appear in search if you choose to (and only to other 16-17 year
-olds), we don't suggest adults with a private profile to you, some styles are reserved for
+olds), we don't suggest adults with a private profile to you, the place of a fit can only be a
+city, some styles are reserved for
 adults, you don't get notifications between 10 pm and 7 am and photos are checked with stricter
 criteria. When you turn 18 your age group changes by itself; fits posted before stay visible
 only to 16-17 year olds.

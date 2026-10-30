@@ -239,6 +239,13 @@ BIOS = [
 ]
 
 # autore, stile, didascalia, look, foto, voto medio, capi (marchio, capo, prezzo €)
+# Didascalia -> luogo cercato per quel fit (seduta 35).
+DEMO_PLACES = {
+    "Prima del galà al Sociale di Trento": "teatro sociale",
+    "Domenica in centro, cachemire e mocassini": "brera",
+    "Layering per Harajuku… versione Bolzano": "bolzano",
+}
+
 POSTS: list[tuple[str, str, str, int, int, int, list[tuple[str, str, int]]]] = [
     (
         "giulia.rossi",
@@ -502,6 +509,14 @@ async def demo_seed(auth: Any, client: Any, store: Any) -> dict[str, Any]:
                 for k, (brand, name, price) in enumerate(items)
             ],
         }
+        # Luogo del fit (seduta 35), dall'elenco finto della ricerca.
+        if caption in DEMO_PLACES:
+            found = await client.get(
+                "/v1/places", params={"q": DEMO_PLACES[caption]}, headers=auth_header(author)
+            )
+            items_found = found.json().get("items") or []
+            if items_found:
+                body["place"] = items_found[0]["ref"]
         r = await client.post("/v1/posts", json=body, headers=auth_header(author))
         if r.status_code != 201:
             raise RuntimeError(f"post {caption}: {r.status_code} {r.text}")

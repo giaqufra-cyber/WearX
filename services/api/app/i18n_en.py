@@ -106,6 +106,11 @@ EN: dict[str, str] = {
     "I tuoi fit sono già nel tuo profilo": "Your fits are already on your profile",
     "Non puoi votare i tuoi fit": "You can't score your own fits",
     "Questo post non si può votare": "This post can't be scored",
+    # Luogo del fit (places.py)
+    "Ricerca dei luoghi non disponibile": "Place search isn't available",
+    "Ricerca dei luoghi non disponibile, riprova": "Place search isn't available, try again",
+    "Luogo non valido: cercalo di nuovo": "Invalid place: search for it again",
+    "Puoi indicare solo la città": "You can only add the city",
     # Persone
     "Richiesta non trovata": "Request not found",
     "Questa persona non può seguirti": "This person can't follow you",

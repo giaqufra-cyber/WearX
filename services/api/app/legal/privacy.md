@@ -53,10 +53,19 @@ anni. La data di nascita che inserisci serve a calcolarle e poi la cancelliamo. 
 verificata da un fornitore esterno (stima da selfie, documento, SPID o CIE, quando disponibili),
 da lui riceviamo solo l'esito: niente immagini, niente documenti, niente data di nascita.
 
-**Fit.** Foto, didascalia, stile, capi indossati (marca, nome, prezzo, link al negozio). Dalle
-foto togliamo tutti i dati nascosti (posizione GPS, modello del telefono, data dello scatto).
+**Fit.** Foto, didascalia, stile, capi indossati (marca, nome, prezzo, link al negozio) e, se
+lo aggiungi, il luogo. Dalle foto togliamo tutti i dati nascosti (posizione GPS, modello del
+telefono, data dello scatto).
 Di ogni foto conserviamo anche un'impronta numerica, usata per riconoscere le foto già rimosse
 per violazioni gravi se qualcuno prova a ripubblicarle.
+
+**Luogo del fit (facoltativo).** Lo scegli cercandolo per nome: un locale, un negozio, una via
+o una città (chi ha 16-17 anni può indicare solo la città). Lo vede, insieme al fit, chi vede il
+tuo profilo: se il profilo è privato, solo chi ti segue (sui fit anonimi nel feed non compare).
+Lo puoi cambiare o togliere quando vuoi. Non usiamo mai la posizione del tuo
+telefono e non si possono scegliere indirizzi di case. La ricerca la fa il nostro server presso
+Photon (komoot, dati OpenStreetMap): riceve solo il testo che scrivi, non il tuo indirizzo IP né
+il tuo account.
 
 **Voti.** Punteggio da 1 a 100 e, a volte, la risposta alla domanda "È davvero questo stile?".
 Sono salvati con uno pseudonimo calcolato con un codice segreto, non con il tuo account.
@@ -154,6 +163,7 @@ usarli solo per noi (responsabili del trattamento, GDPR art. 28):
 | Expo, Apple, Google | Recapito delle notifiche push | Stati Uniti |
 | Apple, Google | Verifica che l'app sia autentica | Stati Uniti |
 | Google Safe Browsing | Controllo dei link ai negozi (riceve solo l'indirizzo del link) | Stati Uniti |
+| Photon (komoot) | Ricerca del luogo del fit (riceve solo il testo cercato) | Germania (UE) |
 | [Fornitore di verifica dell'età] | Verifica dell'età | [Paese] |
 | [Fornitore di riconoscimento di immagini illegali] | Controllo delle foto | [Paese] |
 
@@ -184,7 +194,8 @@ tuoi dati in modo scorretto puoi reclamare al **Garante per la protezione dei da
 WearX è riservata a chi ha almeno 16 anni. Per chi ha 16 o 17 anni: il profilo nasce privato, i
 fit sono visibili solo ad altre persone di 16-17 anni, gli adulti non possono cercarti né
 vederti nei suggerimenti, nella ricerca compari solo se lo scegli tu (e solo ad altri 16-17enni),
-tra i suggerimenti non ti proponiamo adulti con profilo privato, alcuni
+tra i suggerimenti non ti proponiamo adulti con profilo privato, come luogo di un fit puoi
+indicare solo la città, alcuni
 stili sono riservati ai maggiorenni, non ricevi notifiche tra le 22 e le 7 e le foto sono
 controllate con criteri più severi. Al compimento dei 18 anni la fascia cambia da sola; i fit
 pubblicati prima restano visibili solo ai 16-17enni.

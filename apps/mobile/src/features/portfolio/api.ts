@@ -219,6 +219,14 @@ export function usePostActions(id: string) {
       refreshPortfolio(client);
     },
   });
+  // Luogo del fit (seduta 35): il `ref` di un risultato della ricerca, null = togli.
+  const setPlace = useMutation({
+    mutationFn: (place: string | null) => apiRequest<Post>("PATCH", `/v1/posts/${id}`, { token, body: { place } }),
+    onSuccess: (post) => {
+      client.setQueryData(postKey(uid, id), post);
+      void client.invalidateQueries({ queryKey: FEED_KEY });
+    },
+  });
   const remove = useMutation({
     mutationFn: () => apiRequest<void>("DELETE", `/v1/posts/${id}`, { token }),
     onSuccess: () => {
@@ -227,5 +235,5 @@ export function usePostActions(id: string) {
       void client.invalidateQueries({ queryKey: FEED_KEY });
     },
   });
-  return { setCapsule, remove };
+  return { setCapsule, setPlace, remove };
 }

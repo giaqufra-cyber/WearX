@@ -1336,6 +1336,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/places": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Find Places
+         * @description Luoghi con un nome (mai indirizzi di casa); per chi ha 16-17 anni solo città e zone.
+         */
+        get: operations["find_places_v1_places_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/posts": {
         parameters: {
             query?: never;
@@ -2722,6 +2742,47 @@ export interface components {
              */
             since: string;
         };
+        /**
+         * PlaceOut
+         * @description Il luogo di un fit. Le coordinate sono quelle del luogo, per aprirlo in Mappe.
+         */
+        PlaceOut: {
+            /** Detail */
+            detail: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "venue" | "street" | "area" | "city" | "region" | "country";
+            /** Lat */
+            lat: number;
+            /** Lon */
+            lon: number;
+            /** Name */
+            name: string;
+        };
+        /** PlaceResults */
+        PlaceResults: {
+            /** Items */
+            items: components["schemas"]["PlaceSuggestion"][];
+        };
+        /**
+         * PlaceSuggestion
+         * @description Un risultato della ricerca. `ref` si rimanda così com'è quando si pubblica il fit.
+         */
+        PlaceSuggestion: {
+            /** Detail */
+            detail: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "venue" | "street" | "area" | "city" | "region" | "country";
+            /** Name */
+            name: string;
+            /** Ref */
+            ref: string;
+        };
         /** PortfolioPage */
         PortfolioPage: {
             /** Cover Id */
@@ -2792,6 +2853,8 @@ export interface components {
             items?: components["schemas"]["ItemIn"][];
             /** Media */
             media: string[];
+            /** Place */
+            place?: string | null;
             /** Style */
             style: string;
         };
@@ -2840,6 +2903,7 @@ export interface components {
             items: components["schemas"]["ItemOut"][];
             /** Media */
             media: components["schemas"]["MediaOut"][];
+            place?: components["schemas"]["PlaceOut"] | null;
             /** Published At */
             published_at: string | null;
             /** Restyle Available */
@@ -2867,6 +2931,8 @@ export interface components {
             caption?: string | null;
             /** Items */
             items?: components["schemas"]["ItemIn"][] | null;
+            /** Place */
+            place?: string | null;
             /** Style */
             style?: string | null;
         };
@@ -6116,6 +6182,37 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    find_places_v1_places_get: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceResults"];
+                };
             };
             /** @description Validation Error */
             422: {

@@ -50,7 +50,8 @@ Questo archivio contiene i dati che WearX conserva su di te alla data indicata i
 profilo.json         nickname, bio, fascia d'eta', impostazioni, consensi, verifica dell'eta'
                      (solo l'esito: nessuna immagine o data di nascita)
 stili.json           gli stili a cui aderisci
-fit.json             i tuoi fit con didascalia, stile, capi, prezzi e link (anche archiviati)
+fit.json             i tuoi fit con didascalia, stile, luogo, capi, prezzi e link (anche
+                     archiviati)
 salvati.json         i fit degli altri che hai salvato
 capsule.json         le tue capsule
 persone.json         chi segui, chi ti segue, richieste, account bloccati
@@ -77,7 +78,8 @@ in any editor.
 profilo.json         nickname, bio, age group, settings, consents, age verification
                      (the result only: no images or date of birth)
 stili.json           the styles you've joined
-fit.json             your fits with caption, style, items, prices and links (archived too)
+fit.json             your fits with caption, style, place, items, prices and links (archived
+                     too)
 salvati.json         other people's fits you've saved
 capsule.json         your capsules
 persone.json         who you follow, who follows you, requests, blocked accounts
@@ -151,11 +153,14 @@ async def collect(session: AsyncSession, user_id: uuid.UUID) -> dict[str, Any]:
                        then round((st.shown_wsum / st.shown_wcount)::numeric, 1) end as media,
                   c.name as capsula, p.archived_at as archiviato_il,
                   (select count(*) from app.saved_posts sv where sv.post_id = p.id)
-                    as salvato_da_altri
+                    as salvato_da_altri,
+                  case when pl.id is not null then concat_ws(', ', pl.name, pl.detail) end
+                    as luogo
              from app.posts p
              join app.styles s on s.id = p.style_id
              left join app.post_stats st on st.post_id = p.id
              left join app.capsules c on c.id = p.capsule_id
+             left join app.places pl on pl.id = p.place_id
             where p.author_id = :me and p.status <> 'deleted'
             order by p.created_at""",
         **me,

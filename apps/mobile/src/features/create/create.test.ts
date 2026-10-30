@@ -99,6 +99,7 @@ describe("capi e pubblicazione", () => {
       caption: "Serata",
       media: ["u1", "u2"],
       items: [{ brand: "Armani", name: "Smoking", price_cents: 125050, currency: "EUR", url: "https://armani.com" }],
+      place: null,
     });
   });
 });

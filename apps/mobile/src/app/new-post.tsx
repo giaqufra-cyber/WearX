@@ -13,6 +13,7 @@ import { draftHasContent, useNewPostDraft } from "@/features/create/draft";
 import { cancelAllUploads, cancelUpload, retryPhoto, useUploadEngine } from "@/features/create/engine";
 import { buildPostRequest, canPublish, CAPTION_MAX, MAX_ITEMS, MAX_PHOTOS } from "@/features/create/form";
 import { ItemCard } from "@/features/create/ItemCard";
+import { PlacePicker } from "@/features/places/PlacePicker";
 import { PhotoStrip } from "@/features/create/PhotoStrip";
 import { PORTFOLIO_KEY } from "@/features/portfolio/api";
 import { STYLES_KEY, useMyStyles, useStyles } from "@/features/styles/api";
@@ -20,7 +21,7 @@ import { styleChoices } from "@/features/styles/catalog";
 import { ProposeSheet } from "@/features/styles/ProposeSheet";
 import { ApiError, apiRequest } from "@/lib/api";
 import { Button } from "@/ui/Button";
-import { IconClose, IconLock } from "@/ui/icons";
+import { IconClose, IconLock, IconPin } from "@/ui/icons";
 import { IconButton } from "@/ui/IconButton";
 import { SearchField } from "@/ui/SearchField";
 import { Sheet } from "@/ui/Sheet";
@@ -38,6 +39,8 @@ const PUBLISH_ERRORS: Record<string, string> = {
   "text.too_long": N_("Un testo è troppo lungo."),
   "rate.limited": N_("Hai pubblicato molto in poco tempo: riprova tra un po'."),
   "text.not_allowed": N_("Ci sono parole non ammesse nella didascalia o nei capi."),
+  "place.invalid": N_("Il luogo non è più valido: cercalo di nuovo."),
+  "place.not_allowed": N_("Puoi indicare solo la città."),
 };
 
 /** Nuovo fit (prototipo, schermata Create). Si apre a tutto schermo dal "+" della barra. */
@@ -59,6 +62,7 @@ export default function NewPostScreen() {
   const [styleQuery, setStyleQuery] = useState("");
   const [allStyles, setAllStyles] = useState(false);
   const [proposing, setProposing] = useState(false);
+  const [placing, setPlacing] = useState(false);
   // Senza ricerca: lo stile scelto, i tuoi, poi i più seguiti (seduta 29). Con la ricerca: tutti
   // quelli che corrispondono, in tutto il catalogo.
   const choices = useMemo(
@@ -226,13 +230,33 @@ export default function NewPostScreen() {
             aria-label={t("Didascalia")}
             value={draft.caption}
             onChangeText={draft.setCaption}
-            placeholder={t("Dove l'hai indossato?")}
+            placeholder={t("Racconta il fit: l'occasione, un dettaglio…")}
             placeholderTextColor={colors.textTertiary}
             selectionColor={colors.accent}
             maxLength={CAPTION_MAX}
             multiline
             style={styles.caption}
           />
+
+          <Section title={t("5 · LUOGO")} aside={t("facoltativo")} />
+          <Pressable
+            role="button"
+            aria-label={draft.place ? t("Luogo: {place}. Cambia", { place: draft.place.name }) : t("Aggiungi il luogo")}
+            onPress={() => setPlacing(true)}
+            style={({ pressed }) => [styles.place, pressed ? styles.pressed : null]}
+          >
+            <IconPin color={draft.place ? colors.text : colors.textSecondary} size={20} />
+            <View style={styles.placeText}>
+              <RNText style={draft.place ? styles.placeName : styles.placeEmpty} numberOfLines={1}>
+                {draft.place ? draft.place.name : t("Aggiungi il luogo")}
+              </RNText>
+              {draft.place?.detail ? (
+                <RNText style={styles.placeDetail} numberOfLines={1}>
+                  {draft.place.detail}
+                </RNText>
+              ) : null}
+            </View>
+          </Pressable>
 
           {error ? (
             <RNText style={styles.error} role="alert">
@@ -249,6 +273,15 @@ export default function NewPostScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
+      <PlacePicker
+        visible={placing}
+        current={draft.place}
+        onClose={() => setPlacing(false)}
+        onPick={(place) => {
+          draft.setPlace(place);
+          setPlacing(false);
+        }}
+      />
       <ProposeSheet
         visible={proposing}
         initialName={styleQuery.trim()}
@@ -259,7 +292,7 @@ export default function NewPostScreen() {
         }}
       />
       <Sheet visible={confirmDiscard} title={t("Scartare il fit?")} onClose={() => setConfirmDiscard(false)}>
-        <RNText style={styles.sheetText}>{t("Foto, capi e didascalia andranno persi.")}</RNText>
+        <RNText style={styles.sheetText}>{t("Foto, capi, didascalia e luogo andranno persi.")}</RNText>
         <Button label={t("Scarta")} variant="danger" onPress={discard} fullWidth />
         <Button label={t("Continua a modificare")} variant="secondary" onPress={() => setConfirmDiscard(false)} fullWidth />
       </Sheet>
@@ -348,6 +381,22 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.bodyLarge,
     outlineWidth: 0,
   },
+  place: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    minHeight: 56,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  placeText: { flex: 1, minWidth: 0 },
+  placeName: { fontFamily: fonts.uiSemiBold, fontSize: fontSizes.bodyLarge, color: colors.text },
+  placeEmpty: { fontFamily: fonts.ui, fontSize: fontSizes.bodyLarge, color: colors.textTertiary },
+  placeDetail: { fontFamily: fonts.ui, fontSize: 13, color: colors.textSecondary, marginTop: 2 },
   error: { fontFamily: fonts.ui, fontSize: 13, lineHeight: 19, color: colors.danger, marginTop: spacing[4] },
   privacy: { flexDirection: "row", gap: 10, alignItems: "flex-start", marginTop: 20 },
   privacyText: { flex: 1, fontFamily: fonts.ui, fontSize: 12, lineHeight: 18, color: colors.textTertiary },

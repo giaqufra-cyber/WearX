@@ -1585,3 +1585,34 @@ Esplora, profilo, notifiche e Privacy Policy provati nel browser in inglese a 39
 
 Da fare fuori dal codice: incollare i modelli di `docs/EMAIL.md` in Supabase (staging e
 produzione). Da far rivedere: le traduzioni delle pagine legali insieme al testo italiano.
+
+### Seduta 35 — 2026-10-30
+
+**Obiettivo:** il luogo del fit come su Mappe, facoltativo.
+
+Fatto:
+- **Ricerca del luogo** (`app/places.py`, `GET /v1/places?q=`): per nome, come su Mappe (un
+  locale, un negozio, una via, un quartiere, una città). La fa il server con **Photon** (komoot,
+  dati OpenStreetMap, senza chiave): Photon non vede né l'IP né l'account di chi cerca, e non
+  usiamo mai la posizione del telefono. Risultati in cache un giorno; al massimo 8; nomi in
+  inglese con l'app in inglese. In sviluppo, test, E2E e demo un elenco fisso
+  (`WEARX_PLACES_PROVIDER=fake`, vietato in produzione); `off` spegne la ricerca.
+- **Privacy**: solo luoghi con un nome, mai indirizzi o case; chi ha 16-17 anni può indicare solo
+  la città (o quartiere, regione, paese), anche se provasse a mandare altro. Il luogo lo vede chi
+  vede l'autore: sui fit anonimi del feed (profilo privato che non segui) non compare.
+- **Codice firmato**: ogni risultato ha un `ref` firmato; pubblicando, il server accetta solo
+  luoghi arrivati dalla ricerca e li salva una volta sola (`places`, migrazione 0024).
+- **Nell'app**: nel nuovo fit la sezione "5 · Luogo (facoltativo)"; sul fit, sotto lo stile, il
+  luogo con il segnaposto, che si apre in **Apple Mappe** su iPhone e Google Maps su Android e sul
+  web; dal proprio fit "Aggiungi il luogo" / "Luogo: …" per cambiarlo o toglierlo. Il luogo è
+  anche nell'archivio dei dati (`fit.json`) e nell'informativa privacy (italiano e inglese).
+- La didascalia ora suggerisce "Racconta il fit…" (la domanda "Dove l'hai indossato?" è passata
+  al luogo).
+
+Verifiche: 473 test API (+9); 318 test app (+3); 14 percorsi Playwright (quello di
+pubblicazione ora sceglie anche il luogo); nuovo fit, ricerca, scelta e fit con il luogo provati
+nel browser a 390×844.
+
+Su staging e produzione Terraform imposta `WEARX_PLACES_PROVIDER=photon` (variabile
+`places_provider`). Prima del lancio: decidere se restare sull'istanza pubblica di Photon
+(gratuita, senza garanzie di servizio) o usarne una propria (`places_url`).

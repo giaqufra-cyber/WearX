@@ -75,6 +75,8 @@ export type DraftForCheck = {
   style: string | null;
   items: ItemDraft[];
   caption: string;
+  /** Luogo facoltativo (seduta 35): il risultato scelto nella ricerca. */
+  place?: { ref: string } | null;
 };
 
 export type PublishCheck = { ok: true } | { ok: false; reason: string };
@@ -129,5 +131,6 @@ export function buildPostRequest(draft: DraftForCheck): PostCreate {
     caption: draft.caption.trim() || null,
     media: draft.photos.map((p) => p.uploadId ?? ""),
     items,
+    place: draft.place?.ref ?? null,
   };
 }

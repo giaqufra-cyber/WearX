@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 
 import { login, state } from "./helpers";
 
-test("pubblicare un fit: foto, stile, capo, didascalia, elaborazione, nel portfolio", async ({ page }) => {
+test("pubblicare un fit: foto, stile, capo, didascalia, luogo, elaborazione, nel portfolio", async ({ page }) => {
   const { people } = await state();
   await login(page, people["marco.e2e"]!);
   await page.getByRole("tab", { name: "Pubblica un fit" }).click();
@@ -28,6 +28,11 @@ test("pubblicare un fit: foto, stile, capo, didascalia, elaborazione, nel portfo
   await page.getByRole("button", { name: "Fatto" }).click();
   await expect(page.getByText("Sulla foto 1 · Cambia")).toBeVisible();
   await page.getByRole("textbox", { name: "Didascalia" }).fill("Prova end-to-end in centro");
+  // Luogo (seduta 35): ricerca per nome, dal server (elenco finto negli E2E).
+  await page.getByRole("button", { name: "Aggiungi il luogo" }).click();
+  await page.getByRole("searchbox", { name: "Cerca il luogo" }).fill("brera");
+  await page.getByRole("button", { name: "Brera, Milano, Italia" }).click();
+  await expect(page.getByRole("button", { name: "Luogo: Brera. Cambia" })).toBeVisible();
   const sent = page.waitForRequest((r) => r.url().endsWith("/v1/posts") && r.method() === "POST");
   await page.getByRole("button", { name: "Pubblica" }).click();
   const item = ((await sent).postDataJSON() as { items: Record<string, number>[] }).items[0]!;
@@ -43,5 +48,6 @@ test("pubblicare un fit: foto, stile, capo, didascalia, elaborazione, nel portfo
   await tile.click();
   await expect(page.getByText("Giacca in denim")).toBeVisible();
   await expect(page.getByText("Officina")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Luogo: Brera · Milano, Italia. Apri in Mappe" })).toBeVisible();
   await expect(page.getByText(/^89\s€$/).filter({ visible: true }).first()).toBeVisible();
 });

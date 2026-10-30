@@ -84,6 +84,9 @@ export type ShopLink = Schemas["LinkOut"];
 export type ShopDomain = Schemas["ShopDomainOut"];
 export type BlockedDomain = Schemas["BlockedDomainOut"];
 export type BlockedDomainCreate = Schemas["BlockedDomainIn"];
+export type PlaceSuggestion = Schemas["PlaceSuggestion"];
+export type PlaceResults = Schemas["PlaceResults"];
+export type FitPlace = Schemas["PlaceOut"];
 
 // Pannello dello staff (/v1/admin)
 export type StaffMe = Schemas["StaffMe"];
@@ -179,6 +182,9 @@ export type ApiErrorCode =
   | "notifications.invalid_cursor"
   | "onboarding.required"
   | "people.invalid_cursor"
+  | "place.invalid"
+  | "place.not_allowed"
+  | "places.unavailable"
   | "portfolio.bad_position"
   | "portfolio.invalid_cursor"
   | "post.not_found"
