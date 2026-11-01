@@ -10,6 +10,19 @@ mkdir -p "$OUT"
 
 adb wait-for-device
 until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ]; do sleep 2; done
+# L'app segue la lingua del telefono (seduta 33) e i percorsi sono scritti sui testi italiani:
+# l'emulatore va in italiano. Non basta la lingua della sola app: Maestro, azzerando i dati
+# dell'app (clearState), la cancella. Si cambia la lingua di sistema e si riavvia Android.
+adb root
+adb wait-for-device
+until [ "$(adb shell whoami | tr -d '\r')" = "root" ]; do sleep 1; done
+adb shell setprop persist.sys.locale it-IT
+adb shell setprop sys.boot_completed 0
+adb shell setprop ctl.restart zygote
+sleep 5
+until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do sleep 2; done
+adb shell getprop persist.sys.locale | tee "$OUT/lingua.txt"
+grep -q "it-IT" "$OUT/lingua.txt"
 # Sull'emulatore della CI il launcher a volte "non risponde" appena acceso: niente finestre
 # di errore di sistema sopra l'app (coprirebbero i pulsanti) e qualche secondo di calma.
 adb shell settings put global hide_error_dialogs 1 || true
@@ -31,11 +44,6 @@ adb shell content call --method scan_volume --uri content://media --arg external
 sleep 5
 # Notifiche: si concede il permesso subito (la richiesta di sistema interromperebbe i percorsi).
 adb shell pm grant app.wearx.mobile android.permission.POST_NOTIFICATIONS || true
-# L'app segue la lingua del telefono (seduta 33) e l'emulatore è in inglese: i percorsi sono
-# scritti sui testi italiani, quindi l'app (solo lei, il sistema resta in inglese) va in italiano.
-adb shell cmd locale set-app-locales app.wearx.mobile --locales it-IT
-adb shell cmd locale get-app-locales app.wearx.mobile | tee "$OUT/lingua-app.txt"
-grep -q "it-IT" "$OUT/lingua-app.txt"
 
 cd "$OUT"
 set +e
@@ -45,6 +53,4 @@ status=${PIPESTATUS[0]}
 set -e
 adb exec-out screencap -p > "$OUT/ultima-schermata.png" || true
 adb logcat -d -t 2000 > "$OUT/logcat.txt" || true
-# Dopo i percorsi (che azzerano i dati dell'app): la lingua deve essere ancora l'italiano.
-adb shell cmd locale get-app-locales app.wearx.mobile >> "$OUT/lingua-app.txt" || true
 exit $status
