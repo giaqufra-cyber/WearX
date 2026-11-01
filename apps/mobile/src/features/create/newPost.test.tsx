@@ -141,7 +141,10 @@ test("galleria, ordine, stile, capo, didascalia, pubblica con chiave anti-doppio
     },
   });
   expect(router.back).toHaveBeenCalled();
-  expect(useNewPostDraft.getState().photos).toHaveLength(0); // bozza svuotata
+  // La bozza si svuota quando la schermata è chiusa, non mentre si chiude (crash su Android).
+  expect(useNewPostDraft.getState().photos).toHaveLength(2);
+  await screen.unmount();
+  expect(useNewPostDraft.getState().photos).toHaveLength(0);
 });
 
 test("errore di pubblicazione: la bozza resta e si vede il motivo", async () => {
@@ -167,8 +170,9 @@ test("annulla: chiede conferma e cancella le foto già caricate", async () => {
   expect(screen.getByText("Scartare il fit?")).toBeOnTheScreen();
   await user.press(screen.getByRole("button", { name: "Scarta" }));
   expect(deps.deleteUpload).toHaveBeenCalledTimes(2);
-  expect(useNewPostDraft.getState().photos).toHaveLength(0);
   expect(router.back).toHaveBeenCalled();
+  await screen.unmount();
+  expect(useNewPostDraft.getState().photos).toHaveLength(0);
 });
 
 test("togliere una foto cancella anche il suo caricamento", async () => {

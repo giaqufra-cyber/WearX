@@ -3,7 +3,7 @@ import type { Post, StyleCard } from "@wearx/api-types";
 import { colors, fonts, fontSizes, radii, spacing } from "@wearx/design-tokens";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text as RNText, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -104,12 +104,28 @@ export default function NewPostScreen() {
   const discard = () => {
     cancelAllUploads();
     if (token) for (const p of draft.photos) if (p.uploadId) void deleteUpload(token, p.uploadId);
-    draft.reset();
     setConfirmDiscard(false);
-    close();
+    leave();
   };
 
   const close = () => (router.canGoBack() ? router.back() : router.replace("/"));
+
+  // Dopo "Pubblica" o "Scarta" la bozza si svuota quando la schermata è già chiusa, non mentre
+  // si chiude: svuotandola prima, lo stile scelto (in testa alla fila) tornava al suo posto
+  // durante l'uscita e React Native su Android chiudeva l'app ("addViewAt: failed to insert
+  // view", trovato da Maestro dopo la seduta 35).
+  const clearOnLeave = useRef(false);
+  const resetDraft = draft.reset;
+  useEffect(
+    () => () => {
+      if (clearOnLeave.current) resetDraft();
+    },
+    [resetDraft],
+  );
+  const leave = () => {
+    clearOnLeave.current = true;
+    close();
+  };
 
   const publish = async () => {
     if (!check.ok || !token || publishing) return;
@@ -121,18 +137,17 @@ export default function NewPostScreen() {
         body: buildPostRequest(draft),
         idempotencyKey: draft.idempotencyKey,
       });
-      draft.reset();
       void queryClient.invalidateQueries({ queryKey: STYLES_KEY });
       void queryClient.invalidateQueries({ queryKey: PORTFOLIO_KEY });
       toast.show(t("Fit pubblicato in {style}.", { style: post.style.name }));
-      close();
+      // Il pulsante resta "in caricamento" fino all'uscita: niente cambi mentre si chiude.
+      leave();
     } catch (caught) {
+      setPublishing(false);
       const code = caught instanceof ApiError ? caught.code : "";
       // Pubblicazione sospesa: il messaggio del server ha la data di fine.
       const suspended = caught instanceof ApiError && code === "account.posting_restricted" ? `${caught.title}.` : null;
       setError(suspended ?? t(PUBLISH_ERRORS[code] ?? "Non riusciamo a pubblicare. Controlla la connessione e riprova."));
-    } finally {
-      setPublishing(false);
     }
   };
 
