@@ -31,7 +31,11 @@ for _ in $(seq 1 60); do
 done
 
 echo "2/4 Dipendenze…"
-[ -d node_modules ] || pnpm install --frozen-lockfile
+# Si installa anche quando le dipendenze sono cambiate (pnpm-lock.yaml più nuovo dell'ultima
+# installazione), non solo la prima volta: altrimenti un pacchetto nuovo manca all'app.
+if [ ! -f node_modules/.modules.yaml ] || [ pnpm-lock.yaml -nt node_modules/.modules.yaml ]; then
+  pnpm install --frozen-lockfile
+fi
 (cd services/api && uv sync --quiet)
 
 DIST="apps/mobile/dist-demo"
