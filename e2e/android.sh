@@ -10,6 +10,19 @@ mkdir -p "$OUT"
 
 adb wait-for-device
 until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ]; do sleep 2; done
+# L'app segue la lingua del telefono (seduta 33) e i percorsi sono scritti sui testi italiani:
+# l'emulatore va in italiano. Non basta la lingua della sola app: Maestro, azzerando i dati
+# dell'app (clearState), la cancella. Si cambia la lingua di sistema e si riavvia Android.
+adb root
+adb wait-for-device
+until [ "$(adb shell whoami | tr -d '\r')" = "root" ]; do sleep 1; done
+adb shell setprop persist.sys.locale it-IT
+adb shell setprop sys.boot_completed 0
+adb shell setprop ctl.restart zygote
+sleep 5
+until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do sleep 2; done
+adb shell getprop persist.sys.locale | tee "$OUT/lingua.txt"
+grep -q "it-IT" "$OUT/lingua.txt"
 # Sull'emulatore della CI il launcher a volte "non risponde" appena acceso: niente finestre
 # di errore di sistema sopra l'app (coprirebbero i pulsanti) e qualche secondo di calma.
 adb shell settings put global hide_error_dialogs 1 || true
