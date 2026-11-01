@@ -1616,3 +1616,22 @@ nel browser a 390×844.
 Su staging e produzione Terraform imposta `WEARX_PLACES_PROVIDER=photon` (variabile
 `places_provider`). Prima del lancio: decidere se restare sull'istanza pubblica di Photon
 (gratuita, senza garanzie di servizio) o usarne una propria (`places_url`).
+
+### Fuori piano: Android (Maestro) di nuovo verde — 2026-11-01
+
+Il workflow "App su Android (Maestro)" falliva da qualche seduta. Le cause erano due.
+- **Lingua dell'emulatore** (dalla seduta 33). L'app segue la lingua del telefono, ma
+  l'emulatore della CI è in inglese, mentre i percorsi cercano i testi italiani («Crea il tuo
+  account»). Impostare la lingua della sola app non basta, perché Maestro la cancella quando
+  azzera i dati (`clearState`). Ora `e2e/android.sh` mette in italiano tutto l'emulatore
+  (`persist.sys.locale=it-IT` e riavvio di Android). Il pulsante «Attendi/Wait» del dialogo di
+  sistema si cerca in tutte e due le lingue.
+- **Crash vero dell'app su Android dopo «Pubblica»**, intermittente, già dalla seduta 29. Il fit
+  veniva pubblicato, poi l'app si chiudeva con «addViewAt: failed to insert view … at index 7».
+  La bozza si svuotava mentre la schermata si chiudeva, e lo stile scelto, che sta in testa alla
+  fila, tornava al suo posto proprio durante l'uscita. È la stessa famiglia di bug di React
+  Native della seduta 25 (pulsante). Ora la bozza si svuota solo quando la schermata è già
+  chiusa, sia dopo «Pubblica» sia dopo «Scarta». Inoltre il pulsante resta in caricamento fino
+  all'uscita.
+
+Verifiche: 318 test app; tutti e 4 i percorsi Maestro su Android.
