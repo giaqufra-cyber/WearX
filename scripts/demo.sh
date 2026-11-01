@@ -31,10 +31,14 @@ for _ in $(seq 1 60); do
 done
 
 echo "2/4 Dipendenze…"
-# Si installa anche quando le dipendenze sono cambiate (pnpm-lock.yaml più nuovo dell'ultima
-# installazione), non solo la prima volta: altrimenti un pacchetto nuovo manca all'app.
-if [ ! -f node_modules/.modules.yaml ] || [ pnpm-lock.yaml -nt node_modules/.modules.yaml ]; then
+# Si installa anche quando le dipendenze sono cambiate, non solo la prima volta: altrimenti un
+# pacchetto nuovo manca all'app. Si confronta il contenuto di pnpm-lock.yaml con quello
+# dell'ultima installazione riuscita (le date dei file, dopo git pull, non sono affidabili).
+LOCK_HASH="$(sha256sum pnpm-lock.yaml | cut -d' ' -f1)"
+STAMP="node_modules/.wearx-lock-sha256"
+if [ ! -f node_modules/.modules.yaml ] || [ "$(cat "$STAMP" 2>/dev/null || true)" != "$LOCK_HASH" ]; then
   pnpm install --frozen-lockfile
+  echo "$LOCK_HASH" > "$STAMP"
 fi
 (cd services/api && uv sync --quiet)
 
