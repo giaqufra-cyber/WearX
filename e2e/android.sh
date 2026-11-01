@@ -31,6 +31,11 @@ adb shell content call --method scan_volume --uri content://media --arg external
 sleep 5
 # Notifiche: si concede il permesso subito (la richiesta di sistema interromperebbe i percorsi).
 adb shell pm grant app.wearx.mobile android.permission.POST_NOTIFICATIONS || true
+# L'app segue la lingua del telefono (seduta 33) e l'emulatore è in inglese: i percorsi sono
+# scritti sui testi italiani, quindi l'app (solo lei, il sistema resta in inglese) va in italiano.
+adb shell cmd locale set-app-locales app.wearx.mobile --locales it-IT
+adb shell cmd locale get-app-locales app.wearx.mobile | tee "$OUT/lingua-app.txt"
+grep -q "it-IT" "$OUT/lingua-app.txt"
 
 cd "$OUT"
 set +e
@@ -40,4 +45,6 @@ status=${PIPESTATUS[0]}
 set -e
 adb exec-out screencap -p > "$OUT/ultima-schermata.png" || true
 adb logcat -d -t 2000 > "$OUT/logcat.txt" || true
+# Dopo i percorsi (che azzerano i dati dell'app): la lingua deve essere ancora l'italiano.
+adb shell cmd locale get-app-locales app.wearx.mobile >> "$OUT/lingua-app.txt" || true
 exit $status
