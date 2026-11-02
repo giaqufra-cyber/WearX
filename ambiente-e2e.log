@@ -1,0 +1,101 @@
+INFO wearx: API avviata
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:23:23] "[33mHEAD /wearx-media HTTP/1.1[0m" 404 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:23:23] "PUT /wearx-media HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:23:23] "PUT /wearx-media?cors HTTP/1.1" 200 -
+INFO wearx: API avviata
+INFO httpx: HTTP Request: GET http://localhost:54321/auth/v1/.well-known/jwks.json "HTTP/1.1 200 OK"
+INFO wearx.access: POST /v1/onboarding/profile 201
+INFO httpx: HTTP Request: POST http://e2e/v1/onboarding/profile "HTTP/1.1 201 Created"
+INFO wearx.access: POST /v1/onboarding/profile 201
+INFO httpx: HTTP Request: POST http://e2e/v1/onboarding/profile "HTTP/1.1 201 Created"
+INFO wearx.access: POST /v1/onboarding/profile 201
+INFO httpx: HTTP Request: POST http://e2e/v1/onboarding/profile "HTTP/1.1 201 Created"
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:23:23] "PUT /wearx-media/media/119cfe12-dc92-4f80-927a-580f34c98f40/320.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:23:23] "PUT /wearx-media/media/119cfe12-dc92-4f80-927a-580f34c98f40/640.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:23:23] "PUT /wearx-media/media/119cfe12-dc92-4f80-927a-580f34c98f40/1080.webp HTTP/1.1" 200 -
+INFO wearx.access: POST /v1/posts 201
+INFO httpx: HTTP Request: POST http://e2e/v1/posts "HTTP/1.1 201 Created"
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:23:23] "PUT /wearx-media/media/63482c99-6cac-46fa-a7d3-2e9fac1e5043/320.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:23:23] "PUT /wearx-media/media/63482c99-6cac-46fa-a7d3-2e9fac1e5043/640.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:23:23] "PUT /wearx-media/media/63482c99-6cac-46fa-a7d3-2e9fac1e5043/1080.webp HTTP/1.1" 200 -
+INFO wearx.access: POST /v1/posts 201
+INFO httpx: HTTP Request: POST http://e2e/v1/posts "HTTP/1.1 201 Created"
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:23:23] "PUT /wearx-media/media/a419acc3-c2b6-4ab5-9adf-68621569e89d/320.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:23:23] "PUT /wearx-media/media/a419acc3-c2b6-4ab5-9adf-68621569e89d/640.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:23:23] "PUT /wearx-media/media/a419acc3-c2b6-4ab5-9adf-68621569e89d/1080.webp HTTP/1.1" 200 -
+INFO wearx.access: POST /v1/posts 201
+INFO httpx: HTTP Request: POST http://e2e/v1/posts "HTTP/1.1 201 Created"
+INFO arq.worker: Starting worker for 1 functions: process_upload
+INFO arq.worker: redis_version=7.4.12 mem_usage=1.18M clients_connected=2 db_keys=4
+E2E pronto: app http://localhost:8081  API http://localhost:8000
+INFO wearx.access: GET /v1/config 200
+INFO wearx.access: POST /v1/auth/nickname-check 200
+INFO wearx.access: GET /v1/me 409
+INFO wearx.access: GET /v1/age-verification 200
+INFO wearx.access: POST /v1/age-verification/sessions 201
+INFO wearx.access: GET /v1/dev/fake-age/{ref} 200
+INFO wearx.access: POST /v1/dev/fake-age/{ref} 303
+INFO wearx.access: GET /v1/age-verification 200
+INFO wearx.access: GET /v1/age-verification 200
+INFO wearx.access: GET /v1/age-verification 200
+INFO wearx.access: POST /v1/onboarding/profile 201
+INFO wearx.access: GET /v1/me 200
+INFO wearx.access: GET /v1/feed 200
+INFO wearx.access: GET /v1/notifications/unread 200
+INFO wearx.access: PUT /v1/me/devices/current 204
+INFO wearx.access: GET /v1/me/styles 200
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:27:00] "GET /wearx-media/media/119cfe12-dc92-4f80-927a-580f34c98f40/1080.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=wearx/20261102/us-east-1/s3/aws4_request&X-Amz-Date=20261102T041500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=318c7043fd8b290f118531ff9936a6784676542a7054158cb58904fff93d60b1 HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:27:00] "GET /wearx-media/media/63482c99-6cac-46fa-a7d3-2e9fac1e5043/1080.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=wearx/20261102/us-east-1/s3/aws4_request&X-Amz-Date=20261102T041500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=26a19241058d51ef3929059e4dc00fc9f089d41fcc11922a583fb473ccbb5cb3 HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:27:00] "GET /wearx-media/media/a419acc3-c2b6-4ab5-9adf-68621569e89d/1080.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=wearx/20261102/us-east-1/s3/aws4_request&X-Amz-Date=20261102T041500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=689d7100ee0e7a305fd9eaafa260fc896209f657b55429257fba5b7c714e6268 HTTP/1.1" 200 -
+INFO wearx.access: GET /v1/config 200
+INFO wearx.access: GET /v1/me 200
+INFO wearx.access: GET /v1/notifications/unread 200
+INFO wearx.access: GET /v1/me/styles 200
+INFO wearx.access: PUT /v1/me/devices/current 204
+INFO wearx.access: GET /v1/feed 200
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:27:29] "GET /wearx-media/media/a419acc3-c2b6-4ab5-9adf-68621569e89d/1080.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=wearx/20261102/us-east-1/s3/aws4_request&X-Amz-Date=20261102T041500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=689d7100ee0e7a305fd9eaafa260fc896209f657b55429257fba5b7c714e6268 HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:27:29] "GET /wearx-media/media/63482c99-6cac-46fa-a7d3-2e9fac1e5043/1080.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=wearx/20261102/us-east-1/s3/aws4_request&X-Amz-Date=20261102T041500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=26a19241058d51ef3929059e4dc00fc9f089d41fcc11922a583fb473ccbb5cb3 HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:27:29] "GET /wearx-media/media/119cfe12-dc92-4f80-927a-580f34c98f40/1080.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=wearx/20261102/us-east-1/s3/aws4_request&X-Amz-Date=20261102T041500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=318c7043fd8b290f118531ff9936a6784676542a7054158cb58904fff93d60b1 HTTP/1.1" 200 -
+INFO wearx.access: PUT /v1/posts/{post_id}/vote 200
+INFO wearx.access: GET /v1/config 200
+INFO wearx.access: GET /v1/me 200
+INFO wearx.access: GET /v1/notifications/unread 200
+INFO wearx.access: PUT /v1/me/devices/current 204
+INFO wearx.access: GET /v1/me/styles 200
+INFO wearx.access: GET /v1/feed 200
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:28:11] "GET /wearx-media/media/63482c99-6cac-46fa-a7d3-2e9fac1e5043/1080.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=wearx/20261102/us-east-1/s3/aws4_request&X-Amz-Date=20261102T041500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=26a19241058d51ef3929059e4dc00fc9f089d41fcc11922a583fb473ccbb5cb3 HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:28:11] "GET /wearx-media/media/119cfe12-dc92-4f80-927a-580f34c98f40/1080.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=wearx/20261102/us-east-1/s3/aws4_request&X-Amz-Date=20261102T041500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=318c7043fd8b290f118531ff9936a6784676542a7054158cb58904fff93d60b1 HTTP/1.1" 200 -
+INFO wearx.access: GET /v1/styles 200
+INFO wearx.access: POST /v1/events 202
+INFO wearx.access: POST /v1/media/uploads 201
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:28:26] "[35m[1mPOST /wearx-media HTTP/1.1[0m" 204 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:28:26] "HEAD /wearx-media/quarantine/4bb2fb48-a0ce-4163-aa17-b3b1599219c9 HTTP/1.1" 200 -
+INFO wearx.access: POST /v1/media/uploads/{upload_id}/complete 202
+INFO arq.worker:   0.09s → upload:4bb2fb48-a0ce-4163-aa17-b3b1599219c9:process_upload('4bb2fb48-a0ce-4163-aa17-b3b1599219c9')
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:28:26] "GET /wearx-media/quarantine/4bb2fb48-a0ce-4163-aa17-b3b1599219c9 HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:28:27] "PUT /wearx-media/media/4bb2fb48-a0ce-4163-aa17-b3b1599219c9/1200.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:28:27] "PUT /wearx-media/media/4bb2fb48-a0ce-4163-aa17-b3b1599219c9/1080.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:28:27] "PUT /wearx-media/media/4bb2fb48-a0ce-4163-aa17-b3b1599219c9/640.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:28:27] "PUT /wearx-media/media/4bb2fb48-a0ce-4163-aa17-b3b1599219c9/320.webp HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:28:27] "POST /wearx-media?delete HTTP/1.1" 200 -
+INFO arq.worker:   0.29s ← upload:4bb2fb48-a0ce-4163-aa17-b3b1599219c9:process_upload ● 'ready'
+INFO wearx.access: GET /v1/media/uploads/{upload_id} 200
+INFO wearx.access: POST /v1/posts 201
+INFO wearx.access: GET /v1/me/styles 200
+INFO wearx.access: GET /v1/styles 200
+INFO wearx.access: GET /v1/users/{nickname} 200
+INFO wearx.access: GET /v1/users/{nickname}/posts 200
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:29:05] "GET /wearx-media/media/4bb2fb48-a0ce-4163-aa17-b3b1599219c9/1080.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=wearx/20261102/us-east-1/s3/aws4_request&X-Amz-Date=20261102T041500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=4aae488e4718139b74769d1ec2948dd54f20e10963e2cce99678385222111028 HTTP/1.1" 200 -
+INFO wearx.access: GET /v1/config 200
+INFO wearx.access: GET /v1/me 200
+INFO wearx.access: GET /v1/notifications/unread 200
+INFO wearx.access: PUT /v1/me/devices/current 204
+INFO wearx.access: GET /v1/feed 200
+INFO wearx.access: GET /v1/me/styles 200
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:29:34] "GET /wearx-media/media/63482c99-6cac-46fa-a7d3-2e9fac1e5043/1080.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=wearx/20261102/us-east-1/s3/aws4_request&X-Amz-Date=20261102T041500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=26a19241058d51ef3929059e4dc00fc9f089d41fcc11922a583fb473ccbb5cb3 HTTP/1.1" 200 -
+INFO werkzeug: 127.0.0.1 - - [02/Nov/2026 04:29:34] "GET /wearx-media/media/119cfe12-dc92-4f80-927a-580f34c98f40/1080.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=wearx/20261102/us-east-1/s3/aws4_request&X-Amz-Date=20261102T041500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=318c7043fd8b290f118531ff9936a6784676542a7054158cb58904fff93d60b1 HTTP/1.1" 200 -
+INFO wearx.access: POST /v1/events 202
+INFO wearx.access: GET /v1/users/{nickname} 200
+INFO wearx.access: POST /v1/users/{nickname}/follow 200
+INFO wearx.access: GET /v1/feed 200
+INFO wearx.access: GET /v1/users/{nickname} 200
